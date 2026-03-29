@@ -24,6 +24,10 @@ func Info(msg string)    { fmt.Println(cyan.Render("→ " + msg)) }
 func Dim(msg string)     { fmt.Println(dim.Render(msg)) }
 func Bold(msg string)    { fmt.Println(bold.Render(msg)) }
 
+// GreenText / RedText return coloured strings (no newline) for inline use.
+func GreenText(s string) string { return green.Render(s) }
+func RedText(s string) string   { return red.Render(s) }
+
 // JSON prints v as indented JSON to stdout.
 func JSON(v any) error {
 	enc := json.NewEncoder(os.Stdout)
