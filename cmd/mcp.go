@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/mouhamedsylla/kaal/internal/mcp"
 	"github.com/spf13/cobra"
 )
 
@@ -21,7 +22,6 @@ func init() {
 	mcpCmd.AddCommand(mcpServeCmd)
 }
 
-func runMCPServe(cmd *cobra.Command, args []string) error {
-	// Implementation: mcp.NewServer().Serve() — to be wired up
-	return nil
+func runMCPServe(cmd *cobra.Command, _ []string) error {
+	return mcp.NewServer().Serve(cmd.Context())
 }

@@ -52,7 +52,7 @@ func Run(name string, flags Flags) error {
 		}
 	}
 
-	opts.applyDefaults()
+	opts.ApplyDefaults()
 
 	ui.Info(fmt.Sprintf("Generating kaal.yaml for %q", opts.Name))
 
@@ -137,7 +137,8 @@ func defaultOptions(detected DetectedProject, flags Flags) Options {
 	}
 }
 
-func (o *Options) applyDefaults() {
+// ApplyDefaults fills in any missing fields with sensible defaults.
+func (o *Options) ApplyDefaults() {
 	if o.LanguageVersion == "" {
 		o.LanguageVersion = defaultVersionForStack(o.Stack)
 	}

@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/mouhamedsylla/kaal/internal/kaalerr"
 	"gopkg.in/yaml.v3"
 )
 
@@ -30,16 +31,16 @@ func LoadFromPath(path string) (*Config, error) {
 func loadFromPath(path string) (*Config, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("cannot read %s: %w", path, err)
+		return nil, &kaalerr.ConfigError{Path: path, Cause: err}
 	}
 
 	var cfg Config
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
-		return nil, fmt.Errorf("invalid YAML in %s: %w", path, err)
+		return nil, &kaalerr.ConfigError{Path: path, Cause: fmt.Errorf("invalid YAML: %w", err)}
 	}
 
 	if err := Validate(&cfg); err != nil {
-		return nil, fmt.Errorf("invalid kaal.yaml: %w", err)
+		return nil, &kaalerr.ConfigError{Path: path, Cause: err}
 	}
 
 	return &cfg, nil
@@ -65,7 +66,7 @@ func findConfigFile(dir string) (string, error) {
 		dir = parent
 	}
 
-	return "", fmt.Errorf("%s not found (run 'kaal init' to create one)", FileName)
+	return "", &kaalerr.ConfigError{Cause: fmt.Errorf("%s not found (run 'kaal init' to create one)", FileName)}
 }
 
 // Save writes the config back to kaal.yaml at the given path.

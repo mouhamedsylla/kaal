@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/mouhamedsylla/kaal/internal/config"
+	"github.com/mouhamedsylla/kaal/internal/kaalerr"
 	"github.com/mouhamedsylla/kaal/internal/providers"
 	kaalSSH "github.com/mouhamedsylla/kaal/pkg/ssh"
 )
@@ -32,6 +33,25 @@ func (p *Provider) Deploy(ctx context.Context, env string, opts providers.Deploy
 	composeFile := composeFileForEnv(env)
 	stateDir := p.stateDir()
 
+	// Copy resolved env files to remote before running compose.
+	if len(opts.EnvFiles) > 0 {
+		if err := client.CopyFiles(ctx, opts.EnvFiles, "~/kaal/"); err != nil {
+			p.recordDeploy(ctx, client, env, opts.Tag, false, err.Error())
+			return fmt.Errorf("sync env files: %w", err)
+		}
+	}
+
+	// Build --env-file flags for docker compose.
+	envFileFlags := ""
+	for _, f := range opts.EnvFiles {
+		// Remote path: ~/kaal/<basename>
+		base := f
+		if idx := strings.LastIndex(f, "/"); idx >= 0 {
+			base = f[idx+1:]
+		}
+		envFileFlags += fmt.Sprintf(" --env-file ~/kaal/%s", base)
+	}
+
 	commands := []string{
 		// Ensure state dir exists
 		fmt.Sprintf("mkdir -p %s", stateDir),
@@ -40,12 +60,19 @@ func (p *Provider) Deploy(ctx context.Context, env string, opts providers.Deploy
 		fmt.Sprintf("echo %s > %s/current-tag", opts.Tag, stateDir),
 		// Pull and restart
 		fmt.Sprintf("docker pull %s", image),
-		fmt.Sprintf("IMAGE_TAG=%s docker compose -f %s up -d --remove-orphans", opts.Tag, composeFile),
+		fmt.Sprintf("IMAGE_TAG=%s docker compose -f %s%s up -d --remove-orphans", opts.Tag, composeFile, envFileFlags),
 	}
 	for _, cmd := range commands {
 		if out, err := client.Run(ctx, cmd); err != nil {
+			deployErr := &kaalerr.DeployError{
+				Phase:   "restart",
+				Target:  p.target.Host,
+				Command: cmd,
+				Output:  out,
+				Cause:   err,
+			}
 			p.recordDeploy(ctx, client, env, opts.Tag, false, err.Error())
-			return fmt.Errorf("remote command %q failed: %w\n%s", cmd, err, out)
+			return deployErr
 		}
 	}
 	p.recordDeploy(ctx, client, env, opts.Tag, true, "")
@@ -152,8 +179,15 @@ func (p *Provider) Rollback(ctx context.Context, env string, version string) (st
 	}
 	for _, cmd := range commands {
 		if out, err := client.Run(ctx, cmd); err != nil {
+			deployErr := &kaalerr.DeployError{
+				Phase:   "rollback",
+				Target:  p.target.Host,
+				Command: cmd,
+				Output:  out,
+				Cause:   err,
+			}
 			p.recordDeploy(ctx, client, env, tag, false, "rollback: "+err.Error())
-			return "", fmt.Errorf("rollback command %q failed: %w\n%s", cmd, err, out)
+			return "", deployErr
 		}
 	}
 	p.recordDeploy(ctx, client, env, tag, true, "rollback")
@@ -170,12 +204,16 @@ func (p *Provider) connect() (*kaalSSH.Client, error) {
 	if port == 0 {
 		port = 22
 	}
-	return kaalSSH.NewClient(kaalSSH.Config{
+	c, err := kaalSSH.NewClient(kaalSSH.Config{
 		Host:    p.target.Host,
 		User:    p.target.User,
 		KeyPath: p.target.Key,
 		Port:    port,
 	})
+	if err != nil {
+		return nil, &kaalerr.SSHError{Host: p.target.Host, Op: "connect", Cause: err}
+	}
+	return c, nil
 }
 
 // composeFileForEnv returns the conventional compose filename for an environment.
