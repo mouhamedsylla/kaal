@@ -6,8 +6,12 @@ import (
 	"github.com/mouhamedsylla/kaal/internal/mcp/handlers"
 )
 
-// All handler vars below delegate to handlers package.
-// As each feature is implemented, replace stub() with real logic.
+// Context + infra generation — implemented
+var handleContext HandlerFunc = handlers.HandleContext
+var handleGenerateDockerfile HandlerFunc = handlers.HandleGenerateDockerfile
+var handleGenerateCompose HandlerFunc = handlers.HandleGenerateCompose
+
+// All other handlers below delegate to stubs until features are built.
 
 var handleInit HandlerFunc = handlers.Stub("kaal_init")
 var handleEnvSwitch HandlerFunc = handlers.Stub("kaal_env_switch")

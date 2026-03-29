@@ -2,20 +2,82 @@ package mcp
 
 // registerAll wires up all MCP tools to their handlers.
 func (s *Server) registerAll() {
+	// Context + infra generation — primary AI agent workflow
+	s.Register(toolContext, handleContext)
+	s.Register(toolGenerateDockerfile, handleGenerateDockerfile)
+	s.Register(toolGenerateCompose, handleGenerateCompose)
+
+	// Environment lifecycle
 	s.Register(toolInit, handleInit)
 	s.Register(toolEnvSwitch, handleEnvSwitch)
 	s.Register(toolUp, handleUp)
 	s.Register(toolDown, handleDown)
+
+	// Registry + deployment
 	s.Register(toolPush, handlePush)
 	s.Register(toolDeploy, handleDeploy)
 	s.Register(toolRollback, handleRollback)
 	s.Register(toolSync, handleSync)
+
+	// Observability
 	s.Register(toolStatus, handleStatus)
 	s.Register(toolLogs, handleLogs)
+
+	// Config + secrets
 	s.Register(toolConfigGet, handleConfigGet)
 	s.Register(toolConfigSet, handleConfigSet)
 	s.Register(toolSecretsInject, handleSecretsInject)
 }
+
+// ──────────────────── context + infra generation ────────────────────
+
+var toolContext = Tool{
+	Name: "kaal_context",
+	Description: `Return the complete project context for this kaal project.
+Call this FIRST before generating any infrastructure files.
+Returns: kaal.yaml, file tree, detected stack, existing Dockerfiles/compose files,
+service definitions, missing file list, and a ready-to-use agent_prompt.`,
+	InputSchema: InputSchema{
+		Type: "object",
+		Properties: map[string]Property{
+			"env": {Type: "string", Description: "Environment to collect context for (defaults to active env)"},
+		},
+	},
+}
+
+var toolGenerateDockerfile = Tool{
+	Name: "kaal_generate_dockerfile",
+	Description: `Write a Dockerfile to the project directory.
+Call kaal_context first to understand the project stack and requirements.
+The agent is responsible for generating the Dockerfile content — kaal writes it to disk.`,
+	InputSchema: InputSchema{
+		Type: "object",
+		Properties: map[string]Property{
+			"content": {Type: "string", Description: "Full Dockerfile content to write"},
+			"path":    {Type: "string", Description: "Destination path (default: Dockerfile)"},
+		},
+		Required: []string{"content"},
+	},
+}
+
+var toolGenerateCompose = Tool{
+	Name: "kaal_generate_compose",
+	Description: `Write a docker-compose.<env>.yml to the project directory.
+Call kaal_context first to understand the services and environment configuration.
+The agent is responsible for generating the compose file content — kaal writes it to disk.
+After writing, the agent should tell the user to run 'kaal up'.`,
+	InputSchema: InputSchema{
+		Type: "object",
+		Properties: map[string]Property{
+			"content": {Type: "string", Description: "Full docker-compose YAML content to write"},
+			"env":     {Type: "string", Description: "Environment name (default: active env) — determines filename docker-compose.<env>.yml"},
+			"path":    {Type: "string", Description: "Override destination path (optional)"},
+		},
+		Required: []string{"content"},
+	},
+}
+
+// ──────────────────────── environment lifecycle ────────────────────────
 
 var toolInit = Tool{
 	Name:        "kaal_init",

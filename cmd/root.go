@@ -37,6 +37,7 @@ func init() {
 
 	rootCmd.AddCommand(
 		initCmd,
+		contextCmd,
 		envCmd,
 		upCmd,
 		downCmd,

@@ -1,6 +1,4 @@
-// Package up implements the kaal up command logic.
-// It resolves the active environment, ensures required files exist
-// (generating them if absent), then delegates to the orchestrator.
+// Package up implements the kaal up and kaal down command logic.
 package up
 
 import (
@@ -8,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mouhamedsylla/kaal/internal/composer"
+	kaalctx "github.com/mouhamedsylla/kaal/internal/context"
 	"github.com/mouhamedsylla/kaal/internal/config"
 	"github.com/mouhamedsylla/kaal/internal/env"
 	"github.com/mouhamedsylla/kaal/internal/runtime"
@@ -20,7 +18,6 @@ type Options struct {
 	Env      string   // override active env
 	Services []string // empty = all services
 	Build    bool     // force image rebuild
-	Detach   bool     // run in background (default true)
 }
 
 // Run executes kaal up.
@@ -32,70 +29,94 @@ func Run(ctx context.Context, opts Options) error {
 
 	activeEnv := env.Active(opts.Env)
 
-	envCfg, ok := cfg.Environments[activeEnv]
-	if !ok {
+	if _, ok := cfg.Environments[activeEnv]; !ok {
 		return fmt.Errorf("environment %q not defined in kaal.yaml\n  Run 'kaal env use <env>' or add it to kaal.yaml", activeEnv)
 	}
 
 	ui.Info(fmt.Sprintf("Starting environment %q", activeEnv))
 
-	// Step 1 — ensure Dockerfile exists for app services
-	if hasAppService(cfg) {
-		dockerfilePath, generated, err := composer.EnsureDockerfile(cfg)
-		if err != nil {
-			return err
-		}
-		if generated {
-			ui.Success(fmt.Sprintf("Generated %s (stack: %s)", dockerfilePath, cfg.Project.Stack))
-			ui.Dim("  Review it and commit if it looks right.")
-		} else {
-			ui.Dim(fmt.Sprintf("Using existing %s", dockerfilePath))
-		}
+	// Collect full project context — used to check what's missing
+	// and to surface context to the agent if generation is needed
+	projCtx, err := kaalctx.Collect(activeEnv)
+	if err != nil {
+		return err
 	}
 
-	// Step 2 — ensure docker-compose.<env>.yml exists
-	composeFile := fmt.Sprintf("docker-compose.%s.yml", activeEnv)
-	if _, err := os.Stat(composeFile); os.IsNotExist(err) {
-		written, err := composer.GenerateCompose(cfg, composer.ComposeOptions{
-			Env:     activeEnv,
-			EnvFile: envCfg.EnvFile,
-			IsDev:   activeEnv == "dev",
-		})
-		if err != nil {
-			return fmt.Errorf("generate compose: %w", err)
-		}
-		ui.Success(fmt.Sprintf("Generated %s", written))
-		ui.Dim("  Review it and commit if it looks right.")
-	} else {
-		ui.Dim(fmt.Sprintf("Using existing %s", composeFile))
+	// Guard: if required files are missing, stop and ask the agent
+	if projCtx.MissingDockerfile || projCtx.MissingCompose {
+		return missingFilesError(projCtx)
 	}
 
-	// Step 3 — warn if env file is missing
+	// Warn if env file is missing (non-blocking — compose can still start)
+	envCfg := cfg.Environments[activeEnv]
 	if envCfg.EnvFile != "" {
 		if _, err := os.Stat(envCfg.EnvFile); os.IsNotExist(err) {
-			ui.Warn(fmt.Sprintf("%s not found — create it from .env.example or add your variables", envCfg.EnvFile))
+			ui.Warn(fmt.Sprintf("%s not found — services may fail to start without required variables", envCfg.EnvFile))
 		}
 	}
 
-	// Step 4 — start services via orchestrator
+	// Start via orchestrator
 	orch, err := runtime.NewOrchestrator(cfg, activeEnv)
 	if err != nil {
 		return err
 	}
 
-	ui.Info(fmt.Sprintf("Running docker compose up (env: %s)", activeEnv))
-
 	if err := orch.Up(ctx, activeEnv, opts.Services); err != nil {
-		return fmt.Errorf("kaal up failed: %w", err)
+		return fmt.Errorf("docker compose failed: %w", err)
 	}
 
 	fmt.Println()
 	ui.Success(fmt.Sprintf("Environment %q is up", activeEnv))
-	printServiceURLs(cfg, activeEnv)
+	printServiceURLs(cfg)
 	return nil
 }
 
-// Down stops services for the active environment.
+// missingFilesError returns a rich error that tells the developer exactly
+// what to ask their AI agent to generate.
+func missingFilesError(projCtx *kaalctx.ProjectContext) error {
+	var missing []string
+	if projCtx.MissingDockerfile {
+		missing = append(missing, "Dockerfile")
+	}
+	if projCtx.MissingCompose {
+		missing = append(missing, fmt.Sprintf("docker-compose.%s.yml", projCtx.ActiveEnv))
+	}
+
+	fmt.Println()
+	ui.Error(fmt.Sprintf("Missing: %v", missing))
+	fmt.Println()
+
+	ui.Bold("Ask your AI agent to generate them.")
+	fmt.Println()
+	ui.Dim("  Option 1 — via MCP (Claude Code, Cursor):")
+	ui.Dim("    kaal mcp serve is already configured in .mcp.json")
+	ui.Dim("    Ask Claude: \"Generate the missing infrastructure files for this project\"")
+	ui.Dim("    Claude will call kaal_context to get the full project details,")
+	ui.Dim("    then write the files directly.")
+	fmt.Println()
+	ui.Dim("  Option 2 — paste this context into any AI chat:")
+	fmt.Println()
+
+	// Print the agent prompt (truncated for terminal display)
+	prompt := projCtx.AgentPrompt()
+	lines := splitLines(prompt)
+	for i, line := range lines {
+		if i >= 40 {
+			ui.Dim(fmt.Sprintf("  ... (%d more lines — use 'kaal context' to get the full prompt)", len(lines)-40))
+			break
+		}
+		ui.Dim("  " + line)
+	}
+
+	fmt.Println()
+	ui.Dim("  Run 'kaal context' to print the full agent prompt")
+	ui.Dim("  Then re-run 'kaal up' once the files are created")
+	fmt.Println()
+
+	return fmt.Errorf("infrastructure files missing — see above")
+}
+
+// DownOptions controls kaal down behaviour.
 type DownOptions struct {
 	Env     string
 	Volumes bool
@@ -121,34 +142,37 @@ func RunDown(ctx context.Context, opts DownOptions) error {
 	}
 
 	if err := orch.Down(ctx, activeEnv); err != nil {
-		return fmt.Errorf("kaal down failed: %w", err)
+		return fmt.Errorf("docker compose down failed: %w", err)
 	}
 
 	ui.Success(fmt.Sprintf("Environment %q stopped", activeEnv))
 	return nil
 }
 
-func hasAppService(cfg *config.Config) bool {
-	for _, svc := range cfg.Services {
-		if svc.Type == config.ServiceTypeApp {
-			return true
-		}
-	}
-	return false
-}
-
-func printServiceURLs(cfg *config.Config, envName string) {
-	envCfg := cfg.Environments[envName]
-	_ = envCfg
-
+func printServiceURLs(cfg *config.Config) {
 	fmt.Println()
 	for name, svc := range cfg.Services {
 		if svc.Port > 0 {
-			ui.Dim(fmt.Sprintf("  %-12s http://localhost:%d", name, svc.Port))
+			ui.Dim(fmt.Sprintf("  %-14s http://localhost:%d", name, svc.Port))
 		}
 	}
 	fmt.Println()
-	ui.Dim("kaal logs --follow   to stream logs")
-	ui.Dim("kaal down            to stop")
-	ui.Dim("kaal status          to inspect services")
+	ui.Dim("kaal logs --follow   stream logs")
+	ui.Dim("kaal down            stop services")
+	ui.Dim("kaal status          inspect services")
+}
+
+func splitLines(s string) []string {
+	var lines []string
+	start := 0
+	for i, c := range s {
+		if c == '\n' {
+			lines = append(lines, s[start:i])
+			start = i + 1
+		}
+	}
+	if start < len(s) {
+		lines = append(lines, s[start:])
+	}
+	return lines
 }

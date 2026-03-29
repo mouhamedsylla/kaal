@@ -32,7 +32,6 @@ func runUp(cmd *cobra.Command, args []string) error {
 		Env:      currentEnv,
 		Services: args,
 		Build:    build,
-		Detach:   true,
 	}); err != nil {
 		ui.Fatal(err)
 	}
