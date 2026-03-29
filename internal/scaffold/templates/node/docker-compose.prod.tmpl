@@ -1,0 +1,43 @@
+services:
+  api:
+    image: {{.Image}}:${IMAGE_TAG:-latest}
+    ports:
+      - "${API_PORT:-{{.Port}}}:{{.Port}}"
+    env_file:
+      - .env.prod
+    environment:
+      - NODE_ENV=production
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:{{.Port}}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+{{- if .HasDB}}
+
+  db:
+    image: postgres:16-alpine
+    env_file:
+      - .env.prod
+    environment:
+      POSTGRES_DB: ${DB_NAME:-{{.Name}}}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    restart: always
+
+volumes:
+  db_data:
+{{- end}}

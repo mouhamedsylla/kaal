@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"github.com/mouhamedsylla/kaal/internal/scaffold"
+	"github.com/mouhamedsylla/kaal/pkg/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -20,6 +22,23 @@ func init() {
 }
 
 func runInit(cmd *cobra.Command, args []string) error {
-	// Implementation in internal/scaffold — to be wired up
+	name := ""
+	if len(args) > 0 {
+		name = args[0]
+	}
+
+	stack, _ := cmd.Flags().GetString("stack")
+	registry, _ := cmd.Flags().GetString("registry")
+	yes, _ := cmd.Flags().GetBool("yes")
+
+	flags := scaffold.Flags{
+		Stack:    stack,
+		Registry: registry,
+		Yes:      yes,
+	}
+
+	if err := scaffold.Run(name, flags); err != nil {
+		ui.Fatal(err)
+	}
 	return nil
 }
