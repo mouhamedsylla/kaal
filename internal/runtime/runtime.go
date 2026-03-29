@@ -35,17 +35,17 @@ func NewOrchestrator(cfg *config.Config, env string) (orchestrator.Orchestrator,
 	if !ok {
 		return nil, fmt.Errorf("environment %q not defined in kaal.yaml", env)
 	}
-	otype := envCfg.Orchestrator
-	if otype == "" {
-		otype = "compose"
+	runtime := envCfg.Runtime
+	if runtime == "" {
+		runtime = config.RuntimeCompose
 	}
-	switch otype {
-	case "compose":
+	switch runtime {
+	case config.RuntimeCompose:
 		return compose.New(cfg, env), nil
-	case "k8s":
+	case config.RuntimeK3d, config.RuntimeLima:
 		return k8s.New(cfg, env), nil
 	default:
-		return nil, fmt.Errorf("unknown orchestrator %q", otype)
+		return nil, fmt.Errorf("unknown runtime %q", runtime)
 	}
 }
 
