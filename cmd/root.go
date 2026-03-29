@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 
+	"github.com/mouhamedsylla/kaal/internal/kaalerr"
 	"github.com/mouhamedsylla/kaal/pkg/ui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -30,7 +31,7 @@ are identical across any cloud provider or bare-metal VPS.`,
 // Execute is the entrypoint called by main.go.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		os.Exit(1)
+		os.Exit(kaalerr.ExitCode(err))
 	}
 }
 
@@ -54,6 +55,7 @@ func init() {
 		statusCmd,
 		logsCmd,
 		secretsCmd,
+		historyCmd,
 		mcpCmd,
 	)
 }

@@ -44,9 +44,11 @@ func (p *Provider) Deploy(ctx context.Context, env string, opts providers.Deploy
 	}
 	for _, cmd := range commands {
 		if out, err := client.Run(ctx, cmd); err != nil {
+			p.recordDeploy(ctx, client, env, opts.Tag, false, err.Error())
 			return fmt.Errorf("remote command %q failed: %w\n%s", cmd, err, out)
 		}
 	}
+	p.recordDeploy(ctx, client, env, opts.Tag, true, "")
 	return nil
 }
 
@@ -150,9 +152,11 @@ func (p *Provider) Rollback(ctx context.Context, env string, version string) (st
 	}
 	for _, cmd := range commands {
 		if out, err := client.Run(ctx, cmd); err != nil {
+			p.recordDeploy(ctx, client, env, tag, false, "rollback: "+err.Error())
 			return "", fmt.Errorf("rollback command %q failed: %w\n%s", cmd, err, out)
 		}
 	}
+	p.recordDeploy(ctx, client, env, tag, true, "rollback")
 	return tag, nil
 }
 
