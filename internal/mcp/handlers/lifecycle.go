@@ -33,7 +33,7 @@ func HandleUp(_ context.Context, params map[string]any) (any, error) {
 	env := strParam(params, "env")
 	var services []string
 	if s := strParam(params, "services"); s != "" {
-		services = splitTrim(s)
+		services = SplitTrim(s)
 	}
 
 	output, err := captureOutput(func() error {
@@ -153,7 +153,8 @@ func HandleSync(_ context.Context, params map[string]any) (any, error) {
 	}, nil
 }
 
-func splitTrim(s string) []string {
+// SplitTrim splits a comma-separated string and trims whitespace from each part.
+func SplitTrim(s string) []string {
 	parts := strings.Split(s, ",")
 	out := make([]string, 0, len(parts))
 	for _, p := range parts {
