@@ -1,0 +1,470 @@
+# kaal
+
+**Dev Environment as Code** — from local to production in one command.
+
+kaal is a terminal-first CLI that bridges the gap between local development and production infrastructure. You describe your infrastructure once in `kaal.yaml`. kaal runs it locally, deploys it remotely, and makes sure both environments behave the same way.
+
+```
+kaal init      →  describe your infra in kaal.yaml
+kaal up        →  simulate that infra locally
+kaal deploy    →  push it to your VPS or cloud
+```
+
+---
+
+## The problem kaal solves
+
+You're building a project. You know it will run on a VPS with 2 CPUs, PostgreSQL, and Redis. You develop locally without constraints — different ports, no resource limits, scattered `.env` files. When you deploy, things break. Variables are missing. Services behave differently. You spend hours debugging config drift.
+
+kaal's answer: **describe your production infrastructure first, then simulate it locally**. When you run `kaal up`, you get a local environment that mirrors your target — same services, same topology, same resource constraints. When you deploy, there are no surprises.
+
+---
+
+## Install
+
+```bash
+# macOS / Linux
+curl -sSL https://raw.githubusercontent.com/mouhamedsylla/kaal/main/install.sh | sh
+
+# Homebrew (coming soon)
+brew install mouhamedsylla/tap/kaal
+
+# From source
+go install github.com/mouhamedsylla/kaal@latest
+```
+
+---
+
+## Quick start
+
+### New project
+
+```bash
+mkdir my-api && cd my-api
+kaal init
+```
+
+kaal launches an interactive wizard:
+
+```
+  kaal init                           1 · 2 · 3 · 4 · 5 · 6
+  ──────────────────────────────────────────────────────────
+
+  Project name
+
+  my-api
+```
+
+Four steps: project name, services, environments, deployment target. At the end, kaal writes `kaal.yaml` — nothing else. No Dockerfiles, no compose files yet.
+
+### Existing project
+
+```bash
+cd my-existing-project
+kaal init
+```
+
+kaal detects your stack (`go.mod`, `package.json`, `Cargo.toml`...) and pre-fills the wizard.
+
+### Non-interactive (CI / agents)
+
+```bash
+kaal init my-api --stack go --registry ghcr --yes
+```
+
+---
+
+## kaal.yaml — the infrastructure blueprint
+
+`kaal.yaml` is the single source of truth. It describes **what** your application needs, **how** each environment runs it, and **where** it gets deployed.
+
+```yaml
+apiVersion: kaal/v1
+
+project:
+  name: my-api
+  stack: go
+  language_version: "1.23"
+
+# What your application needs
+services:
+  app:
+    type: app
+    port: 8080
+  db:
+    type: postgres
+    version: "16"
+  cache:
+    type: redis
+    version: "7"
+
+# How each environment runs those services
+environments:
+  dev:
+    runtime: compose          # compose | lima | k3d
+    env_file: .env.dev
+    resources:                # mirror prod constraints locally
+      cpus: "2"
+      memory: 4GB
+
+  staging:
+    runtime: compose
+    env_file: .env.staging
+    target: vps-staging
+
+  prod:
+    runtime: compose
+    env_file: .env.prod
+    target: vps-prod
+
+# Where non-dev environments actually run
+targets:
+  vps-staging:
+    type: vps
+    host: 1.2.3.4
+    user: deploy
+    key: ~/.ssh/id_kaal
+    resources:
+      cpus: "1"
+      memory: 2GB
+
+  vps-prod:
+    type: vps
+    host: 5.6.7.8
+    user: deploy
+    key: ~/.ssh/id_kaal
+    resources:
+      cpus: "2"
+      memory: 4GB
+
+registry:
+  provider: ghcr
+  image: ghcr.io/mouhamedsylla/my-api
+```
+
+### Services
+
+| Type | Description | Default version |
+|---|---|---|
+| `app` | Your application | — |
+| `postgres` | PostgreSQL | 16 |
+| `mysql` | MySQL | 8 |
+| `mongodb` | MongoDB | 7 |
+| `redis` | Redis | 7 |
+| `rabbitmq` | RabbitMQ | 3 |
+| `nats` | NATS | latest |
+| `nginx` | Nginx reverse proxy | alpine |
+| `custom` | Anything else | — |
+
+### Runtimes
+
+| Runtime | What it does |
+|---|---|
+| `compose` | Docker Compose — default, works everywhere |
+| `lima` | Lightweight VM locally — faithful VPS simulation |
+| `k3d` | Local k3s cluster — simulate Kubernetes before deploying to GKE/EKS |
+
+### Targets
+
+| Type | Status |
+|---|---|
+| `vps` / `hetzner` | SSH + Docker Compose |
+| `aws` | Coming soon |
+| `gcp` | Coming soon |
+| `azure` | Coming soon |
+| `do` | Coming soon |
+
+---
+
+## Commands
+
+### `kaal init [name]`
+
+Initialize kaal in a new or existing project. Runs an interactive wizard and writes `kaal.yaml`.
+
+```bash
+kaal init                        # interactive wizard in current dir
+kaal init my-api                 # set project name upfront
+kaal init --stack go             # pre-fill stack
+kaal init --registry ghcr        # pre-fill registry
+kaal init --yes                  # non-interactive, accept defaults
+```
+
+kaal detects your stack automatically. If a `go.mod` is found, it reads the Go version. If `package.json` is found, it defaults to Node 20. You can override everything.
+
+**What kaal init does NOT do:** generate Dockerfiles or compose files. Those are generated by `kaal up` at runtime, based on what already exists in your project. A project evolves — a statically generated Dockerfile at init time is wrong the moment your dependencies change.
+
+---
+
+### `kaal env use <env>`
+
+Switch the active environment. Writes `.kaal-current-env`.
+
+```bash
+kaal env use dev
+kaal env use staging
+kaal env use prod
+```
+
+All subsequent commands (`up`, `logs`, `status`...) use the active environment unless overridden with `--env`.
+
+---
+
+### `kaal up [services...]`
+
+Start the local environment for the active (or specified) environment.
+
+```bash
+kaal up                          # start all services
+kaal up app                      # start only the app service
+kaal up --env staging            # use staging config locally
+kaal up --build                  # force image rebuild
+```
+
+**What kaal up does:**
+
+1. Reads `kaal.yaml` and resolves the active environment
+2. Looks for an existing `docker-compose.<env>.yml`
+3. If it doesn't exist → generates one from the service definitions in `kaal.yaml`
+4. Looks for an existing `Dockerfile` for `app` services
+5. If it doesn't exist → generates a minimal one based on detected stack
+6. Starts services via `docker compose up`
+
+The generated files are placed at the project root. Commit them if they're correct, or add them to `.gitignore` if you prefer kaal to always generate fresh ones.
+
+---
+
+### `kaal down`
+
+Stop and remove services for the active environment.
+
+```bash
+kaal down
+kaal down --volumes              # also remove named volumes (data)
+kaal down --env staging
+```
+
+---
+
+### `kaal push`
+
+Build the Docker image and push it to the configured registry.
+
+```bash
+kaal push                        # tag: git short SHA
+kaal push --tag v1.2.3           # explicit tag
+kaal push --no-cache             # force full rebuild
+kaal push --platform linux/amd64,linux/arm64   # multi-arch
+```
+
+Requires the registry credentials to be set:
+
+| Registry | Variables needed |
+|---|---|
+| `ghcr` | `GITHUB_TOKEN`, `GITHUB_ACTOR` |
+| `dockerhub` | `DOCKER_USERNAME`, `DOCKER_PASSWORD` |
+| `custom` | `REGISTRY_USERNAME`, `REGISTRY_PASSWORD` |
+
+---
+
+### `kaal deploy`
+
+Deploy to the target environment.
+
+```bash
+kaal deploy                      # deploy active env to its configured target
+kaal deploy --env prod           # explicit env
+kaal deploy --tag v1.2.3         # deploy a specific image tag
+kaal deploy --dry-run            # show what would happen, don't execute
+kaal deploy --strategy rolling   # rolling | blue-green | canary
+```
+
+**For VPS targets**, kaal:
+1. Connects via SSH
+2. Pulls the new image
+3. Runs `docker compose up -d --remove-orphans`
+4. Verifies healthchecks
+
+**For cloud targets** (coming soon): delegates to the provider's native API.
+
+---
+
+### `kaal sync`
+
+Copy `kaal.yaml` and compose files to the remote target. Idempotent.
+
+```bash
+kaal sync
+kaal sync --env prod
+```
+
+Useful before the first deploy, or when the infrastructure description changes.
+
+---
+
+### `kaal status`
+
+Show the state of all services, locally and remotely.
+
+```bash
+kaal status
+kaal status --env prod
+kaal status --json               # machine-readable output
+```
+
+```
+  SERVICE    STATE      HEALTH     PORTS
+  app        running    healthy    0.0.0.0:8080→8080/tcp
+  db         running    healthy    0.0.0.0:5432→5432/tcp
+  cache      running    —          0.0.0.0:6379→6379/tcp
+```
+
+---
+
+### `kaal logs [service]`
+
+Stream or tail logs for a service.
+
+```bash
+kaal logs                        # all services
+kaal logs app                    # specific service
+kaal logs app --follow           # stream in real time
+kaal logs app --lines 200        # last 200 lines
+kaal logs app --since 1h         # last hour
+kaal logs --env prod app         # remote logs via SSH
+```
+
+---
+
+### `kaal rollback`
+
+Roll back to the previous deployment.
+
+```bash
+kaal rollback                    # revert to previous version
+kaal rollback --version v1.1.0   # revert to a specific tag
+kaal rollback --env prod
+```
+
+---
+
+### `kaal mcp serve`
+
+Start the MCP server. AI clients (Claude Code, Cursor) connect via stdio transport.
+
+```bash
+kaal mcp serve
+```
+
+Add `.mcp.json` to your project root to enable it automatically:
+
+```json
+{
+  "mcpServers": {
+    "kaal": {
+      "command": "kaal",
+      "args": ["mcp", "serve"],
+      "cwd": "${workspaceFolder}"
+    }
+  }
+}
+```
+
+Claude can then initialize, deploy, monitor, and debug your infrastructure without leaving the chat.
+
+---
+
+## MCP tools
+
+When running as an MCP server, kaal exposes these tools to AI clients:
+
+| Tool | Description |
+|---|---|
+| `kaal_init` | Initialize a project |
+| `kaal_env_switch` | Switch active environment |
+| `kaal_up` | Start local services |
+| `kaal_down` | Stop local services |
+| `kaal_push` | Build and push image |
+| `kaal_deploy` | Deploy to target |
+| `kaal_rollback` | Roll back deployment |
+| `kaal_sync` | Sync config to remote |
+| `kaal_status` | Get full project state (JSON) |
+| `kaal_logs` | Get service logs |
+| `kaal_config_get` | Read kaal.yaml value by dot-notation key |
+| `kaal_config_set` | Write kaal.yaml value |
+| `kaal_secrets_inject` | Inject secrets into environment |
+
+**Example — deploy via Claude:**
+
+> "Les tests passent, déploie la v2.3 en staging"
+
+Claude calls `kaal_push` → `kaal_deploy` → `kaal_status` → `kaal_logs` and reports back with the deployment result.
+
+---
+
+## Environment variables
+
+| Variable | Used by |
+|---|---|
+| `GITHUB_TOKEN` | GHCR push/pull |
+| `GITHUB_ACTOR` | GHCR login username |
+| `DOCKER_USERNAME` | Docker Hub login |
+| `DOCKER_PASSWORD` | Docker Hub password |
+| `REGISTRY_USERNAME` | Custom registry login |
+| `REGISTRY_PASSWORD` | Custom registry password |
+
+---
+
+## Local infra simulation
+
+kaal's `resources` block in `kaal.yaml` is not just metadata — it's used to constrain your local environment to match production. If your VPS has 2 CPUs and 4GB of RAM, your local `dev` environment can be configured to run under the same limits.
+
+```yaml
+environments:
+  dev:
+    runtime: compose
+    resources:
+      cpus: "2"
+      memory: 4GB
+```
+
+This surfaces resource issues before they hit production.
+
+For more faithful production simulation, use `runtime: lima` (lightweight VM) or `runtime: k3d` (local k3s) instead of plain Docker Compose.
+
+---
+
+## Project structure
+
+```
+my-project/
+├── kaal.yaml            # infrastructure blueprint — commit this
+├── .env.dev             # development variables — DO NOT commit
+├── .env.staging         # staging variables — DO NOT commit
+├── .env.prod            # production variables — DO NOT commit
+├── .mcp.json            # MCP config for AI clients — commit this
+├── Dockerfile           # if you have one, kaal up uses it
+└── docker-compose.dev.yml  # generated by kaal up if absent
+```
+
+---
+
+## Roadmap
+
+- [x] `kaal init` — project initialization with TUI wizard
+- [ ] `kaal up` / `kaal down` — local environment with runtime generation
+- [ ] `kaal push` — build and push to registry
+- [ ] `kaal deploy` — VPS SSH deployment
+- [ ] `kaal status` / `kaal logs` — observability
+- [ ] `kaal mcp serve` — MCP server implementation
+- [ ] `lima` runtime support — lightweight VM simulation
+- [ ] `k3d` runtime support — local Kubernetes
+- [ ] AWS, GCP, Azure, DigitalOcean providers
+- [ ] Secrets management (AWS SM, GCP SM, Azure KV)
+- [ ] Automatic rollback on healthcheck failure
+
+---
+
+## License
+
+MIT — [Mouhamed SYLLA](https://github.com/mouhamedsylla)
