@@ -33,3 +33,7 @@ func (p *Provider) Status(_ context.Context, _ string) ([]providers.ServiceStatu
 func (p *Provider) Rollback(_ context.Context, _ string, _ string) error {
 	return fmt.Errorf("aws provider: not yet implemented")
 }
+
+func (p *Provider) Logs(_ context.Context, _ string, _ providers.LogOptions) (<-chan string, error) {
+	return nil, fmt.Errorf("aws provider: not yet implemented")
+}

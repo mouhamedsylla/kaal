@@ -138,6 +138,61 @@ func (c *Client) scpFile(ctx context.Context, localPath, remoteDir string) error
 	return session.Run(fmt.Sprintf("scp -t %s", remoteDir))
 }
 
+// Stream executes a command on the remote host and streams output line by line.
+// The returned channel is closed when the command exits or ctx is cancelled.
+func (c *Client) Stream(ctx context.Context, command string) (<-chan string, error) {
+	session, err := c.conn.NewSession()
+	if err != nil {
+		return nil, fmt.Errorf("new SSH session: %w", err)
+	}
+
+	pipe, err := session.StdoutPipe()
+	if err != nil {
+		session.Close()
+		return nil, fmt.Errorf("stdout pipe: %w", err)
+	}
+	session.Stderr = io.Discard
+
+	if err := session.Start(command); err != nil {
+		session.Close()
+		return nil, fmt.Errorf("start command: %w", err)
+	}
+
+	ch := make(chan string, 64)
+	go func() {
+		defer close(ch)
+		defer session.Close()
+
+		done := make(chan struct{})
+		go func() {
+			select {
+			case <-ctx.Done():
+				session.Close()
+			case <-done:
+			}
+		}()
+		defer close(done)
+
+		buf := make([]byte, 4096)
+		for {
+			n, err := pipe.Read(buf)
+			if n > 0 {
+				for _, line := range strings.Split(string(buf[:n]), "\n") {
+					if line != "" {
+						ch <- line
+					}
+				}
+			}
+			if err != nil {
+				break
+			}
+		}
+		_ = session.Wait()
+	}()
+
+	return ch, nil
+}
+
 // Close terminates the SSH connection.
 func (c *Client) Close() error {
 	return c.conn.Close()
