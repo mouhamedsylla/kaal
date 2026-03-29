@@ -21,17 +21,19 @@ type Orchestrator struct {
 
 func New(cfg *config.Config, env string) *Orchestrator {
 	envCfg := cfg.Environments[env]
-	composeFile := envCfg.ComposeFile
-	if composeFile == "" {
-		composeFile = fmt.Sprintf("docker-compose.%s.yml", env)
-	}
 	return &Orchestrator{
 		cfg:         cfg,
 		env:         env,
-		composeFile: composeFile,
+		composeFile: composeFileForEnv(env),
 		envFile:     envCfg.EnvFile,
 		projectName: fmt.Sprintf("%s-%s", cfg.Project.Name, env),
 	}
+}
+
+// composeFileForEnv returns the conventional compose filename for an environment.
+// kaal up generates this file if it doesn't already exist.
+func composeFileForEnv(env string) string {
+	return fmt.Sprintf("docker-compose.%s.yml", env)
 }
 
 func (o *Orchestrator) Up(ctx context.Context, env string, services []string) error {

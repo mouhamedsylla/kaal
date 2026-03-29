@@ -1,40 +1,60 @@
-// Package scaffold implements kaal init — project initialization and file generation.
+// Package scaffold implements kaal init — project initialization.
+// It collects infrastructure intent via a TUI wizard and writes kaal.yaml.
+// It does NOT generate Dockerfiles or compose files — those are generated
+// at runtime by kaal up, based on what already exists in the project.
 package scaffold
 
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
+	"github.com/mouhamedsylla/kaal/internal/config"
+	"github.com/mouhamedsylla/kaal/internal/scaffold/tui"
 	"github.com/mouhamedsylla/kaal/pkg/ui"
 )
 
-// Run is the main entrypoint for kaal init.
-// It handles prompts (unless --yes is set), generates files, and prints a summary.
+// Flags mirrors the CLI flags available on kaal init.
+type Flags struct {
+	Stack    string
+	Registry string
+	Yes      bool
+}
+
+// Run is the entrypoint for kaal init.
 func Run(name string, flags Flags) error {
+	dir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	// Detect existing project
+	detected := Detect(dir)
+	if name != "" {
+		detected.Name = name
+	}
+
+	// Guard: refuse if kaal.yaml already exists (use --force to override later)
+	if detected.HasKaalYAML {
+		return fmt.Errorf(
+			"kaal.yaml already exists in this directory\n" +
+				"  Edit it directly, or delete it and re-run kaal init",
+		)
+	}
+
 	var opts Options
-	var err error
 
 	if flags.Yes {
-		opts = buildDefaultOptions(name, flags)
+		opts = defaultOptions(detected, flags)
 	} else {
-		opts, err = RunPrompt(name)
+		opts, err = runWizard(detected, flags)
 		if err != nil {
 			return err
 		}
-		// Apply CLI flag overrides on top of prompt results
-		applyFlagOverrides(&opts, flags)
 	}
 
 	opts.applyDefaults()
 
-	// Check destination doesn't already have kaal.yaml
-	kaalYAML := filepath.Join(opts.OutputDir, "kaal.yaml")
-	if _, err := os.Stat(kaalYAML); err == nil {
-		return fmt.Errorf("%s already exists in %s — run 'kaal init' in an empty directory", "kaal.yaml", opts.OutputDir)
-	}
-
-	ui.Info(fmt.Sprintf("Scaffolding %s (%s) in ./%s", opts.Name, opts.Stack, opts.OutputDir))
+	ui.Info(fmt.Sprintf("Generating kaal.yaml for %q", opts.Name))
 
 	if err := Generate(opts); err != nil {
 		return fmt.Errorf("scaffold failed: %w", err)
@@ -44,18 +64,55 @@ func Run(name string, flags Flags) error {
 	return nil
 }
 
-// Flags mirrors the CLI flags for kaal init.
-type Flags struct {
-	Stack    string
-	Registry string
-	Yes      bool
+func runWizard(detected DetectedProject, flags Flags) (Options, error) {
+	result, err := tui.Run(tui.DetectedInfo{
+		Name:            detected.Name,
+		Stack:           detected.Stack,
+		LanguageVersion: detected.LanguageVersion,
+		IsExisting:      detected.IsExisting,
+	})
+	if err != nil {
+		return Options{}, err
+	}
+	if result.Cancelled {
+		return Options{}, fmt.Errorf("init cancelled")
+	}
+
+	opts := Options{
+		Name:         result.Name,
+		Stack:        result.Stack,
+		Environments: result.Environments,
+		TargetType:   result.TargetType,
+		Registry:     result.Registry,
+		OutputDir:    ".",
+	}
+
+	// Merge flag overrides
+	if flags.Stack != "" {
+		opts.Stack = flags.Stack
+	}
+	if flags.Registry != "" {
+		opts.Registry = flags.Registry
+	}
+
+	// Map wizard service choices to ServiceChoice
+	for _, svc := range result.Services {
+		opts.Services = append(opts.Services, ServiceChoice{
+			Name:    svc.Key,
+			Type:    svc.Type,
+			Port:    defaultPortForService(svc.Key),
+			Version: defaultVersionForService(svc.Key),
+		})
+	}
+
+	return opts, nil
 }
 
-func buildDefaultOptions(name string, flags Flags) Options {
-	if name == "" {
-		name = "my-app"
-	}
+func defaultOptions(detected DetectedProject, flags Flags) Options {
 	stack := flags.Stack
+	if stack == "" {
+		stack = detected.Stack
+	}
 	if stack == "" {
 		stack = "go"
 	}
@@ -63,43 +120,82 @@ func buildDefaultOptions(name string, flags Flags) Options {
 	if registry == "" {
 		registry = "ghcr"
 	}
+	name := detected.Name
+	if name == "" {
+		name = "my-app"
+	}
 	return Options{
 		Name:         name,
 		Stack:        stack,
 		Registry:     registry,
 		Environments: []string{"dev", "staging", "prod"},
+		TargetType:   "vps",
+		Services: []ServiceChoice{
+			{Name: "app", Type: config.ServiceTypeApp, Port: 8080},
+		},
+		OutputDir: ".",
 	}
 }
 
-func applyFlagOverrides(opts *Options, flags Flags) {
-	if flags.Stack != "" {
-		opts.Stack = flags.Stack
+func (o *Options) applyDefaults() {
+	if o.LanguageVersion == "" {
+		o.LanguageVersion = defaultVersionForStack(o.Stack)
 	}
-	if flags.Registry != "" {
-		opts.Registry = flags.Registry
+	if o.OutputDir == "" {
+		o.OutputDir = "."
 	}
 }
 
 func printSummary(opts Options) {
 	fmt.Println()
-	ui.Success(fmt.Sprintf("Project %q created in ./%s", opts.Name, opts.OutputDir))
+	ui.Success("kaal.yaml generated")
 	fmt.Println()
-
-	files := []string{
-		"kaal.yaml",
-		"Dockerfile",
-		"docker-compose.dev.yml",
-		"docker-compose.prod.yml",
-		".env.dev",
-		".gitignore",
-	}
-	for _, f := range files {
-		ui.Dim(fmt.Sprintf("  + %s/%s", opts.OutputDir, f))
-	}
-
+	ui.Dim("  What's next:")
+	ui.Dim("  1. Edit kaal.yaml — fill in target hosts and registry image")
+	ui.Dim("  2. Copy .env.dev.example → .env.dev and set your variables")
+	ui.Dim("  3. Run kaal up")
 	fmt.Println()
-	ui.Bold("Next steps:")
-	ui.Dim(fmt.Sprintf("  cd %s", opts.OutputDir))
-	ui.Dim("  # Edit kaal.yaml — fill in your registry image and target hosts")
-	ui.Dim("  kaal up")
+}
+
+func defaultPortForService(svcType string) int {
+	ports := map[string]int{
+		"app":      8080,
+		"postgres": 5432,
+		"mysql":    3306,
+		"mongodb":  27017,
+		"redis":    6379,
+		"rabbitmq": 5672,
+		"nats":     4222,
+		"nginx":    80,
+	}
+	if p, ok := ports[svcType]; ok {
+		return p
+	}
+	return 8080
+}
+
+func defaultVersionForService(svcType string) string {
+	versions := map[string]string{
+		"postgres": "16",
+		"mysql":    "8",
+		"mongodb":  "7",
+		"redis":    "7",
+		"rabbitmq": "3",
+		"nginx":    "alpine",
+	}
+	return versions[svcType]
+}
+
+func defaultVersionForStack(stack string) string {
+	versions := map[string]string{
+		"go":     "1.23",
+		"node":   "20",
+		"python": "3.12",
+		"rust":   "1.82",
+		"java":   "21",
+	}
+	if v, ok := versions[stack]; ok {
+		return v
+	}
+	return ""
 }
