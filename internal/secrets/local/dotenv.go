@@ -8,32 +8,47 @@ import (
 	"strings"
 )
 
-// SecretManager reads secrets from local .env files.
+// SecretManager reads and writes secrets to local .env.<env> files.
 type SecretManager struct{}
 
-func New() *SecretManager {
-	return &SecretManager{}
-}
+func New() *SecretManager { return &SecretManager{} }
 
+// Get retrieves a secret value from environment variables.
 func (s *SecretManager) Get(_ context.Context, key string) (string, error) {
-	val := os.Getenv(key)
-	if val == "" {
-		return "", fmt.Errorf("secret %q not found in environment", key)
+	if val := os.Getenv(key); val != "" {
+		return val, nil
 	}
-	return val, nil
+	return "", fmt.Errorf("secret %q not found in environment", key)
 }
 
+// Set persists a key=value to the current process environment.
 func (s *SecretManager) Set(_ context.Context, key, value string) error {
 	return os.Setenv(key, value)
 }
 
+// SetInFile writes or updates a KEY=VALUE line in the given .env file.
+// Creates the file if it does not exist. File mode is 0600.
+func SetInFile(path, key, value string) error {
+	vars, _ := parseEnvFile(path) // ignore error — file may not exist yet
+	if vars == nil {
+		vars = map[string]string{}
+	}
+	vars[key] = value
+	return writeEnvFile(path, vars)
+}
+
+// ListFile returns all key=value pairs from a .env file.
+func ListFile(path string) (map[string]string, error) {
+	return parseEnvFile(path)
+}
+
+// Inject resolves all secret refs for an environment from .env.<env> + os env.
 func (s *SecretManager) Inject(_ context.Context, env string, refs map[string]string) (map[string]string, error) {
 	envFile := fmt.Sprintf(".env.%s", env)
-	fileVars, _ := parseEnvFile(envFile) // best-effort, ignore missing file
+	fileVars, _ := parseEnvFile(envFile) // best-effort
 
 	result := make(map[string]string, len(refs))
 	for envVar, secretRef := range refs {
-		// secretRef is just the key name for local provider
 		if val, ok := fileVars[secretRef]; ok {
 			result[envVar] = val
 			continue
@@ -47,7 +62,8 @@ func (s *SecretManager) Inject(_ context.Context, env string, refs map[string]st
 	return result, nil
 }
 
-// parseEnvFile reads KEY=VALUE pairs from a .env file.
+// ── file I/O ─────────────────────────────────────────────────────────────────
+
 func parseEnvFile(path string) (map[string]string, error) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -55,7 +71,7 @@ func parseEnvFile(path string) (map[string]string, error) {
 	}
 	defer f.Close()
 
-	vars := make(map[string]string)
+	vars := map[string]string{}
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
@@ -66,9 +82,24 @@ func parseEnvFile(path string) (map[string]string, error) {
 		if len(parts) != 2 {
 			continue
 		}
-		key := strings.TrimSpace(parts[0])
-		val := strings.Trim(strings.TrimSpace(parts[1]), `"'`)
-		vars[key] = val
+		k := strings.TrimSpace(parts[0])
+		v := strings.Trim(strings.TrimSpace(parts[1]), `"'`)
+		vars[k] = v
 	}
 	return vars, scanner.Err()
+}
+
+// writeEnvFile serialises a map back to KEY=VALUE format (0600 permissions).
+func writeEnvFile(path string, vars map[string]string) error {
+	var sb strings.Builder
+	sb.WriteString("# Managed by kaal — do not commit this file.\n")
+	for k, v := range vars {
+		if strings.ContainsAny(v, " \t\"'") {
+			sb.WriteString(fmt.Sprintf(`%s="%s"`, k, v))
+		} else {
+			sb.WriteString(fmt.Sprintf("%s=%s", k, v))
+		}
+		sb.WriteByte('\n')
+	}
+	return os.WriteFile(path, []byte(sb.String()), 0600)
 }
