@@ -53,6 +53,7 @@ func init() {
 		syncCmd,
 		statusCmd,
 		logsCmd,
+		secretsCmd,
 		mcpCmd,
 	)
 }
