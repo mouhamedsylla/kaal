@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/mascot.png" alt="kaal mascot" width="280" />
+<img src="assets/kaal_pixel.png" alt="kaal mascot" width="280" />
 
 # kaal
 

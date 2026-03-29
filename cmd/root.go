@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 
+	"github.com/mouhamedsylla/kaal/pkg/ui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -19,6 +20,11 @@ var rootCmd = &cobra.Command{
 	Long: `kaal is a terminal-first, opinionated, AI-native CLI that takes your project
 from initialization to production deployment, ensuring local and remote environments
 are identical across any cloud provider or bare-metal VPS.`,
+	// Display the mascot banner when kaal is called with no subcommand.
+	RunE: func(cmd *cobra.Command, args []string) error {
+		ui.PrintBanner("")
+		return nil
+	},
 }
 
 // Execute is the entrypoint called by main.go.
