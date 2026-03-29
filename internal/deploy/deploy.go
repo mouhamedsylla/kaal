@@ -68,6 +68,14 @@ func Run(ctx context.Context, opts Options) error {
 		)
 	}
 
+	if opts.Strategy != "" && opts.Strategy != "rolling" {
+		ui.Warn(fmt.Sprintf(
+			"Strategy %q is not yet implemented — falling back to rolling update\n"+
+				"  canary/blue-green require Traefik or Kubernetes; see docs/workflows/deploy-vps.md",
+			opts.Strategy,
+		))
+	}
+
 	if opts.DryRun {
 		return printDryRun(cfg, activeEnv, targetName, target, tag, composeFile)
 	}
