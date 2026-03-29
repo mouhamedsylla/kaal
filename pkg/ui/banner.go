@@ -59,19 +59,24 @@ func supportsColor() bool {
 }
 
 // renderANSI converts img to a slice of ANSI half-block art lines.
-// Each line is targetW characters wide; each terminal row covers 2 pixel rows
-// using the ▀ (U+2580) upper-half block.
+// Each line is targetW characters wide; each terminal row covers 2 pixel rows.
+// Background pixels are rendered transparent (terminal default background).
+//
+// Four half-block cases per cell:
+//   - both bg      → space (terminal bg shows through)
+//   - top fg/bot bg → ▀ fg=top,  default bg
+//   - top bg/bot fg → ▄ fg=bot,  default bg
+//   - both fg      → ▀ fg=top,  bg=bot
 func renderANSI(img image.Image, targetW int) []string {
 	bounds := img.Bounds()
 	srcW := bounds.Max.X - bounds.Min.X
 	srcH := bounds.Max.Y - bounds.Min.Y
 
-	// Compute terminal rows preserving aspect ratio (cells are ~2× taller).
 	targetH := int(math.Round(float64(srcH) / float64(srcW) * float64(targetW) * 0.5))
 	pixH := targetH * 2
 
-	// Background colour to blend transparent pixels against.
-	bg := color.RGBA{R: 74, G: 74, B: 74, A: 255}
+	// Detect image background by sampling corners and border midpoints.
+	bgColor := detectBgColor(img, bounds)
 
 	sample := func(px, py int) color.RGBA {
 		sx := bounds.Min.X + px*srcW/targetW
@@ -85,34 +90,90 @@ func renderANSI(img image.Image, targetW int) []string {
 		}
 	}
 
-	blend := func(c color.RGBA) color.RGBA {
-		if c.A == 255 {
-			return c
+	// A pixel is "background" if it is transparent or close to the image bg.
+	const threshold = 28.0
+	isBg := func(c color.RGBA) bool {
+		if c.A < 128 {
+			return true
 		}
-		alpha := float64(c.A) / 255.0
-		return color.RGBA{
-			R: uint8(float64(c.R)*alpha + float64(bg.R)*(1-alpha)),
-			G: uint8(float64(c.G)*alpha + float64(bg.G)*(1-alpha)),
-			B: uint8(float64(c.B)*alpha + float64(bg.B)*(1-alpha)),
-			A: 255,
-		}
+		dr := float64(int(c.R) - int(bgColor.R))
+		dg := float64(int(c.G) - int(bgColor.G))
+		db := float64(int(c.B) - int(bgColor.B))
+		return math.Sqrt(dr*dr+dg*dg+db*db) < threshold
+	}
+
+	fg := func(sb *strings.Builder, c color.RGBA) {
+		fmt.Fprintf(sb, "\x1b[38;2;%d;%d;%dm", c.R, c.G, c.B)
+	}
+	bg := func(sb *strings.Builder, c color.RGBA) {
+		fmt.Fprintf(sb, "\x1b[48;2;%d;%d;%dm", c.R, c.G, c.B)
 	}
 
 	lines := make([]string, targetH)
 	for row := 0; row < targetH; row++ {
 		var sb strings.Builder
 		for col := 0; col < targetW; col++ {
-			top := blend(sample(col, row*2))
-			bot := blend(sample(col, row*2+1))
-			fmt.Fprintf(&sb, "\x1b[38;2;%d;%d;%dm\x1b[48;2;%d;%d;%dm▀",
-				top.R, top.G, top.B,
-				bot.R, bot.G, bot.B,
-			)
+			top := sample(col, row*2)
+			bot := sample(col, row*2+1)
+			topBg := isBg(top)
+			botBg := isBg(bot)
+
+			switch {
+			case topBg && botBg:
+				// Both transparent → plain space, terminal bg shows through.
+				sb.WriteString("\x1b[0m ")
+
+			case !topBg && botBg:
+				// Top has color, bottom is transparent → upper-half block.
+				fg(&sb, top)
+				sb.WriteString("\x1b[49m▀")
+
+			case topBg && !botBg:
+				// Top is transparent, bottom has color → lower-half block.
+				fg(&sb, bot)
+				sb.WriteString("\x1b[49m▄")
+
+			default:
+				// Both have color → upper-half block, fg=top bg=bot.
+				fg(&sb, top)
+				bg(&sb, bot)
+				sb.WriteString("▀")
+			}
 		}
 		sb.WriteString(ansiReset)
 		lines[row] = sb.String()
 	}
 	return lines
+}
+
+// detectBgColor samples the image corners and border midpoints to identify
+// the uniform background colour.
+func detectBgColor(img image.Image, b image.Rectangle) color.RGBA {
+	w, h := b.Max.X-b.Min.X, b.Max.Y-b.Min.Y
+	points := [][2]int{
+		{b.Min.X, b.Min.Y},
+		{b.Max.X - 1, b.Min.Y},
+		{b.Min.X, b.Max.Y - 1},
+		{b.Max.X - 1, b.Max.Y - 1},
+		{b.Min.X + w/2, b.Min.Y},
+		{b.Min.X + w/2, b.Max.Y - 1},
+		{b.Min.X, b.Min.Y + h/2},
+		{b.Max.X - 1, b.Min.Y + h/2},
+	}
+	var rSum, gSum, bSum int
+	for _, p := range points {
+		r, g, bv, _ := img.At(p[0], p[1]).RGBA()
+		rSum += int(r >> 8)
+		gSum += int(g >> 8)
+		bSum += int(bv >> 8)
+	}
+	n := len(points)
+	return color.RGBA{
+		R: uint8(rSum / n),
+		G: uint8(gSum / n),
+		B: uint8(bSum / n),
+		A: 255,
+	}
 }
 
 // buildSideText returns lines of branding text to display beside the mascot.
