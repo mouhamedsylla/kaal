@@ -43,6 +43,7 @@ func init() {
 		downCmd,
 		pushCmd,
 		deployCmd,
+		rollbackCmd,
 		syncCmd,
 		statusCmd,
 		logsCmd,

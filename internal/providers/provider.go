@@ -17,7 +17,8 @@ type Provider interface {
 	Logs(ctx context.Context, env string, opts LogOptions) (<-chan string, error)
 
 	// Rollback reverts to the previous (or specified) deployment version.
-	Rollback(ctx context.Context, env string, version string) error
+	// Returns the tag that was actually deployed (useful when version is auto-resolved).
+	Rollback(ctx context.Context, env string, version string) (string, error)
 }
 
 // LogOptions controls log streaming behavior.
