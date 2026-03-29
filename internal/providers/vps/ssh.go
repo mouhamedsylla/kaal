@@ -32,7 +32,7 @@ func (p *Provider) Deploy(ctx context.Context, env string, opts providers.Deploy
 
 	commands := []string{
 		fmt.Sprintf("docker pull %s", image),
-		fmt.Sprintf("docker compose -f %s up -d --remove-orphans", composeFile),
+		fmt.Sprintf("IMAGE_TAG=%s docker compose -f %s up -d --remove-orphans", opts.Tag, composeFile),
 	}
 	for _, cmd := range commands {
 		if out, err := client.Run(ctx, cmd); err != nil {
