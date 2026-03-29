@@ -34,25 +34,7 @@ func (r *Registry) Login(ctx context.Context) error {
 }
 
 func (r *Registry) Build(ctx context.Context, opts registry.BuildOptions) error {
-	args := []string{"build", "-t", opts.Tag}
-	if opts.Dockerfile != "" {
-		args = append(args, "-f", opts.Dockerfile)
-	}
-	if opts.NoCache {
-		args = append(args, "--no-cache")
-	}
-	for k, v := range opts.BuildArgs {
-		args = append(args, "--build-arg", fmt.Sprintf("%s=%s", k, v))
-	}
-	ctxPath := opts.Context
-	if ctxPath == "" {
-		ctxPath = "."
-	}
-	args = append(args, ctxPath)
-	cmd := exec.CommandContext(ctx, "docker", args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
+	return registry.BuildImage(ctx, opts)
 }
 
 func (r *Registry) Push(ctx context.Context, tag string) error {
