@@ -5,10 +5,9 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"os/exec"
-	"strings"
 
 	"github.com/mouhamedsylla/kaal/internal/config"
+	"github.com/mouhamedsylla/kaal/internal/gitutil"
 	"github.com/mouhamedsylla/kaal/internal/registry"
 	"github.com/mouhamedsylla/kaal/internal/runtime"
 	"github.com/mouhamedsylla/kaal/pkg/ui"
@@ -84,11 +83,7 @@ func resolveTag(explicit string) (string, error) {
 	if explicit != "" {
 		return explicit, nil
 	}
-	out, err := exec.Command("git", "rev-parse", "--short", "HEAD").Output()
-	if err != nil {
-		return "", fmt.Errorf("could not determine git SHA (are you in a git repo?): %w", err)
-	}
-	return strings.TrimSpace(string(out)), nil
+	return gitutil.ShortSHA()
 }
 
 // resolveDockerfile returns the Dockerfile path to use for the build.
