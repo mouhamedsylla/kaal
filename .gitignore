@@ -1,0 +1,25 @@
+# Binary
+kaal
+kaal-*
+dist/
+
+# Environment files — never commit secrets
+.env
+.env.*
+!.env.example
+
+# kaal runtime state
+.kaal-current-env
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+vendor/
+
+# macOS
+.DS_Store

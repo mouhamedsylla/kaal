@@ -1,0 +1,33 @@
+package providers
+
+import "context"
+
+// Provider abstracts deployment targets: VPS (SSH), AWS, GCP, Azure, DigitalOcean.
+type Provider interface {
+	// Deploy builds and deploys the application to the target environment.
+	Deploy(ctx context.Context, env string, opts DeployOptions) error
+
+	// Sync copies kaal.yaml and related config files to the remote target.
+	Sync(ctx context.Context, target string) error
+
+	// Status returns the runtime state of services on the remote target.
+	Status(ctx context.Context, env string) ([]ServiceStatus, error)
+
+	// Rollback reverts to the previous (or specified) deployment version.
+	Rollback(ctx context.Context, env string, version string) error
+}
+
+// DeployOptions controls deployment behavior.
+type DeployOptions struct {
+	Tag      string // image tag to deploy
+	Strategy string // rolling, blue-green, canary
+	DryRun   bool
+}
+
+// ServiceStatus represents the state of a remote service.
+type ServiceStatus struct {
+	Name    string
+	State   string
+	Health  string
+	Version string
+}

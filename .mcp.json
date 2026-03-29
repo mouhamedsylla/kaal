@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "kaal": {
+      "command": "kaal",
+      "args": ["mcp", "serve"],
+      "cwd": "${workspaceFolder}"
+    }
+  }
+}

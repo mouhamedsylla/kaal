@@ -1,0 +1,27 @@
+package cmd
+
+import (
+	"github.com/spf13/cobra"
+)
+
+var mcpCmd = &cobra.Command{
+	Use:   "mcp",
+	Short: "MCP server commands",
+}
+
+var mcpServeCmd = &cobra.Command{
+	Use:   "serve",
+	Short: "Start the MCP server (JSON-RPC 2.0 over stdio)",
+	Long: `Starts kaal as an MCP server. AI clients (Claude Code, Cursor) connect
+via stdio transport. Add .mcp.json to your project root to enable it.`,
+	RunE: runMCPServe,
+}
+
+func init() {
+	mcpCmd.AddCommand(mcpServeCmd)
+}
+
+func runMCPServe(cmd *cobra.Command, args []string) error {
+	// Implementation: mcp.NewServer().Serve() — to be wired up
+	return nil
+}
