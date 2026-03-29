@@ -13,8 +13,19 @@ type Provider interface {
 	// Status returns the runtime state of services on the remote target.
 	Status(ctx context.Context, env string) ([]ServiceStatus, error)
 
+	// Logs streams log lines from a remote service over SSH.
+	Logs(ctx context.Context, env string, opts LogOptions) (<-chan string, error)
+
 	// Rollback reverts to the previous (or specified) deployment version.
 	Rollback(ctx context.Context, env string, version string) error
+}
+
+// LogOptions controls log streaming behavior.
+type LogOptions struct {
+	Service string
+	Follow  bool
+	Since   string
+	Lines   int
 }
 
 // DeployOptions controls deployment behavior.

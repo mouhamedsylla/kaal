@@ -74,6 +74,43 @@ func (p *Provider) Status(ctx context.Context, env string) ([]providers.ServiceS
 	return parseRemotePS(out), nil
 }
 
+func (p *Provider) Logs(ctx context.Context, env string, opts providers.LogOptions) (<-chan string, error) {
+	client, err := p.connect()
+	if err != nil {
+		return nil, err
+	}
+
+	composeFile := composeFileForEnv(env)
+	args := fmt.Sprintf("docker compose -f %s logs", composeFile)
+	if opts.Follow {
+		args += " --follow"
+	}
+	if opts.Since != "" {
+		args += fmt.Sprintf(" --since %s", opts.Since)
+	}
+	if opts.Lines > 0 {
+		args += fmt.Sprintf(" --tail %d", opts.Lines)
+	}
+	if opts.Service != "" {
+		args += " " + opts.Service
+	}
+
+	ch, err := client.Stream(ctx, args)
+	if err != nil {
+		client.Close()
+		return nil, err
+	}
+
+	// Close SSH connection when streaming ends
+	go func() {
+		for range ch {
+		}
+		client.Close()
+	}()
+
+	return ch, nil
+}
+
 func (p *Provider) Rollback(ctx context.Context, env string, version string) error {
 	client, err := p.connect()
 	if err != nil {
