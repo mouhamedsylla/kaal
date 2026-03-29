@@ -31,9 +31,10 @@ type LogOptions struct {
 
 // DeployOptions controls deployment behavior.
 type DeployOptions struct {
-	Tag      string // image tag to deploy
-	Strategy string // rolling, blue-green, canary
+	Tag      string   // image tag to deploy
+	Strategy string   // rolling, blue-green, canary
 	DryRun   bool
+	EnvFiles []string // local paths to .env files to transfer and pass to docker compose
 }
 
 // ServiceStatus represents the state of a remote service.

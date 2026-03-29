@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/mouhamedsylla/kaal/internal/config"
 	"github.com/mouhamedsylla/kaal/internal/env"
@@ -87,6 +88,29 @@ func Run(ctx context.Context, opts Options) error {
 		return err
 	}
 
+	// Resolve secrets and write to a temp env file for deployment.
+	var deployEnvFiles []string
+	if envCfg.Secrets != nil && len(envCfg.Secrets.Refs) > 0 {
+		ui.Info(fmt.Sprintf("Resolving secrets via %q", envCfg.Secrets.Provider))
+		sm, err := runtime.NewSecretManager(envCfg.Secrets.Provider)
+		if err != nil {
+			return fmt.Errorf("secrets: %w", err)
+		}
+		resolved, err := sm.Inject(ctx, activeEnv, envCfg.Secrets.Refs)
+		if err != nil {
+			return fmt.Errorf("secrets inject: %w", err)
+		}
+
+		// Write resolved secrets to a temp env file.
+		tmpFile, err := writeTempEnv(resolved)
+		if err != nil {
+			return fmt.Errorf("write resolved env: %w", err)
+		}
+		defer os.Remove(tmpFile)
+		deployEnvFiles = append(deployEnvFiles, tmpFile)
+		ui.Success(fmt.Sprintf("Resolved %d secret(s)", len(resolved)))
+	}
+
 	// Sync compose file (and env file if present) to the remote
 	ui.Info("Syncing files to remote")
 	if err := provider.Sync(ctx, activeEnv); err != nil {
@@ -98,6 +122,7 @@ func Run(ctx context.Context, opts Options) error {
 	if err := provider.Deploy(ctx, activeEnv, providers.DeployOptions{
 		Tag:      tag,
 		Strategy: opts.Strategy,
+		EnvFiles: deployEnvFiles,
 	}); err != nil {
 		return fmt.Errorf("deploy: %w", err)
 	}
@@ -163,4 +188,33 @@ func resolveTag(explicit string) (string, error) {
 		return explicit, nil
 	}
 	return gitutil.ShortSHA()
+}
+
+// writeTempEnv writes resolved secrets to a temporary env file (0600).
+// Returns the file path; caller is responsible for removing it.
+func writeTempEnv(vars map[string]string) (string, error) {
+	f, err := os.CreateTemp("", "kaal-env-*.env")
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+
+	var sb strings.Builder
+	for k, v := range vars {
+		if strings.ContainsAny(v, " \t\"'") {
+			sb.WriteString(fmt.Sprintf(`%s="%s"`, k, v))
+		} else {
+			sb.WriteString(fmt.Sprintf("%s=%s", k, v))
+		}
+		sb.WriteByte('\n')
+	}
+	if _, err := f.WriteString(sb.String()); err != nil {
+		os.Remove(f.Name())
+		return "", err
+	}
+	if err := os.Chmod(f.Name(), 0600); err != nil {
+		os.Remove(f.Name())
+		return "", err
+	}
+	return f.Name(), nil
 }

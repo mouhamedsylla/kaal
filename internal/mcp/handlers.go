@@ -31,8 +31,8 @@ var handleConfigSet HandlerFunc = handlers.HandleConfigSet
 // Secrets — implemented
 var handleSecretsInject HandlerFunc = handlers.HandleSecretsInject
 
-// kaal_init stays stubbed — TUI wizard is interactive, not MCP-friendly yet.
-var handleInit HandlerFunc = handlers.Stub("kaal_init")
+// kaal_init — non-interactive, accepts name/stack/services/envs/registry params.
+var handleInit HandlerFunc = handlers.HandleInit
 
 // ensure context is used
 var _ = context.Background
