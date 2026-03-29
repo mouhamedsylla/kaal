@@ -79,12 +79,13 @@ func runWizard(detected DetectedProject, flags Flags) (Options, error) {
 	}
 
 	opts := Options{
-		Name:         result.Name,
-		Stack:        result.Stack,
-		Environments: result.Environments,
-		TargetType:   result.TargetType,
-		Registry:     result.Registry,
-		OutputDir:    ".",
+		Name:          result.Name,
+		Stack:         result.Stack,
+		Environments:  result.Environments,
+		TargetType:    result.TargetType,
+		Registry:      result.Registry,
+		RegistryImage: result.RegistryImage,
+		OutputDir:     ".",
 	}
 
 	// Merge flag overrides
@@ -150,11 +151,19 @@ func (o *Options) ApplyDefaults() {
 func printSummary(opts Options) {
 	fmt.Println()
 	ui.Success("kaal.yaml generated")
+	ui.Success(".mcp.json generated  ← connects your AI agent to kaal")
 	fmt.Println()
-	ui.Dim("  What's next:")
-	ui.Dim("  1. Edit kaal.yaml — fill in target hosts and registry image")
-	ui.Dim("  2. Copy .env.dev.example → .env.dev and set your variables")
-	ui.Dim("  3. Run kaal up")
+	ui.Bold("  How the AI agent creates missing files (Dockerfile, compose):")
+	ui.Dim("  1. Open this project in Claude Code or Cursor")
+	ui.Dim("     The agent connects automatically via .mcp.json")
+	ui.Dim("  2. Ask: \"generate the Dockerfile and docker-compose.dev.yml\"")
+	ui.Dim("     The agent calls kaal_generate_dockerfile + kaal_generate_compose")
+	ui.Dim("  3. kaal up       — start local services")
+	ui.Dim("  4. kaal push     — build + push image to " + opts.Registry)
+	ui.Dim("  5. kaal deploy   — deploy to your VPS / cloud")
+	fmt.Println()
+	ui.Dim("  Without AI agent:")
+	ui.Dim("  → Write Dockerfile and docker-compose.dev.yml manually, then kaal up")
 	fmt.Println()
 }
 

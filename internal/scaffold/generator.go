@@ -10,9 +10,9 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Generate writes kaal.yaml (and only kaal.yaml) to opts.OutputDir.
-// Dockerfiles and compose files are NOT generated here — kaal up handles that
-// at runtime based on what already exists in the project.
+// Generate writes kaal.yaml and .mcp.json to opts.OutputDir.
+// Dockerfiles and compose files are NOT generated here — the AI agent
+// generates them via MCP tools (kaal_generate_dockerfile, kaal_generate_compose).
 func Generate(opts Options) error {
 	if err := os.MkdirAll(opts.OutputDir, 0755); err != nil {
 		return fmt.Errorf("create dir %s: %w", opts.OutputDir, err)
@@ -20,7 +20,31 @@ func Generate(opts Options) error {
 
 	cfg := opts.ToConfig()
 
-	return writeKaalYAML(opts.OutputDir, cfg)
+	if err := writeKaalYAML(opts.OutputDir, cfg); err != nil {
+		return err
+	}
+
+	return writeMCPJSON(opts.OutputDir)
+}
+
+// writeMCPJSON creates .mcp.json for AI agent integration (Claude Code, Cursor…).
+// Does nothing if the file already exists so manual edits are preserved.
+func writeMCPJSON(dir string) error {
+	path := filepath.Join(dir, ".mcp.json")
+	if _, err := os.Stat(path); err == nil {
+		return nil // already exists — preserve user edits
+	}
+	const content = `{
+  "mcpServers": {
+    "kaal": {
+      "command": "kaal",
+      "args": ["mcp", "serve"],
+      "cwd": "${workspaceFolder}"
+    }
+  }
+}
+`
+	return os.WriteFile(path, []byte(content), 0644)
 }
 
 func writeKaalYAML(dir string, cfg *config.Config) error {

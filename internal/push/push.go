@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/mouhamedsylla/kaal/internal/config"
 	"github.com/mouhamedsylla/kaal/internal/gitutil"
@@ -28,7 +29,16 @@ func Run(ctx context.Context, opts Options) error {
 	}
 
 	if cfg.Registry.Image == "" {
-		return fmt.Errorf("registry.image is not set in kaal.yaml\n  Add: registry:\\n    provider: ghcr\\n    image: ghcr.io/<user>/<project>")
+		return fmt.Errorf("registry.image is not set in kaal.yaml\n  Add: registry:\n    provider: ghcr\n    image: ghcr.io/<user>/<project>")
+	}
+	if isPlaceholderImage(cfg.Registry.Image) {
+		return fmt.Errorf(
+			"registry.image still contains a placeholder: %q\n"+
+				"  Edit kaal.yaml and replace it with your real image name, e.g.:\n"+
+				"    registry:\n"+
+				"      image: ghcr.io/mouhamedsylla/%s",
+			cfg.Registry.Image, cfg.Project.Name,
+		)
 	}
 
 	tag, err := resolveTag(opts.Tag)
@@ -84,6 +94,13 @@ func resolveTag(explicit string) (string, error) {
 		return explicit, nil
 	}
 	return gitutil.ShortSHA()
+}
+
+// isPlaceholderImage returns true if the image name was never customised after init.
+func isPlaceholderImage(image string) bool {
+	return strings.Contains(image, "YOUR_") ||
+		strings.HasPrefix(image, "YOUR_DOCKERHUB_USER/") ||
+		strings.HasPrefix(image, "ghcr.io/YOUR_GITHUB_USER/")
 }
 
 // resolveDockerfile returns the Dockerfile path to use for the build.

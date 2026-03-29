@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"github.com/mouhamedsylla/kaal/internal/config"
+	"github.com/mouhamedsylla/kaal/internal/runtime"
 	"github.com/mouhamedsylla/kaal/internal/scaffold"
 	"github.com/mouhamedsylla/kaal/pkg/ui"
 	"github.com/spf13/cobra"
@@ -41,5 +43,21 @@ func runInit(cmd *cobra.Command, args []string) error {
 	}); err != nil {
 		ui.Fatal(err)
 	}
+
+	// Attempt registry authentication right after init.
+	// Non-blocking — failure is a warning, not an error.
+	cfg, err := config.Load(".")
+	if err == nil && cfg.Registry.Provider != "" {
+		reg, err := runtime.NewRegistry(cfg)
+		if err == nil {
+			ui.Info("Authenticating to " + cfg.Registry.Provider + "...")
+			if err := reg.Login(cmd.Context()); err != nil {
+				ui.Warn("Registry login failed (you can run it manually later): " + err.Error())
+			} else {
+				ui.Success("Logged in to " + cfg.Registry.Provider)
+			}
+		}
+	}
+
 	return nil
 }

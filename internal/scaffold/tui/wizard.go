@@ -10,17 +10,18 @@ import (
 
 // Step IDs.
 const (
-	stepName     = 0
-	stepServices = 1
-	stepEnvs     = 2
-	stepTarget   = 3
-	stepRegistry = 4
-	stepConfirm  = 5
-	stepCount    = 6
+	stepName          = 0
+	stepServices      = 1
+	stepEnvs          = 2
+	stepTarget        = 3
+	stepRegistry      = 4
+	stepRegistryImage = 5
+	stepConfirm       = 6
+	stepCount         = 7
 )
 
 var stepLabels = [stepCount]string{
-	"Project", "Services", "Environments", "Target", "Registry", "Confirm",
+	"Project", "Services", "Environments", "Target", "Registry", "Image", "Confirm",
 }
 
 // ServiceItem is a service selected during the wizard.
@@ -31,13 +32,14 @@ type ServiceItem struct {
 
 // Result holds everything collected by the wizard.
 type Result struct {
-	Name         string
-	Stack        string
-	Services     []ServiceItem
-	Environments []string
-	TargetType   string
-	Registry     string
-	Cancelled    bool
+	Name          string
+	Stack         string
+	Services      []ServiceItem
+	Environments  []string
+	TargetType    string
+	Registry      string
+	RegistryImage string // full image name e.g. ghcr.io/user/app
+	Cancelled     bool
 }
 
 // DetectedInfo carries auto-detected project information passed to the wizard.
@@ -50,17 +52,18 @@ type DetectedInfo struct {
 
 // Model is the top-level Bubbletea model for the init wizard.
 type Model struct {
-	step       int
-	detected   DetectedInfo
-	nameInput  textinput.Model
-	stackInput textinput.Model
-	services   MultiSelect
-	envs       MultiSelect
-	targets    MultiSelect
-	registries MultiSelect
-	result     Result
-	quitting   bool
-	err        string
+	step        int
+	detected    DetectedInfo
+	nameInput   textinput.Model
+	stackInput  textinput.Model
+	imageInput  textinput.Model
+	services    MultiSelect
+	envs        MultiSelect
+	targets     MultiSelect
+	registries  MultiSelect
+	result      Result
+	quitting    bool
+	err         string
 }
 
 func NewWizard(d DetectedInfo) Model {
@@ -77,10 +80,15 @@ func NewWizard(d DetectedInfo) Model {
 		si.SetValue(d.Stack)
 	}
 
+	ii := textinput.New()
+	ii.Placeholder = "ghcr.io/your-user/your-app"
+	ii.CharLimit = 128
+
 	return Model{
 		detected:   d,
 		nameInput:  ni,
 		stackInput: si,
+		imageInput: ii,
 		services:   buildServicesSelect(),
 		envs:       buildEnvsSelect(),
 		targets:    buildTargetsSelect(),
@@ -133,6 +141,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch m.step {
 	case stepName:
 		m.nameInput, cmd = m.nameInput.Update(msg)
+	case stepRegistryImage:
+		m.imageInput, cmd = m.imageInput.Update(msg)
 	case stepConfirm:
 		m.stackInput, cmd = m.stackInput.Update(msg)
 	}
@@ -195,6 +205,22 @@ func (m Model) advance() (tea.Model, tea.Cmd) {
 		if len(m.registries.Items) > 0 {
 			m.result.Registry = m.registries.Items[m.registries.Cursor].Key
 		}
+		// Pre-fill image input with a sensible placeholder based on registry + project name.
+		m.imageInput.SetValue(defaultImageSuggestion(m.result.Registry, m.result.Name))
+		m.imageInput.Focus()
+		m.step = stepRegistryImage
+
+	case stepRegistryImage:
+		img := strings.TrimSpace(m.imageInput.Value())
+		if img == "" {
+			m.err = "image name cannot be empty"
+			return m, nil
+		}
+		if strings.Contains(img, "your-user") || strings.Contains(img, "YOUR_") {
+			m.err = "replace the placeholder with your real username"
+			return m, nil
+		}
+		m.result.RegistryImage = img
 		m.step = stepConfirm
 		m.stackInput.Focus()
 
@@ -208,6 +234,18 @@ func (m Model) advance() (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 	}
 	return m, nil
+}
+
+// defaultImageSuggestion builds a pre-filled image name based on registry + project.
+func defaultImageSuggestion(registry, projectName string) string {
+	switch registry {
+	case "ghcr":
+		return "ghcr.io/your-user/" + projectName
+	case "dockerhub":
+		return "your-user/" + projectName
+	default:
+		return "registry.example.com/" + projectName
+	}
 }
 
 func (m *Model) activeSelect() *MultiSelect {
@@ -271,6 +309,8 @@ func (m Model) body() string {
 		content = m.viewSingleSelect(&m.targets, "Where do you deploy?")
 	case stepRegistry:
 		content = m.viewSingleSelect(&m.registries, "Container registry")
+	case stepRegistryImage:
+		content = m.viewRegistryImage()
 	case stepConfirm:
 		content = m.viewConfirm()
 	}
@@ -336,6 +376,21 @@ func (m Model) viewSingleSelect(sel *MultiSelect, title string) string {
 	return b.String()
 }
 
+func (m Model) viewRegistryImage() string {
+	var b strings.Builder
+	b.WriteString("\n  " + StyleTitle.Render("Image name") + "\n")
+	hint := "Full image path — replace with your real username"
+	switch m.result.Registry {
+	case "ghcr":
+		hint = "e.g.  ghcr.io/mouhamedsylla/my-app"
+	case "dockerhub":
+		hint = "e.g.  mouhamedsylla/my-app"
+	}
+	b.WriteString("  " + StyleDim.Render(hint) + "\n\n")
+	b.WriteString("  " + m.imageInput.View() + "\n")
+	return b.String()
+}
+
 func (m Model) viewConfirm() string {
 	var b strings.Builder
 	b.WriteString("\n  " + StyleTitle.Render("Stack / language") + "\n")
@@ -354,6 +409,9 @@ func (m Model) viewConfirm() string {
 		b.WriteString(row("target", m.result.TargetType))
 	}
 	b.WriteString(row("registry", m.result.Registry))
+	if m.result.RegistryImage != "" {
+		b.WriteString(row("image", m.result.RegistryImage))
+	}
 	names := make([]string, 0, len(m.result.Services))
 	for _, s := range m.result.Services {
 		names = append(names, s.Key)
@@ -368,7 +426,7 @@ func (m Model) footer() string {
 	switch m.step {
 	case stepServices, stepEnvs:
 		hint = "↑/↓ navigate   space toggle   enter confirm   esc back   ctrl+c cancel"
-	case stepName, stepConfirm:
+	case stepName, stepRegistryImage, stepConfirm:
 		hint = "enter confirm   esc back   ctrl+c cancel"
 	default:
 		hint = "↑/↓ navigate   enter select   esc back   ctrl+c cancel"
