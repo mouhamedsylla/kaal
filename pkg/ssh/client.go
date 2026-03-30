@@ -87,24 +87,55 @@ func (c *Client) Run(ctx context.Context, command string) (string, error) {
 }
 
 // CopyFiles uploads local files to a remote directory using SCP-over-SSH.
+// All files land flat in remoteDir (basename only, no subdirectory structure).
 func (c *Client) CopyFiles(ctx context.Context, localPaths []string, remoteDir string) error {
-	session, err := c.conn.NewSession()
-	if err != nil {
-		return fmt.Errorf("new SSH session: %w", err)
-	}
-	defer session.Close()
-
-	// Ensure remote dir exists
 	if _, err := c.Run(ctx, fmt.Sprintf("mkdir -p %s", remoteDir)); err != nil {
 		return fmt.Errorf("mkdir %s: %w", remoteDir, err)
 	}
-
 	for _, localPath := range localPaths {
 		if err := c.scpFile(ctx, localPath, remoteDir); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+// CopyFileTo uploads a single local file to an exact remote path,
+// creating parent directories as needed.
+// Use this instead of CopyFiles when the remote path must differ from the basename
+// (e.g. preserving relative directory structure: ./nginx/prod.conf → ~/kaal/nginx/prod.conf).
+func (c *Client) CopyFileTo(ctx context.Context, localPath, remotePath string) error {
+	// Ensure the parent directory exists on the remote.
+	remoteDir := filepath.Dir(remotePath)
+	if _, err := c.Run(ctx, fmt.Sprintf("mkdir -p %s", remoteDir)); err != nil {
+		return fmt.Errorf("mkdir %s: %w", remoteDir, err)
+	}
+
+	data, err := os.ReadFile(localPath)
+	if err != nil {
+		return fmt.Errorf("read %s: %w", localPath, err)
+	}
+
+	session, err := c.conn.NewSession()
+	if err != nil {
+		return fmt.Errorf("new SSH session: %w", err)
+	}
+	defer session.Close()
+
+	filename := filepath.Base(remotePath)
+	pipe, err := session.StdinPipe()
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		defer pipe.Close()
+		fmt.Fprintf(pipe, "C0644 %d %s\n", len(data), filename)
+		io.Copy(pipe, strings.NewReader(string(data)))
+		fmt.Fprint(pipe, "\x00")
+	}()
+
+	return session.Run(fmt.Sprintf("scp -t %s", remoteDir))
 }
 
 func (c *Client) scpFile(ctx context.Context, localPath, remoteDir string) error {

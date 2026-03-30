@@ -55,7 +55,7 @@ func Run(ctx context.Context, opts Options) error {
 
 	fmt.Println()
 	ui.Success(fmt.Sprintf("Config synced to %s", targetName))
-	ui.Dim("  kaal.yaml, docker-compose files and env files copied to ~/kaal/ on the remote")
+	ui.Dim("  kaal.yaml, compose files, env files and bind-mount config files copied to ~/kaal/")
 	fmt.Println()
 
 	return nil

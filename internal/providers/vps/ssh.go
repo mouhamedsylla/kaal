@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/mouhamedsylla/kaal/internal/config"
 	"github.com/mouhamedsylla/kaal/internal/kaalerr"
 	"github.com/mouhamedsylla/kaal/internal/providers"
 	kaalSSH "github.com/mouhamedsylla/kaal/pkg/ssh"
+	"gopkg.in/yaml.v3"
 )
 
 // Provider deploys to a VPS via SSH + docker compose.
@@ -98,28 +100,123 @@ func (p *Provider) Sync(ctx context.Context, _ string) error {
 	}
 	defer client.Close()
 
-	// Collect: kaal.yaml + compose files + env_file for every environment.
-	// Dedup with a map so files shared across envs are only copied once.
+	// ── Flat files: kaal.yaml + compose files + env_file ──────────────────
+	// These all land directly in ~/kaal/ (no subdirectory).
 	seen := map[string]bool{}
-	var files []string
+	var flatFiles []string
 
-	addIfExists := func(f string) {
+	addFlat := func(f string) {
 		if f == "" || seen[f] {
 			return
 		}
 		if _, statErr := os.Stat(f); statErr == nil {
 			seen[f] = true
-			files = append(files, f)
+			flatFiles = append(flatFiles, f)
 		}
 	}
 
-	addIfExists("kaal.yaml")
+	addFlat("kaal.yaml")
 	for envName, envCfg := range p.cfg.Environments {
-		addIfExists(composeFileForEnv(envName))
-		addIfExists(envCfg.EnvFile) // e.g. .env.prod — may be empty for dev
+		composeFile := composeFileForEnv(envName)
+		addFlat(composeFile)
+		addFlat(envCfg.EnvFile)
 	}
 
-	return client.CopyFiles(ctx, files, "~/kaal/")
+	if err := client.CopyFiles(ctx, flatFiles, "~/kaal/"); err != nil {
+		return err
+	}
+
+	// ── Bind-mount config files: preserve relative path under ~/kaal/ ─────
+	// Scan every compose file for local bind-mounts (./nginx/prod.conf, etc.).
+	// If the source is a local file, copy it to ~/kaal/<relative-path> so
+	// docker compose running from ~/kaal/ finds it exactly where it expects.
+	seenMounts := map[string]bool{}
+	for envName := range p.cfg.Environments {
+		composeFile := composeFileForEnv(envName)
+		mounts, parseErr := parseComposeMounts(composeFile)
+		if parseErr != nil {
+			continue // compose file may not exist yet — not an error
+		}
+		for _, localSrc := range mounts {
+			if seenMounts[localSrc] {
+				continue
+			}
+			seenMounts[localSrc] = true
+			info, statErr := os.Stat(localSrc)
+			if statErr != nil {
+				continue // file doesn't exist locally — skip silently
+			}
+			if info.IsDir() {
+				continue // directories handled separately (not supported yet)
+			}
+			// Remote path mirrors the local relative path: ~/kaal/nginx/prod.conf
+			remotePath := fmt.Sprintf("~/kaal/%s", strings.TrimPrefix(localSrc, "./"))
+			if copyErr := client.CopyFileTo(ctx, localSrc, remotePath); copyErr != nil {
+				return fmt.Errorf("sync bind-mount %s: %w", localSrc, copyErr)
+			}
+		}
+	}
+
+	return nil
+}
+
+// parseComposeMounts reads a docker-compose file and returns all local bind-mount
+// source paths (relative paths starting with ./ or plain filenames, not named volumes
+// or absolute paths). Supports both short syntax (./src:/dest) and long syntax.
+func parseComposeMounts(composeFile string) ([]string, error) {
+	data, err := os.ReadFile(composeFile)
+	if err != nil {
+		return nil, err
+	}
+
+	// Minimal compose structure for volume parsing.
+	var compose struct {
+		Services map[string]struct {
+			Volumes []any `yaml:"volumes"`
+		} `yaml:"services"`
+	}
+
+	if err := yaml.Unmarshal(data, &compose); err != nil {
+		return nil, err
+	}
+
+	seen := map[string]bool{}
+	var mounts []string
+
+	for _, svc := range compose.Services {
+		for _, v := range svc.Volumes {
+			var src string
+			switch vol := v.(type) {
+			case string:
+				// Short syntax: "./nginx/prod.conf:/etc/nginx/conf.d/default.conf:ro"
+				parts := strings.SplitN(vol, ":", 2)
+				src = parts[0]
+			case map[string]any:
+				// Long syntax: {type: bind, source: ./nginx/prod.conf, target: ...}
+				if t, _ := vol["type"].(string); t != "bind" {
+					continue
+				}
+				src, _ = vol["source"].(string)
+			}
+			// Only collect relative local paths — skip named volumes and absolute paths.
+			if src == "" || filepath.IsAbs(src) {
+				continue
+			}
+			if !strings.HasPrefix(src, "./") && !strings.HasPrefix(src, "../") {
+				// Could be a named volume (e.g. "postgres_data:/var/lib/postgresql")
+				// Only collect if it looks like a file path (has an extension or subdir).
+				if !strings.Contains(src, "/") && !strings.Contains(src, ".") {
+					continue
+				}
+			}
+			if !seen[src] {
+				seen[src] = true
+				mounts = append(mounts, src)
+			}
+		}
+	}
+
+	return mounts, nil
 }
 
 func (p *Provider) Status(ctx context.Context, env string) ([]providers.ServiceStatus, error) {
