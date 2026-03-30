@@ -30,7 +30,7 @@ func (p *Provider) Deploy(ctx context.Context, env string, opts providers.Deploy
 	defer client.Close()
 
 	image := fmt.Sprintf("%s:%s", p.cfg.Registry.Image, opts.Tag)
-	composeFile := composeFileForEnv(env)
+	composeFile := remoteComposeFile(env) // always ~/kaal/docker-compose.<env>.yml
 	stateDir := p.stateDir()
 
 	// Copy resolved env files to remote before running compose.
@@ -98,14 +98,27 @@ func (p *Provider) Sync(ctx context.Context, _ string) error {
 	}
 	defer client.Close()
 
-	// Always sync kaal.yaml + any compose files that exist locally
-	files := []string{"kaal.yaml"}
-	for envName := range p.cfg.Environments {
-		f := composeFileForEnv(envName)
-		if _, err := os.Stat(f); err == nil {
+	// Collect: kaal.yaml + compose files + env_file for every environment.
+	// Dedup with a map so files shared across envs are only copied once.
+	seen := map[string]bool{}
+	var files []string
+
+	addIfExists := func(f string) {
+		if f == "" || seen[f] {
+			return
+		}
+		if _, statErr := os.Stat(f); statErr == nil {
+			seen[f] = true
 			files = append(files, f)
 		}
 	}
+
+	addIfExists("kaal.yaml")
+	for envName, envCfg := range p.cfg.Environments {
+		addIfExists(composeFileForEnv(envName))
+		addIfExists(envCfg.EnvFile) // e.g. .env.prod — may be empty for dev
+	}
+
 	return client.CopyFiles(ctx, files, "~/kaal/")
 }
 
@@ -116,7 +129,7 @@ func (p *Provider) Status(ctx context.Context, env string) ([]providers.ServiceS
 	}
 	defer client.Close()
 
-	out, err := client.Run(ctx, fmt.Sprintf("docker compose -f %s ps --format json", composeFileForEnv(env)))
+	out, err := client.Run(ctx, fmt.Sprintf("docker compose -f %s ps --format json", remoteComposeFile(env)))
 	if err != nil {
 		return nil, fmt.Errorf("remote status: %w", err)
 	}
@@ -129,7 +142,7 @@ func (p *Provider) Logs(ctx context.Context, env string, opts providers.LogOptio
 		return nil, err
 	}
 
-	composeFile := composeFileForEnv(env)
+	composeFile := remoteComposeFile(env)
 	args := fmt.Sprintf("docker compose -f %s logs", composeFile)
 	if opts.Follow {
 		args += " --follow"
@@ -181,7 +194,7 @@ func (p *Provider) Rollback(ctx context.Context, env string, version string) (st
 	}
 
 	image := fmt.Sprintf("%s:%s", p.cfg.Registry.Image, tag)
-	composeFile := composeFileForEnv(env)
+	composeFile := remoteComposeFile(env) // always ~/kaal/docker-compose.<env>.yml
 	stateDir := p.stateDir()
 
 	commands := []string{
@@ -229,8 +242,16 @@ func (p *Provider) connect() (*kaalSSH.Client, error) {
 }
 
 // composeFileForEnv returns the conventional compose filename for an environment.
+// Use remoteComposeFile when building SSH commands — files live in ~/kaal/ on the VPS.
 func composeFileForEnv(env string) string {
 	return fmt.Sprintf("docker-compose.%s.yml", env)
+}
+
+// remoteComposeFile returns the full remote path where kaal stores compose files.
+// kaal sync always copies compose files to ~/kaal/, so all remote docker compose
+// commands must use this path, not the bare filename.
+func remoteComposeFile(env string) string {
+	return fmt.Sprintf("~/kaal/docker-compose.%s.yml", env)
 }
 
 // isDockerPermissionError detects the classic "user not in docker group" error.

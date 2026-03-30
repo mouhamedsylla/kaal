@@ -194,7 +194,23 @@ func (c *ProjectContext) AgentPrompt() string {
 		b.WriteString("- **Resource limits** (`mem_limit`, `cpus`) on every service\n")
 		b.WriteString("- **Restart policy**: `restart: unless-stopped` for all long-lived services\n")
 		b.WriteString("- **Health checks + ordered startup**: `healthcheck` blocks + `depends_on: condition: service_healthy`\n")
-		b.WriteString("- **No hardcoded secrets**: use `env_file: .env." + c.ActiveEnv + "` or `${VAR}` substitution\n")
+
+		// Inject the env_file from kaal.yaml if declared for the active environment
+		if envCfg, ok := c.Config.Environments[c.ActiveEnv]; ok && envCfg.EnvFile != "" {
+			b.WriteString(fmt.Sprintf("- **env_file** (MANDATORY): add `env_file: [%s]` to every app service.\n", envCfg.EnvFile))
+			b.WriteString(fmt.Sprintf("  This is declared in kaal.yaml as `environments.%s.env_file`.\n", c.ActiveEnv))
+			b.WriteString("  Never hardcode secret values — they must come from this file.\n")
+		} else {
+			b.WriteString("- **No hardcoded secrets**: use `env_file: .env." + c.ActiveEnv + "` or `${VAR}` substitution\n")
+		}
+
+		// Vite/Node --mode alignment
+		if c.Stack == "node" {
+			b.WriteString(fmt.Sprintf("- **Vite/Node `--mode` flag**: the start command MUST include `--mode %s`\n", c.ActiveEnv))
+			b.WriteString(fmt.Sprintf("  e.g. `npx vite --host 0.0.0.0 --port 8080 --mode %s`\n", c.ActiveEnv))
+			b.WriteString("  Without `--mode`, Vite defaults to `.env.development` and ignores `.env." + c.ActiveEnv + "`.\n")
+		}
+
 		if c.ActiveEnv == "dev" {
 			b.WriteString("- **Dev mode**: `build: context` and source volume mounts for live reload are acceptable\n")
 		} else {

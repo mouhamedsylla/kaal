@@ -294,6 +294,35 @@ func Run(ctx context.Context, target Target, activeEnv string) (*Report, error) 
 							Message:     fmt.Sprintf("%s can run docker commands", tgt.User),
 						})
 					}
+					// 11. Env file synced to VPS (only if env_file is declared for this env)
+					if envCfg, ok := cfg.Environments[activeEnv]; ok && envCfg.EnvFile != "" {
+						// kaal sync copies files to ~/kaal/ using only the basename
+						base := envCfg.EnvFile
+						if idx := strings.LastIndex(base, "/"); idx >= 0 {
+							base = base[idx+1:]
+						}
+						remoteEnvPath := fmt.Sprintf("~/kaal/%s", base)
+						checkOut, _ := client.Run(vpsCtx, fmt.Sprintf("test -f %s && echo ok || echo missing", remoteEnvPath))
+						if strings.TrimSpace(checkOut) != "ok" {
+							r.add(Check{
+								Name:             "vps_env_file",
+								Description:      fmt.Sprintf("%s present on VPS", envCfg.EnvFile),
+								Status:           StatusError,
+								Message:          fmt.Sprintf("%s not found at %s on the VPS", envCfg.EnvFile, remoteEnvPath),
+								FixType:          FixAgent,
+								AgentTool:        fmt.Sprintf("kaal_sync {\"env\": \"%s\"}", activeEnv),
+								HumanInstruction: fmt.Sprintf("Run: kaal sync --env %s\nThis copies kaal.yaml, compose files and env files to ~/kaal/ on the VPS.", activeEnv),
+							})
+						} else {
+							r.add(Check{
+								Name:        "vps_env_file",
+								Description: fmt.Sprintf("%s present on VPS", envCfg.EnvFile),
+								Status:      StatusOK,
+								Message:     fmt.Sprintf("%s synced at %s", envCfg.EnvFile, remoteEnvPath),
+							})
+						}
+					}
+
 					client.Close()
 				}
 			}

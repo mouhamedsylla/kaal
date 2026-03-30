@@ -99,16 +99,22 @@ OPTIMIZATION REQUIREMENTS — every docker-compose file you generate MUST follow
 4. Restart policy: use restart: unless-stopped for all long-lived services.
 5. Health checks: add healthcheck blocks for every service, especially databases.
    Depend on health: use depends_on with condition: service_healthy so services start in order.
-6. Environment separation: never hardcode secrets; use env_file: .env.<env> or environment
-   with variable substitution (${VAR}) so real values come from the .env file.
-7. Read-only app containers: where feasible add read_only: true + tmpfs for /tmp.
-8. No build in prod compose: production compose files should reference pre-built images
+6. env_file injection: ALWAYS read the env_file declared for the active environment in kaal.yaml
+   (e.g. environments.prod.env_file = ".env.prod") and add it to every app service:
+     env_file:
+       - .env.prod
+   Never hardcode secret values; rely entirely on the env_file + ${VAR} substitution.
+7. Vite/Node command alignment: if the stack is node/vite, the start command MUST include
+   --mode <env> so Vite reads the right .env file (e.g. "npx vite --host 0.0.0.0 --mode dev").
+   Without --mode, Vite defaults to .env.development and ignores .env.dev.
+8. Read-only app containers: where feasible add read_only: true + tmpfs for /tmp.
+9. No build in prod compose: production compose files should reference pre-built images
    (image: <registry>/<name>:<tag>) not build: context.
-9. Dev compose: dev files may use build: context and volume mounts for live reload.
-10. Logging: configure logging driver with max-size and max-file to avoid disk exhaustion.
+10. Dev compose: dev files may use build: context and volume mounts for live reload.
+11. Logging: configure logging driver with max-size and max-file to avoid disk exhaustion.
     Example: logging: { driver: json-file, options: { max-size: "10m", max-file: "3" } }
-11. Service naming: use the exact service names from kaal.yaml services section.
-12. Pinned image tags: never use :latest for external images.`,
+12. Service naming: use the exact service names from kaal.yaml services section.
+13. Pinned image tags: never use :latest for external images.`,
 	InputSchema: InputSchema{
 		Type: "object",
 		Properties: map[string]Property{
