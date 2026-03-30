@@ -31,6 +31,9 @@ var handleConfigSet HandlerFunc = handlers.HandleConfigSet
 // Secrets — implemented
 var handleSecretsInject HandlerFunc = handlers.HandleSecretsInject
 
+// Setup — implemented (VPS/hetzner only)
+var handleSetup HandlerFunc = handlers.HandleSetup
+
 // kaal_init — non-interactive, accepts name/stack/services/envs/registry params.
 var handleInit HandlerFunc = handlers.HandleInit
 

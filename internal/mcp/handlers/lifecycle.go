@@ -71,11 +71,16 @@ func HandleDown(_ context.Context, params map[string]any) (any, error) {
 func HandlePush(_ context.Context, params map[string]any) (any, error) {
 	tag := strParam(params, "tag")
 	noCache := strParam(params, "no_cache") == "true"
+	var platforms []string
+	if p := strParam(params, "platform"); p != "" {
+		platforms = SplitTrim(p)
+	}
 
 	output, err := captureOutput(func() error {
 		return push.Run(context.Background(), push.Options{
-			Tag:     tag,
-			NoCache: noCache,
+			Tag:       tag,
+			NoCache:   noCache,
+			Platforms: platforms,
 		})
 	})
 	if err != nil {

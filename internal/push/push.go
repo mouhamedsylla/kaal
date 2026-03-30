@@ -5,12 +5,13 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 
 	"github.com/mouhamedsylla/kaal/internal/config"
 	"github.com/mouhamedsylla/kaal/internal/gitutil"
 	"github.com/mouhamedsylla/kaal/internal/registry"
-	"github.com/mouhamedsylla/kaal/internal/runtime"
+	kaalRuntime "github.com/mouhamedsylla/kaal/internal/runtime"
 	"github.com/mouhamedsylla/kaal/pkg/ui"
 )
 
@@ -48,12 +49,25 @@ func Run(ctx context.Context, opts Options) error {
 
 	fullTag := cfg.Registry.Image + ":" + tag
 
+	// Default to linux/amd64 — most VPS targets are x86_64.
+	// On macOS ARM64 (Apple Silicon), Docker builds arm64 images by default
+	// which will crash-loop on amd64 VPS. We always override to linux/amd64
+	// unless the caller explicitly passed --platform.
+	platforms := opts.Platforms
+	if len(platforms) == 0 {
+		platforms = []string{"linux/amd64"}
+		if runtime.GOARCH == "arm64" {
+			ui.Info("Detected macOS ARM64 — building for linux/amd64 (VPS target)")
+			ui.Dim("  Pass --platform linux/arm64 if your VPS is ARM-based")
+		}
+	}
+
 	dockerfile := resolveDockerfile(cfg)
 	if _, err := os.Stat(dockerfile); os.IsNotExist(err) {
 		return fmt.Errorf("Dockerfile not found at %q\n  Run 'kaal up' or ask your AI agent to generate it first", dockerfile)
 	}
 
-	reg, err := runtime.NewRegistry(cfg)
+	reg, err := kaalRuntime.NewRegistry(cfg)
 	if err != nil {
 		return err
 	}
@@ -63,12 +77,12 @@ func Run(ctx context.Context, opts Options) error {
 		return fmt.Errorf("registry login: %w", err)
 	}
 
-	ui.Info(fmt.Sprintf("Building %s", fullTag))
+	ui.Info(fmt.Sprintf("Building %s [%s]", fullTag, strings.Join(platforms, ",")))
 	if err := reg.Build(ctx, registry.BuildOptions{
 		Tag:        fullTag,
 		Dockerfile: dockerfile,
 		Context:    ".",
-		Platforms:  opts.Platforms,
+		Platforms:  platforms,
 		NoCache:    opts.NoCache,
 	}); err != nil {
 		return fmt.Errorf("docker build: %w", err)

@@ -27,6 +27,9 @@ func (s *Server) registerAll() {
 	s.Register(toolConfigGet, handleConfigGet)
 	s.Register(toolConfigSet, handleConfigSet)
 	s.Register(toolSecretsInject, handleSecretsInject)
+
+	// VPS setup
+	s.Register(toolSetup, handleSetup)
 }
 
 // ──────────────────── context + infra generation ────────────────────
@@ -132,12 +135,13 @@ var toolDown = Tool{
 
 var toolPush = Tool{
 	Name:        "kaal_push",
-	Description: "Build the Docker image and push it to the configured registry",
+	Description: "Build the Docker image and push it to the configured registry. Defaults to linux/amd64 for VPS compatibility.",
 	InputSchema: InputSchema{
 		Type: "object",
 		Properties: map[string]Property{
 			"tag":      {Type: "string", Description: "Image tag (defaults to git short SHA)"},
 			"no_cache": {Type: "string", Description: "Disable build cache (true/false)"},
+			"platform": {Type: "string", Description: "Target platform (default: linux/amd64). Use linux/arm64 for ARM VPS, linux/amd64,linux/arm64 for multi-arch."},
 		},
 	},
 }
@@ -228,6 +232,20 @@ var toolConfigSet = Tool{
 			"value": {Type: "string", Description: "New value"},
 		},
 		Required: []string{"key", "value"},
+	},
+}
+
+var toolSetup = Tool{
+	Name: "kaal_setup",
+	Description: `Run one-time VPS setup tasks required before the first deploy.
+Connects via SSH and adds the deploy user to the docker group.
+Call this when kaal_deploy fails with a docker permission error.
+Requires password-less sudo on the VPS (standard on Hetzner, DigitalOcean, OVH with cloud-init).`,
+	InputSchema: InputSchema{
+		Type: "object",
+		Properties: map[string]Property{
+			"env": {Type: "string", Description: "Environment whose target VPS to configure (defaults to active env)"},
+		},
 	},
 }
 
