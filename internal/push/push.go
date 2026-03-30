@@ -75,15 +75,25 @@ func Run(ctx context.Context, opts Options) error {
 	if err != nil {
 		return err
 	}
+
+	// If build args need to be injected, auto-patch the Dockerfile in a temp file
+	// so the user never has to manually add ARG/ENV lines.
+	// The original Dockerfile is never modified.
 	if len(buildArgs) > 0 {
 		names := make([]string, 0, len(buildArgs))
 		for k := range buildArgs {
 			names = append(names, k)
 		}
 		ui.Info(fmt.Sprintf("Injecting build args: %s", strings.Join(names, ", ")))
-		// Warn if the Dockerfile is missing ARG declarations for these vars —
-		// docker passes them but Vite/webpack silently ignores undeclared ARGs.
-		warnMissingDockerfileArgs(dockerfile, names)
+
+		patched, tmp, patchErr := patchDockerfileArgs(dockerfile, names)
+		if patchErr != nil {
+			ui.Warn(fmt.Sprintf("Could not auto-patch Dockerfile: %v — build args may be ignored", patchErr))
+		} else if patched {
+			defer os.Remove(tmp)
+			dockerfile = tmp
+			ui.Dim("  ARG/ENV lines auto-injected into builder stage (original Dockerfile unchanged)")
+		}
 	}
 
 	reg, err := kaalRuntime.NewRegistry(cfg)
@@ -238,37 +248,98 @@ func resolveBuildArgs(cfg *config.Config, activeEnv string) (map[string]string, 
 	return result, nil
 }
 
-// warnMissingDockerfileArgs reads the Dockerfile and warns if any of the given
-// build arg names are not declared as ARG instructions. Without an ARG declaration,
-// Docker silently drops the --build-arg value and the build tool (Vite, webpack)
-// never sees it — a common source of "vars are undefined in prod" bugs.
-func warnMissingDockerfileArgs(dockerfile string, argNames []string) {
+// patchDockerfileArgs creates a temporary copy of the Dockerfile with ARG + ENV
+// declarations injected into the builder stage for any argNames not already declared.
+// Returns (patched bool, tempPath string, err).
+//
+// Injection point: right before the first build command (RUN npm/yarn/pnpm run build
+// or RUN npm run build). Falls back to inserting after the first FROM line.
+// The original Dockerfile is never modified.
+func patchDockerfileArgs(dockerfile string, argNames []string) (bool, string, error) {
 	content, err := os.ReadFile(dockerfile)
 	if err != nil {
-		return
+		return false, "", err
 	}
 	text := string(content)
+
+	// Find which names are actually missing.
 	var missing []string
 	for _, name := range argNames {
-		// Match "ARG NAME" or "ARG NAME=default"
 		if !strings.Contains(text, "ARG "+name) {
 			missing = append(missing, name)
 		}
 	}
-	if len(missing) > 0 {
-		fmt.Println()
-		ui.Warn(fmt.Sprintf("Dockerfile is missing ARG declarations for: %s", strings.Join(missing, ", ")))
-		ui.Dim("  These build args will be passed but silently ignored by Docker.")
-		ui.Dim("  Add to your Dockerfile builder stage (before the build command):")
-		fmt.Println()
-		for _, name := range missing {
-			ui.Dim(fmt.Sprintf("    ARG %s", name))
-		}
-		for _, name := range missing {
-			ui.Dim(fmt.Sprintf("    ENV %s=$%s", name, name))
-		}
-		fmt.Println()
+	if len(missing) == 0 {
+		return false, "", nil // nothing to do
 	}
+
+	// Build the ARG + ENV block to inject.
+	var block strings.Builder
+	block.WriteString("# kaal: auto-injected build args for compile-time env vars\n")
+	for _, name := range missing {
+		block.WriteString(fmt.Sprintf("ARG %s\n", name))
+	}
+	for _, name := range missing {
+		block.WriteString(fmt.Sprintf("ENV %s=$%s\n", name, name))
+	}
+	injection := block.String()
+
+	// Find the best injection point: line before the frontend build command.
+	buildPatterns := []string{
+		"RUN npm run build",
+		"RUN yarn build",
+		"RUN pnpm run build",
+		"RUN npm ci && npm run build",
+		"RUN yarn install && yarn build",
+	}
+	lines := strings.Split(text, "\n")
+	insertAt := -1
+	for i, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		for _, pat := range buildPatterns {
+			if strings.HasPrefix(trimmed, pat) || trimmed == pat {
+				insertAt = i
+				break
+			}
+		}
+		if insertAt >= 0 {
+			break
+		}
+	}
+
+	// Fallback: insert after the first FROM line.
+	if insertAt < 0 {
+		for i, line := range lines {
+			if strings.HasPrefix(strings.ToUpper(strings.TrimSpace(line)), "FROM ") {
+				insertAt = i + 1
+				break
+			}
+		}
+	}
+
+	if insertAt < 0 {
+		return false, "", fmt.Errorf("could not find a suitable injection point in %s", dockerfile)
+	}
+
+	// Splice the injection into the lines slice.
+	injectionLines := strings.Split(strings.TrimRight(injection, "\n"), "\n")
+	patched := make([]string, 0, len(lines)+len(injectionLines))
+	patched = append(patched, lines[:insertAt]...)
+	patched = append(patched, injectionLines...)
+	patched = append(patched, lines[insertAt:]...)
+
+	// Write to a temp file alongside the original.
+	tmp, err := os.CreateTemp(".", ".kaal-dockerfile-*.tmp")
+	if err != nil {
+		return false, "", err
+	}
+	if _, err := tmp.WriteString(strings.Join(patched, "\n")); err != nil {
+		tmp.Close()
+		os.Remove(tmp.Name())
+		return false, "", err
+	}
+	tmp.Close()
+	return true, tmp.Name(), nil
 }
 
 // parseEnvFile parses a .env file into a map. Supports KEY=VALUE and KEY="VALUE".
