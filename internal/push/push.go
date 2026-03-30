@@ -2,6 +2,7 @@
 package push
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/mouhamedsylla/kaal/internal/config"
+	kaalenv "github.com/mouhamedsylla/kaal/internal/env"
 	"github.com/mouhamedsylla/kaal/internal/gitutil"
 	"github.com/mouhamedsylla/kaal/internal/registry"
 	kaalRuntime "github.com/mouhamedsylla/kaal/internal/runtime"
@@ -17,6 +19,7 @@ import (
 
 // Options controls kaal push behaviour.
 type Options struct {
+	Env       string   // active environment — used to resolve build_args from the env file
 	Tag       string   // explicit tag; empty = git short SHA
 	NoCache   bool
 	Platforms []string // empty = current platform only
@@ -67,6 +70,19 @@ func Run(ctx context.Context, opts Options) error {
 		return fmt.Errorf("Dockerfile not found at %q\n  Run 'kaal up' or ask your AI agent to generate it first", dockerfile)
 	}
 
+	// Resolve build args from the active env file (for VITE_* and similar compile-time vars).
+	buildArgs, err := resolveBuildArgs(cfg, kaalenv.Active(opts.Env))
+	if err != nil {
+		return err
+	}
+	if len(buildArgs) > 0 {
+		names := make([]string, 0, len(buildArgs))
+		for k := range buildArgs {
+			names = append(names, k)
+		}
+		ui.Info(fmt.Sprintf("Injecting build args: %s", strings.Join(names, ", ")))
+	}
+
 	reg, err := kaalRuntime.NewRegistry(cfg)
 	if err != nil {
 		return err
@@ -83,6 +99,7 @@ func Run(ctx context.Context, opts Options) error {
 		Dockerfile: dockerfile,
 		Context:    ".",
 		Platforms:  platforms,
+		BuildArgs:  buildArgs,
 		NoCache:    opts.NoCache,
 	}); err != nil {
 		return fmt.Errorf("docker build: %w", err)
@@ -126,4 +143,92 @@ func resolveDockerfile(cfg *config.Config) string {
 		}
 	}
 	return "Dockerfile"
+}
+
+// resolveBuildArgs reads cfg.Registry.BuildArgs (list of var names) and resolves
+// their values from the active environment's env file. Returns only declared vars
+// that are present in the file (or in the current process env as fallback).
+//
+// This is the mechanism for injecting VITE_* and similar compile-time variables:
+//   kaal.yaml:  registry.build_args: [VITE_APP_ENV, VITE_API_URL]
+//   .env.prod:  VITE_APP_ENV=prod
+//   → docker build --build-arg VITE_APP_ENV=prod
+func resolveBuildArgs(cfg *config.Config, activeEnv string) (map[string]string, error) {
+	if len(cfg.Registry.BuildArgs) == 0 {
+		return nil, nil
+	}
+
+	// Find the env file for the active environment.
+	envFile := ""
+	if envCfg, ok := cfg.Environments[activeEnv]; ok {
+		envFile = envCfg.EnvFile
+	}
+
+	// Parse the env file into a flat map.
+	fileVars := map[string]string{}
+	if envFile != "" {
+		parsed, err := parseEnvFile(envFile)
+		if err != nil {
+			// Non-fatal: warn but continue — vars may come from process env.
+			ui.Warn(fmt.Sprintf("Could not read %s for build args: %v", envFile, err))
+		} else {
+			fileVars = parsed
+		}
+	}
+
+	result := map[string]string{}
+	var missing []string
+	for _, name := range cfg.Registry.BuildArgs {
+		if v, ok := fileVars[name]; ok {
+			result[name] = v
+		} else if v := os.Getenv(name); v != "" {
+			// Fallback to process environment (e.g. CI/CD pipeline vars).
+			result[name] = v
+		} else {
+			missing = append(missing, name)
+		}
+	}
+
+	if len(missing) > 0 {
+		return nil, fmt.Errorf(
+			"build_args declared in kaal.yaml but not found in %s or environment: %s\n"+
+				"  Add them to %s or export them before running kaal push",
+			envFile, strings.Join(missing, ", "), envFile,
+		)
+	}
+
+	return result, nil
+}
+
+// parseEnvFile parses a .env file into a map. Supports KEY=VALUE and KEY="VALUE".
+// Ignores blank lines and lines starting with #.
+func parseEnvFile(path string) (map[string]string, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	vars := map[string]string{}
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		idx := strings.IndexByte(line, '=')
+		if idx < 0 {
+			continue
+		}
+		key := strings.TrimSpace(line[:idx])
+		val := strings.TrimSpace(line[idx+1:])
+		// Strip optional surrounding quotes.
+		if len(val) >= 2 && ((val[0] == '"' && val[len(val)-1] == '"') || (val[0] == '\'' && val[len(val)-1] == '\'')) {
+			val = val[1 : len(val)-1]
+		}
+		if key != "" {
+			vars[key] = val
+		}
+	}
+	return vars, scanner.Err()
 }

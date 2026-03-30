@@ -28,6 +28,7 @@ func runPush(cmd *cobra.Command, _ []string) error {
 	platforms, _ := cmd.Flags().GetStringSlice("platform")
 
 	if err := push.Run(cmd.Context(), push.Options{
+		Env:       currentEnv,
 		Tag:       tag,
 		NoCache:   noCache,
 		Platforms: platforms,

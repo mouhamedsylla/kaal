@@ -76,8 +76,10 @@ func HandlePush(_ context.Context, params map[string]any) (any, error) {
 		platforms = SplitTrim(p)
 	}
 
+	env := strParam(params, "env")
 	output, err := captureOutput(func() error {
 		return push.Run(context.Background(), push.Options{
+			Env:       env,
 			Tag:       tag,
 			NoCache:   noCache,
 			Platforms: platforms,

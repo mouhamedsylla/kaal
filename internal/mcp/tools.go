@@ -180,11 +180,17 @@ var toolDown = Tool{
 }
 
 var toolPush = Tool{
-	Name:        "kaal_push",
-	Description: "Build the Docker image and push it to the configured registry. Defaults to linux/amd64 for VPS compatibility.",
+	Name: "kaal_push",
+	Description: `Build the Docker image and push it to the configured registry. Defaults to linux/amd64 for VPS compatibility.
+
+If registry.build_args is declared in kaal.yaml, the values are read from the active
+environment's env_file and injected as --build-arg at build time. This is required for
+frontend stacks (Vite, Next.js, CRA) where VITE_* / NEXT_PUBLIC_* variables must be
+baked into the bundle during 'npm run build'. Pass 'env' to select which env file to read.`,
 	InputSchema: InputSchema{
 		Type: "object",
 		Properties: map[string]Property{
+			"env":      {Type: "string", Description: "Environment whose env_file is used to resolve build_args (defaults to active env)"},
 			"tag":      {Type: "string", Description: "Image tag (defaults to git short SHA)"},
 			"no_cache": {Type: "string", Description: "Disable build cache (true/false)"},
 			"platform": {Type: "string", Description: "Target platform (default: linux/amd64). Use linux/arm64 for ARM VPS, linux/amd64,linux/arm64 for multi-arch."},

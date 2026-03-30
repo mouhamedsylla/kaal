@@ -64,9 +64,10 @@ type Target struct {
 
 // RegistryConfig describes where Docker images are pushed and pulled.
 type RegistryConfig struct {
-	Provider string `yaml:"provider,omitempty"` // ghcr | dockerhub | ecr | gcr | acr | custom
-	Image    string `yaml:"image,omitempty"`    // full image name e.g. ghcr.io/user/app
-	URL      string `yaml:"url,omitempty"`      // for custom registries
+	Provider  string   `yaml:"provider,omitempty"`   // ghcr | dockerhub | ecr | gcr | acr | custom
+	Image     string   `yaml:"image,omitempty"`      // full image name e.g. ghcr.io/user/app
+	URL       string   `yaml:"url,omitempty"`        // for custom registries
+	BuildArgs []string `yaml:"build_args,omitempty"` // env var names to inject at build time (e.g. VITE_APP_ENV)
 }
 
 // ServiceType constants.

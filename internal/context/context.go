@@ -182,8 +182,30 @@ func (c *ProjectContext) AgentPrompt() string {
 		b.WriteString("- **Explicit WORKDIR**: e.g. `WORKDIR /app`\n")
 		b.WriteString("- **HEALTHCHECK**: HTTP or TCP probe appropriate for the stack\n")
 		b.WriteString("- **No secrets**: never COPY .env files into the image\n")
-		b.WriteString("- **Pinned tags**: no `:latest` base images\n\n")
-		b.WriteString("Call `kaal_generate_dockerfile` with the generated content.\n\n")
+		b.WriteString("- **Pinned tags**: no `:latest` base images\n")
+
+		// If build_args are declared, the Dockerfile MUST declare them as ARG + ENV
+		if len(c.Config.Registry.BuildArgs) > 0 {
+			b.WriteString("\n**IMPORTANT — build_args are declared in kaal.yaml:**\n\n")
+			b.WriteString("```yaml\nregistry:\n  build_args:\n")
+			for _, arg := range c.Config.Registry.BuildArgs {
+				b.WriteString(fmt.Sprintf("    - %s\n", arg))
+			}
+			b.WriteString("```\n\n")
+			b.WriteString("The Dockerfile builder stage MUST declare each one as `ARG` then `ENV` **before** the build step:\n\n")
+			b.WriteString("```dockerfile\n")
+			for _, arg := range c.Config.Registry.BuildArgs {
+				b.WriteString(fmt.Sprintf("ARG %s\n", arg))
+			}
+			for _, arg := range c.Config.Registry.BuildArgs {
+				b.WriteString(fmt.Sprintf("ENV %s=$%s\n", arg, arg))
+			}
+			b.WriteString("RUN npm run build   # or your build command\n")
+			b.WriteString("```\n\n")
+			b.WriteString("Without this, `kaal push --build-arg` will be passed but Vite/webpack will ignore it.\n")
+		}
+
+		b.WriteString("\nCall `kaal_generate_dockerfile` with the generated content.\n\n")
 	}
 
 	if c.MissingCompose {
