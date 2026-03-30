@@ -40,6 +40,17 @@ func runPreflight(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("unknown target %q — use: up | push | deploy", targetStr)
 	}
 
+	// When --target deploy is used without an explicit --env, the active env may be
+	// a local environment (e.g. dev) with no deploy target. Auto-detect the first
+	// remote env so the user doesn't have to know to pass --env prod.
+	if target == preflight.TargetDeploy && currentEnv == "" {
+		if detected := preflight.DetectRemoteEnv(activeEnv); detected != "" && detected != activeEnv {
+			ui.Dim(fmt.Sprintf("  note: env %q has no deploy target — using %q instead (pass --env to override)", activeEnv, detected))
+			fmt.Println()
+			activeEnv = detected
+		}
+	}
+
 	ui.Info(fmt.Sprintf("Pre-flight checks — target: %s → env: %s", target, activeEnv))
 	fmt.Println()
 

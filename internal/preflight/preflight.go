@@ -204,12 +204,30 @@ func Run(ctx context.Context, target Target, activeEnv string) (*Report, error) 
 		}
 
 		// 7. Target host configured
-		if tgt == nil || tgt.Host == "" {
+		if targetName == "" {
+			// The active env has no deploy target at all — it's a local-only environment.
+			// Give a clear actionable message instead of the confusing empty-string error.
+			remoteEnv := firstRemoteEnv(cfg, activeEnv)
+			hint := fmt.Sprintf("Environment %q has no deploy target — it is a local environment.\n", activeEnv)
+			if remoteEnv != "" {
+				hint += fmt.Sprintf("Run: kaal preflight --target deploy --env %s", remoteEnv)
+			} else {
+				hint += "Add a target to kaal.yaml:\n  environments:\n    prod:\n      target: vps-prod\n  targets:\n    vps-prod:\n      type: vps\n      host: \"YOUR_VPS_IP\"\n      user: deploy\n      key: ~/.ssh/id_kaal"
+			}
 			r.add(Check{
 				Name:             "target_host",
 				Description:      "Deploy target host is configured",
 				Status:           StatusError,
-				Message:          fmt.Sprintf("no host set for target %q in kaal.yaml", targetName),
+				Message:          fmt.Sprintf("environment %q has no deploy target (it is a local-only env)", activeEnv),
+				FixType:          FixHuman,
+				HumanInstruction: hint,
+			})
+		} else if tgt == nil || tgt.Host == "" {
+			r.add(Check{
+				Name:             "target_host",
+				Description:      "Deploy target host is configured",
+				Status:           StatusError,
+				Message:          fmt.Sprintf("target %q exists in kaal.yaml but has no host set", targetName),
 				FixType:          FixHuman,
 				HumanInstruction: fmt.Sprintf("Edit kaal.yaml:\n  targets:\n    %s:\n      host: \"YOUR_VPS_IP\"\nThen run: kaal setup --env %s", targetName, activeEnv),
 			})
@@ -515,6 +533,44 @@ func expandHome(path string) string {
 // ActiveEnv resolves the active environment.
 func ActiveEnv(override string) string {
 	return env.Active(override)
+}
+
+// DetectRemoteEnv loads kaal.yaml and returns the first environment that has a
+// deploy target configured, excluding the currentEnv (which is assumed to be
+// a local-only environment). Returns "" if no remote env is found.
+// Used by cmd/preflight to auto-switch away from local envs when --target deploy
+// is requested without an explicit --env flag.
+func DetectRemoteEnv(currentEnv string) string {
+	cfg, err := config.Load(".")
+	if err != nil {
+		return ""
+	}
+	return firstRemoteEnv(cfg, currentEnv)
+}
+
+// firstRemoteEnv returns the first environment name (other than skip) that has
+// a deploy target with a non-empty host. Prefers "prod" over other names.
+func firstRemoteEnv(cfg *config.Config, skip string) string {
+	// Check "prod" first — most common remote env name
+	for _, preferred := range []string{"prod", "production", "staging"} {
+		if envCfg, ok := cfg.Environments[preferred]; ok && preferred != skip {
+			if envCfg.Target != "" {
+				if t, ok := cfg.Targets[envCfg.Target]; ok && t.Host != "" {
+					return preferred
+				}
+			}
+		}
+	}
+	// Fall back to any env with a target host
+	for name, envCfg := range cfg.Environments {
+		if name == skip || envCfg.Target == "" {
+			continue
+		}
+		if t, ok := cfg.Targets[envCfg.Target]; ok && t.Host != "" {
+			return name
+		}
+	}
+	return ""
 }
 
 // JSON returns the report serialized to indented JSON.
