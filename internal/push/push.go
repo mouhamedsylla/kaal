@@ -81,6 +81,9 @@ func Run(ctx context.Context, opts Options) error {
 			names = append(names, k)
 		}
 		ui.Info(fmt.Sprintf("Injecting build args: %s", strings.Join(names, ", ")))
+		// Warn if the Dockerfile is missing ARG declarations for these vars —
+		// docker passes them but Vite/webpack silently ignores undeclared ARGs.
+		warnMissingDockerfileArgs(dockerfile, names)
 	}
 
 	reg, err := kaalRuntime.NewRegistry(cfg)
@@ -145,19 +148,18 @@ func resolveDockerfile(cfg *config.Config) string {
 	return "Dockerfile"
 }
 
-// resolveBuildArgs reads cfg.Registry.BuildArgs (list of var names) and resolves
-// their values from the active environment's env file. Returns only declared vars
-// that are present in the file (or in the current process env as fallback).
+// resolveBuildArgs collects compile-time variables to inject via --build-arg.
 //
-// This is the mechanism for injecting VITE_* and similar compile-time variables:
-//   kaal.yaml:  registry.build_args: [VITE_APP_ENV, VITE_API_URL]
-//   .env.prod:  VITE_APP_ENV=prod
-//   → docker build --build-arg VITE_APP_ENV=prod
+// Strategy (no kaal.yaml config required for the common case):
+//  1. Auto-detect: scan the active env file for vars matching known frontend
+//     conventions (VITE_*, NEXT_PUBLIC_*, REACT_APP_*) — covers 90% of cases.
+//  2. Override/extend: if registry.build_args is set in kaal.yaml, those names
+//     are resolved instead (explicit list overrides auto-detection entirely).
+//
+// Values come from the env file first, process environment as fallback (CI/CD).
+// Missing vars in override mode are a hard error; in auto-detect mode they are silently
+// skipped (the env file simply may not have VITE_ vars for non-frontend projects).
 func resolveBuildArgs(cfg *config.Config, activeEnv string) (map[string]string, error) {
-	if len(cfg.Registry.BuildArgs) == 0 {
-		return nil, nil
-	}
-
 	// Find the env file for the active environment.
 	envFile := ""
 	if envCfg, ok := cfg.Environments[activeEnv]; ok {
@@ -169,35 +171,104 @@ func resolveBuildArgs(cfg *config.Config, activeEnv string) (map[string]string, 
 	if envFile != "" {
 		parsed, err := parseEnvFile(envFile)
 		if err != nil {
-			// Non-fatal: warn but continue — vars may come from process env.
 			ui.Warn(fmt.Sprintf("Could not read %s for build args: %v", envFile, err))
 		} else {
 			fileVars = parsed
 		}
 	}
 
+	// ── Explicit override (registry.build_args in kaal.yaml) ──────────────
+	if len(cfg.Registry.BuildArgs) > 0 {
+		result := map[string]string{}
+		var missing []string
+		for _, name := range cfg.Registry.BuildArgs {
+			if v, ok := fileVars[name]; ok {
+				result[name] = v
+			} else if v := os.Getenv(name); v != "" {
+				result[name] = v
+			} else {
+				missing = append(missing, name)
+			}
+		}
+		if len(missing) > 0 {
+			src := envFile
+			if src == "" {
+				src = "environment"
+			}
+			return nil, fmt.Errorf(
+				"build_args declared in kaal.yaml but not found in %s: %s\n"+
+					"  Add them to %s or export them before running kaal push",
+				src, strings.Join(missing, ", "), src,
+			)
+		}
+		return result, nil
+	}
+
+	// ── Auto-detect frontend compile-time vars ─────────────────────────────
+	// Only meaningful for node/frontend stacks. Scan the env file for vars
+	// matching universal frontend conventions — no kaal.yaml config needed.
+	if cfg.Project.Stack != "node" {
+		return nil, nil
+	}
+
+	compilePrefixes := []string{"VITE_", "NEXT_PUBLIC_", "REACT_APP_"}
 	result := map[string]string{}
-	var missing []string
-	for _, name := range cfg.Registry.BuildArgs {
-		if v, ok := fileVars[name]; ok {
-			result[name] = v
-		} else if v := os.Getenv(name); v != "" {
-			// Fallback to process environment (e.g. CI/CD pipeline vars).
-			result[name] = v
-		} else {
-			missing = append(missing, name)
+	for name, val := range fileVars {
+		for _, prefix := range compilePrefixes {
+			if strings.HasPrefix(name, prefix) {
+				result[name] = val
+				break
+			}
+		}
+	}
+	// Also check process env for the same prefixes (CI pipeline case).
+	for _, prefix := range compilePrefixes {
+		for _, env := range os.Environ() {
+			if strings.HasPrefix(env, prefix) {
+				parts := strings.SplitN(env, "=", 2)
+				if len(parts) == 2 {
+					if _, alreadySet := result[parts[0]]; !alreadySet {
+						result[parts[0]] = parts[1]
+					}
+				}
+			}
 		}
 	}
 
-	if len(missing) > 0 {
-		return nil, fmt.Errorf(
-			"build_args declared in kaal.yaml but not found in %s or environment: %s\n"+
-				"  Add them to %s or export them before running kaal push",
-			envFile, strings.Join(missing, ", "), envFile,
-		)
-	}
-
 	return result, nil
+}
+
+// warnMissingDockerfileArgs reads the Dockerfile and warns if any of the given
+// build arg names are not declared as ARG instructions. Without an ARG declaration,
+// Docker silently drops the --build-arg value and the build tool (Vite, webpack)
+// never sees it — a common source of "vars are undefined in prod" bugs.
+func warnMissingDockerfileArgs(dockerfile string, argNames []string) {
+	content, err := os.ReadFile(dockerfile)
+	if err != nil {
+		return
+	}
+	text := string(content)
+	var missing []string
+	for _, name := range argNames {
+		// Match "ARG NAME" or "ARG NAME=default"
+		if !strings.Contains(text, "ARG "+name) {
+			missing = append(missing, name)
+		}
+	}
+	if len(missing) > 0 {
+		fmt.Println()
+		ui.Warn(fmt.Sprintf("Dockerfile is missing ARG declarations for: %s", strings.Join(missing, ", ")))
+		ui.Dim("  These build args will be passed but silently ignored by Docker.")
+		ui.Dim("  Add to your Dockerfile builder stage (before the build command):")
+		fmt.Println()
+		for _, name := range missing {
+			ui.Dim(fmt.Sprintf("    ARG %s", name))
+		}
+		for _, name := range missing {
+			ui.Dim(fmt.Sprintf("    ENV %s=$%s", name, name))
+		}
+		fmt.Println()
+	}
 }
 
 // parseEnvFile parses a .env file into a map. Supports KEY=VALUE and KEY="VALUE".
