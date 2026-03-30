@@ -30,6 +30,9 @@ func (s *Server) registerAll() {
 
 	// VPS setup
 	s.Register(toolSetup, handleSetup)
+
+	// Preflight — call this before push/deploy
+	s.Register(toolPreflight, handlePreflight)
 }
 
 // ──────────────────── context + infra generation ────────────────────
@@ -232,6 +235,27 @@ var toolConfigSet = Tool{
 			"value": {Type: "string", Description: "New value"},
 		},
 		Required: []string{"key", "value"},
+	},
+}
+
+var toolPreflight = Tool{
+	Name: "kaal_preflight",
+	Description: `Run pre-flight checks for the deployment pipeline and return an ordered action plan.
+
+CALL THIS FIRST before kaal_push or kaal_deploy. It returns a structured report with:
+- all_ok: true/false — whether all checks pass
+- checks[]: each check with status (ok/error) and fix instructions
+- next_steps[]: ordered action plan tagged [HUMAN] or [AGENT]
+
+For each [HUMAN] step: tell the user exactly what to do and wait for confirmation.
+For each [AGENT] step: call the indicated tool directly.
+Repeat until all_ok is true, then proceed with kaal_push / kaal_deploy.`,
+	InputSchema: InputSchema{
+		Type: "object",
+		Properties: map[string]Property{
+			"target": {Type: "string", Description: "Operation to check for: up | push | deploy (default: deploy)", Enum: []string{"up", "push", "deploy"}},
+			"env":    {Type: "string", Description: "Environment (defaults to active env)"},
+		},
 	},
 }
 

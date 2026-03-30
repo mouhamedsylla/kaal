@@ -57,6 +57,7 @@ func init() {
 		secretsCmd,
 		historyCmd,
 		setupCmd,
+		preflightCmd,
 		mcpCmd,
 	)
 }
