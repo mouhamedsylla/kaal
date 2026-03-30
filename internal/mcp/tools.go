@@ -55,7 +55,25 @@ var toolGenerateDockerfile = Tool{
 	Name: "kaal_generate_dockerfile",
 	Description: `Write a Dockerfile to the project directory.
 Call kaal_context first to understand the project stack and requirements.
-The agent is responsible for generating the Dockerfile content — kaal writes it to disk.`,
+The agent is responsible for generating the Dockerfile content — kaal writes it to disk.
+
+OPTIMIZATION REQUIREMENTS — every Dockerfile you generate MUST follow these rules:
+
+1. Multi-stage build: use a builder stage (full SDK) + a final runtime stage (minimal image).
+2. Minimal base image: use distroless, alpine, or slim variants for the final stage.
+   - Go   → builder: golang:<version>-alpine  → final: gcr.io/distroless/static or scratch
+   - Node → builder: node:<version>-alpine    → final: node:<version>-alpine (non-root)
+   - Python → builder: python:<version>-slim  → final: python:<version>-slim
+   - Rust → builder: rust:<version>-alpine    → final: gcr.io/distroless/static or scratch
+3. Non-root user: create and switch to a dedicated user in the final stage (e.g. USER nonroot or adduser app).
+4. Layer caching: copy dependency files (go.mod/go.sum, package.json, requirements.txt, Cargo.toml)
+   and run install BEFORE copying source code to maximize cache reuse.
+5. WORKDIR: always set an explicit WORKDIR (e.g. /app).
+6. HEALTHCHECK: add a HEALTHCHECK instruction appropriate for the stack (HTTP endpoint or TCP probe).
+7. Read-only filesystem: avoid writing to the container filesystem at runtime where possible.
+8. No secrets in image: never COPY .env files or secret files into the image.
+9. Pinned versions: use pinned base image tags (not :latest).
+10. Single responsibility: one process per container; use CMD not ENTRYPOINT+CMD unless an entrypoint script is needed.`,
 	InputSchema: InputSchema{
 		Type: "object",
 		Properties: map[string]Property{
@@ -71,7 +89,26 @@ var toolGenerateCompose = Tool{
 	Description: `Write a docker-compose.<env>.yml to the project directory.
 Call kaal_context first to understand the services and environment configuration.
 The agent is responsible for generating the compose file content — kaal writes it to disk.
-After writing, the agent should tell the user to run 'kaal up'.`,
+After writing, the agent should tell the user to run 'kaal up'.
+
+OPTIMIZATION REQUIREMENTS — every docker-compose file you generate MUST follow these rules:
+
+1. Named volumes: use named volumes (not bind mounts) for database data and persistent state.
+2. Explicit networks: define a custom bridge network; do not rely on the default network.
+3. Resource limits: set mem_limit and cpus for every service to prevent runaway containers.
+4. Restart policy: use restart: unless-stopped for all long-lived services.
+5. Health checks: add healthcheck blocks for every service, especially databases.
+   Depend on health: use depends_on with condition: service_healthy so services start in order.
+6. Environment separation: never hardcode secrets; use env_file: .env.<env> or environment
+   with variable substitution (${VAR}) so real values come from the .env file.
+7. Read-only app containers: where feasible add read_only: true + tmpfs for /tmp.
+8. No build in prod compose: production compose files should reference pre-built images
+   (image: <registry>/<name>:<tag>) not build: context.
+9. Dev compose: dev files may use build: context and volume mounts for live reload.
+10. Logging: configure logging driver with max-size and max-file to avoid disk exhaustion.
+    Example: logging: { driver: json-file, options: { max-size: "10m", max-file: "3" } }
+11. Service naming: use the exact service names from kaal.yaml services section.
+12. Pinned image tags: never use :latest for external images.`,
 	InputSchema: InputSchema{
 		Type: "object",
 		Properties: map[string]Property{

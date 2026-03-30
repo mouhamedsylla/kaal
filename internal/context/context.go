@@ -163,15 +163,47 @@ func (c *ProjectContext) AgentPrompt() string {
 	b.WriteString(string(data))
 	b.WriteString("```\n\n")
 
-	if c.MissingDockerfile {
+	if c.MissingDockerfile || c.MissingCompose {
 		b.WriteString("## What is needed\n\n")
-		b.WriteString("- **Dockerfile** is missing. ")
-		b.WriteString("Please generate a production-ready Dockerfile for this project.\n")
 	}
+
+	if c.MissingDockerfile {
+		b.WriteString("### Dockerfile\n\n")
+		b.WriteString("A Dockerfile is missing. Generate a **production-optimized** Dockerfile using these rules:\n\n")
+		b.WriteString("- **Multi-stage build**: builder stage (full SDK) → final stage (minimal image)\n")
+		b.WriteString("- **Minimal base image**: distroless/alpine/slim for the final stage\n")
+		b.WriteString("  - Go → `golang:<ver>-alpine` builder / `gcr.io/distroless/static` final\n")
+		b.WriteString("  - Node → `node:<ver>-alpine` builder / `node:<ver>-alpine` final\n")
+		b.WriteString("  - Python → `python:<ver>-slim` builder and final\n")
+		b.WriteString("  - Rust → `rust:<ver>-alpine` builder / `gcr.io/distroless/static` final\n")
+		b.WriteString("- **Non-root user**: create a dedicated user in the final stage (`USER nonroot`)\n")
+		b.WriteString("- **Layer caching**: copy dependency files first (`go.mod`, `package.json`, `requirements.txt`…)\n")
+		b.WriteString("  then run install, then copy source — maximises Docker layer cache reuse\n")
+		b.WriteString("- **Explicit WORKDIR**: e.g. `WORKDIR /app`\n")
+		b.WriteString("- **HEALTHCHECK**: HTTP or TCP probe appropriate for the stack\n")
+		b.WriteString("- **No secrets**: never COPY .env files into the image\n")
+		b.WriteString("- **Pinned tags**: no `:latest` base images\n\n")
+		b.WriteString("Call `kaal_generate_dockerfile` with the generated content.\n\n")
+	}
+
 	if c.MissingCompose {
-		b.WriteString(fmt.Sprintf("- **docker-compose.%s.yml** is missing. ", c.ActiveEnv))
-		b.WriteString("Please generate a docker-compose file for this environment,\n")
-		b.WriteString("  using the services and resources defined in kaal.yaml.\n")
+		b.WriteString(fmt.Sprintf("### docker-compose.%s.yml\n\n", c.ActiveEnv))
+		b.WriteString("A compose file is missing. Generate a **production-optimized** docker-compose file using these rules:\n\n")
+		b.WriteString("- **Named volumes** for all persistent data (databases, uploads)\n")
+		b.WriteString("- **Custom bridge network** — do not rely on the default network\n")
+		b.WriteString("- **Resource limits** (`mem_limit`, `cpus`) on every service\n")
+		b.WriteString("- **Restart policy**: `restart: unless-stopped` for all long-lived services\n")
+		b.WriteString("- **Health checks + ordered startup**: `healthcheck` blocks + `depends_on: condition: service_healthy`\n")
+		b.WriteString("- **No hardcoded secrets**: use `env_file: .env." + c.ActiveEnv + "` or `${VAR}` substitution\n")
+		if c.ActiveEnv == "dev" {
+			b.WriteString("- **Dev mode**: `build: context` and source volume mounts for live reload are acceptable\n")
+		} else {
+			b.WriteString("- **Pre-built images only**: reference `image: <registry>/<name>:<tag>` — no `build:` blocks in non-dev compose\n")
+		}
+		b.WriteString("- **Logging limits**: `logging: driver: json-file` with `max-size: 10m, max-file: 3`\n")
+		b.WriteString("- **Pinned image tags**: never use `:latest` for external images\n")
+		b.WriteString("- **Service names**: use the exact names from the kaal.yaml `services:` section\n\n")
+		b.WriteString("Call `kaal_generate_compose` with the generated content.\n\n")
 	}
 
 	// Warn the agent about unconfigured deploy targets.
