@@ -14,14 +14,15 @@ const (
 	stepServices      = 1
 	stepEnvs          = 2
 	stepTarget        = 3
-	stepRegistry      = 4
-	stepRegistryImage = 5
-	stepConfirm       = 6
-	stepCount         = 7
+	stepVPSHost       = 4 // shown only when target type requires a host
+	stepRegistry      = 5
+	stepRegistryImage = 6
+	stepConfirm       = 7
+	stepCount         = 8
 )
 
 var stepLabels = [stepCount]string{
-	"Project", "Services", "Environments", "Target", "Registry", "Image", "Confirm",
+	"Project", "Services", "Environments", "Target", "Host", "Registry", "Image", "Confirm",
 }
 
 // ServiceItem is a service selected during the wizard.
@@ -32,14 +33,16 @@ type ServiceItem struct {
 
 // Result holds everything collected by the wizard.
 type Result struct {
-	Name          string
-	Stack         string
-	Services      []ServiceItem
-	Environments  []string
-	TargetType    string
-	Registry      string
-	RegistryImage string // full image name e.g. ghcr.io/user/app
-	Cancelled     bool
+	Name              string
+	Stack             string
+	Services          []ServiceItem
+	Environments      []string
+	TargetType        string
+	TargetHost        string // IP or hostname — empty if user skipped
+	TargetHostSkipped bool   // true when user skipped the host step
+	Registry          string
+	RegistryImage     string // full image name e.g. ghcr.io/user/app
+	Cancelled         bool
 }
 
 // DetectedInfo carries auto-detected project information passed to the wizard.
@@ -52,18 +55,20 @@ type DetectedInfo struct {
 
 // Model is the top-level Bubbletea model for the init wizard.
 type Model struct {
-	step        int
-	detected    DetectedInfo
-	nameInput   textinput.Model
-	stackInput  textinput.Model
-	imageInput  textinput.Model
-	services    MultiSelect
-	envs        MultiSelect
-	targets     MultiSelect
-	registries  MultiSelect
-	result      Result
-	quitting    bool
-	err         string
+	step            int
+	detected        DetectedInfo
+	nameInput       textinput.Model
+	stackInput      textinput.Model
+	imageInput      textinput.Model
+	hostInput       textinput.Model
+	hostAttempted   bool // true after first empty submit on stepVPSHost
+	services        MultiSelect
+	envs            MultiSelect
+	targets         MultiSelect
+	registries      MultiSelect
+	result          Result
+	quitting        bool
+	err             string
 }
 
 func NewWizard(d DetectedInfo) Model {
@@ -84,11 +89,16 @@ func NewWizard(d DetectedInfo) Model {
 	ii.Placeholder = "ghcr.io/your-user/your-app"
 	ii.CharLimit = 128
 
+	hi := textinput.New()
+	hi.Placeholder = "1.2.3.4  or  vps.example.com"
+	hi.CharLimit = 256
+
 	return Model{
 		detected:   d,
 		nameInput:  ni,
 		stackInput: si,
 		imageInput: ii,
+		hostInput:  hi,
 		services:   buildServicesSelect(),
 		envs:       buildEnvsSelect(),
 		targets:    buildTargetsSelect(),
@@ -141,6 +151,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch m.step {
 	case stepName:
 		m.nameInput, cmd = m.nameInput.Update(msg)
+	case stepVPSHost:
+		m.hostInput, cmd = m.hostInput.Update(msg)
 	case stepRegistryImage:
 		m.imageInput, cmd = m.imageInput.Update(msg)
 	case stepConfirm:
@@ -199,6 +211,25 @@ func (m Model) advance() (tea.Model, tea.Cmd) {
 		if len(m.targets.Items) > 0 {
 			m.result.TargetType = m.targets.Items[m.targets.Cursor].Key
 		}
+		if requiresHost(m.result.TargetType) {
+			m.hostInput.Focus()
+			m.step = stepVPSHost
+		} else {
+			m.step = stepRegistry
+		}
+
+	case stepVPSHost:
+		host := strings.TrimSpace(m.hostInput.Value())
+		if host == "" {
+			if !m.hostAttempted {
+				m.hostAttempted = true
+				m.err = "host is required for deployment — press Enter again to skip (you can edit kaal.yaml later)"
+				return m, nil
+			}
+			// Second attempt with empty → allow skip, warn in summary
+			m.result.TargetHostSkipped = true
+		}
+		m.result.TargetHost = host
 		m.step = stepRegistry
 
 	case stepRegistry:
@@ -234,6 +265,15 @@ func (m Model) advance() (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 	}
 	return m, nil
+}
+
+// requiresHost returns true for target types that need an IP/hostname at deploy time.
+func requiresHost(targetType string) bool {
+	switch targetType {
+	case "vps", "hetzner", "aws", "gcp", "azure", "do":
+		return true
+	}
+	return false
 }
 
 // defaultImageSuggestion builds a pre-filled image name based on registry + project.
@@ -307,6 +347,8 @@ func (m Model) body() string {
 		content = m.viewEnvs()
 	case stepTarget:
 		content = m.viewSingleSelect(&m.targets, "Where do you deploy?")
+	case stepVPSHost:
+		content = m.viewVPSHost()
 	case stepRegistry:
 		content = m.viewSingleSelect(&m.registries, "Container registry")
 	case stepRegistryImage:
@@ -376,6 +418,15 @@ func (m Model) viewSingleSelect(sel *MultiSelect, title string) string {
 	return b.String()
 }
 
+func (m Model) viewVPSHost() string {
+	var b strings.Builder
+	b.WriteString("\n  " + StyleTitle.Render("Target host") + "\n")
+	b.WriteString("  " + StyleDim.Render("IP address or hostname of your VPS — needed to deploy") + "\n\n")
+	b.WriteString("  " + m.hostInput.View() + "\n\n")
+	b.WriteString("  " + StyleDim.Render("user: deploy   key: ~/.ssh/id_kaal   port: 22  (edit in kaal.yaml to change)") + "\n")
+	return b.String()
+}
+
 func (m Model) viewRegistryImage() string {
 	var b strings.Builder
 	b.WriteString("\n  " + StyleTitle.Render("Image name") + "\n")
@@ -406,7 +457,13 @@ func (m Model) viewConfirm() string {
 	b.WriteString(row("project", m.result.Name))
 	b.WriteString(row("environments", strings.Join(m.result.Environments, ", ")))
 	if m.result.TargetType != "" {
-		b.WriteString(row("target", m.result.TargetType))
+		targetSummary := m.result.TargetType
+		if m.result.TargetHost != "" {
+			targetSummary += "  " + m.result.TargetHost
+		} else if m.result.TargetHostSkipped {
+			targetSummary += "  " + StyleError.Render("⚠ host not set")
+		}
+		b.WriteString(row("target", targetSummary))
 	}
 	b.WriteString(row("registry", m.result.Registry))
 	if m.result.RegistryImage != "" {
@@ -428,6 +485,8 @@ func (m Model) footer() string {
 		hint = "↑/↓ navigate   space toggle   enter confirm   esc back   ctrl+c cancel"
 	case stepName, stepRegistryImage, stepConfirm:
 		hint = "enter confirm   esc back   ctrl+c cancel"
+	case stepVPSHost:
+		hint = "enter confirm   esc back   ctrl+c cancel   (leave empty + Enter twice to skip)"
 	default:
 		hint = "↑/↓ navigate   enter select   esc back   ctrl+c cancel"
 	}

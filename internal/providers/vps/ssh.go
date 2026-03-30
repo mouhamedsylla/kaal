@@ -64,12 +64,24 @@ func (p *Provider) Deploy(ctx context.Context, env string, opts providers.Deploy
 	}
 	for _, cmd := range commands {
 		if out, err := client.Run(ctx, cmd); err != nil {
+			cause := err
+			if isDockerPermissionError(out) {
+				cause = fmt.Errorf(
+					"user %q is not in the docker group\n\n"+
+						"  Fix it automatically:\n"+
+						"    kaal setup --env %s\n\n"+
+						"  Or manually on your VPS:\n"+
+						"    sudo usermod -aG docker %s\n"+
+						"  Then run kaal deploy again (new SSH session picks up the group change)",
+					p.target.User, env, p.target.User,
+				)
+			}
 			deployErr := &kaalerr.DeployError{
 				Phase:   "restart",
 				Target:  p.target.Host,
 				Command: cmd,
 				Output:  out,
-				Cause:   err,
+				Cause:   cause,
 			}
 			p.recordDeploy(ctx, client, env, opts.Tag, false, err.Error())
 			return deployErr
@@ -219,4 +231,43 @@ func (p *Provider) connect() (*kaalSSH.Client, error) {
 // composeFileForEnv returns the conventional compose filename for an environment.
 func composeFileForEnv(env string) string {
 	return fmt.Sprintf("docker-compose.%s.yml", env)
+}
+
+// isDockerPermissionError detects the classic "user not in docker group" error.
+func isDockerPermissionError(output string) bool {
+	lower := strings.ToLower(output)
+	return (strings.Contains(lower, "permission denied") && strings.Contains(lower, "docker")) ||
+		strings.Contains(lower, "got permission denied while trying to connect to the docker daemon socket")
+}
+
+// SetupDockerGroup adds the SSH user to the docker group on the remote VPS.
+// Requires password-less sudo on the target (common on cloud VMs).
+func (p *Provider) SetupDockerGroup(ctx context.Context) error {
+	client, err := p.connect()
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+
+	user := p.target.User
+	if user == "" {
+		user = "deploy"
+	}
+
+	steps := []struct {
+		desc string
+		cmd  string
+	}{
+		{"Checking docker installation", "docker --version"},
+		{fmt.Sprintf("Adding %q to docker group", user), fmt.Sprintf("sudo usermod -aG docker %s", user)},
+		{"Verifying (new session check)", fmt.Sprintf("id %s", user)},
+	}
+
+	for _, s := range steps {
+		out, err := client.Run(ctx, s.cmd)
+		if err != nil {
+			return fmt.Errorf("%s: %w\n%s", s.desc, err, out)
+		}
+	}
+	return nil
 }

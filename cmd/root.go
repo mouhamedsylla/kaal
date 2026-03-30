@@ -56,6 +56,7 @@ func init() {
 		logsCmd,
 		secretsCmd,
 		historyCmd,
+		setupCmd,
 		mcpCmd,
 	)
 }

@@ -83,6 +83,7 @@ func runWizard(detected DetectedProject, flags Flags) (Options, error) {
 		Stack:         result.Stack,
 		Environments:  result.Environments,
 		TargetType:    result.TargetType,
+		TargetHost:    result.TargetHost,
 		Registry:      result.Registry,
 		RegistryImage: result.RegistryImage,
 		OutputDir:     ".",
@@ -152,6 +153,12 @@ func printSummary(opts Options) {
 	fmt.Println()
 	ui.Success("kaal.yaml generated")
 	ui.Success(".mcp.json generated  ← connects your AI agent to kaal")
+	if opts.TargetHost == "" && opts.TargetType != "" {
+		fmt.Println()
+		ui.Warn("Target host not configured — edit kaal.yaml before deploying:")
+		ui.Dim(fmt.Sprintf("  targets:\n    %s-prod:\n      host: \"YOUR_VPS_IP\"", opts.TargetType))
+		ui.Dim("  Or run: kaal setup --env prod  (after filling the host)")
+	}
 	fmt.Println()
 	ui.Bold("  How the AI agent creates missing files (Dockerfile, compose):")
 	ui.Dim("  1. Open this project in Claude Code or Cursor")

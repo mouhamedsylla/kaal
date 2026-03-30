@@ -174,6 +174,23 @@ func (c *ProjectContext) AgentPrompt() string {
 		b.WriteString("  using the services and resources defined in kaal.yaml.\n")
 	}
 
+	// Warn the agent about unconfigured deploy targets.
+	var unconfiguredTargets []string
+	for name, t := range c.Config.Targets {
+		if t.Host == "" {
+			unconfiguredTargets = append(unconfiguredTargets, name)
+		}
+	}
+	if len(unconfiguredTargets) > 0 {
+		b.WriteString("\n## ⚠ Unconfigured deploy targets\n\n")
+		b.WriteString("The following targets have no `host` set in kaal.yaml.\n")
+		b.WriteString("`kaal deploy` will fail until these are filled in:\n\n")
+		for _, name := range unconfiguredTargets {
+			b.WriteString(fmt.Sprintf("- **%s** — set `targets.%s.host` to the VPS IP or hostname\n", name, name))
+		}
+		b.WriteString("\nAsk the user for the VPS IP, then update kaal.yaml or run `kaal setup --env <env>`.\n")
+	}
+
 	return b.String()
 }
 

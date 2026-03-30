@@ -15,8 +15,11 @@ type Options struct {
 	// Environments selected (e.g. dev, staging, prod, test...)
 	Environments []string
 
-	// Target type for non-dev environments
-	TargetType string // vps | aws | gcp | azure | do | hetzner
+	// Target type and connection info for non-dev environments
+	TargetType    string // vps | aws | gcp | azure | do | hetzner
+	TargetHost    string // IP or hostname (empty = not yet configured)
+	TargetUser    string // SSH user (default: deploy)
+	TargetSSHKey  string // SSH key path (default: ~/.ssh/id_kaal)
 
 	// Registry
 	Registry      string // ghcr | dockerhub | custom
@@ -90,11 +93,19 @@ func (o *Options) ToConfig() *config.Config {
 		if env != "dev" && o.TargetType != "" {
 			targetName := o.TargetType + "-" + env
 			e.Target = targetName
+			user := o.TargetUser
+			if user == "" {
+				user = "deploy"
+			}
+			key := o.TargetSSHKey
+			if key == "" {
+				key = "~/.ssh/id_kaal"
+			}
 			cfg.Targets[targetName] = config.Target{
 				Type: o.TargetType,
-				Host: "",
-				User: "deploy",
-				Key:  "~/.ssh/id_kaal",
+				Host: o.TargetHost,
+				User: user,
+				Key:  key,
 				Port: 22,
 			}
 		}
