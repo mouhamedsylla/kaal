@@ -1,10 +1,48 @@
-# pilot — Modèle de résilience
+# pilot : Modèle de résilience
 
 > **Document de référence — conception uniquement, pas encore implémenté**
->
-> Ce document décrit le modèle de résilience cible de pilot : comment les opérations
-> sont planifiées, exécutées, réparées et compensées — sans que l'utilisateur
-> ni l'agent IA n'aient à comprendre la mécanique sous-jacente.
+
+---
+
+## Contexte : qu'est-ce que pilot ?
+
+**pilot** est un CLI terminal-first, opinionated et IA-natif qui accompagne le développeur
+de l'initialisation d'un projet jusqu'au déploiement en production.
+
+Sa promesse centrale : **ce qui tourne en local tourne en production, sans modification.**
+
+pilot cible en priorité les *vibe coders* — des développeurs qui codent avec ou sans agent IA,
+qui ne maîtrisent pas nécessairement les rouages du DevOps, et qui ont besoin qu'un outil
+pense à leur place pour tout ce qui concerne l'infrastructure, les environnements et le déploiement.
+Il s'adresse aussi aux développeurs confirmés qui veulent aller vite sans sacrifier la robustesse.
+
+En pratique, pilot orchestre :
+- la **génération** du projet (Dockerfile, compose, pilot.yaml) via un agent IA ou manuellement
+- la **gestion des environnements** (dev, staging, prod) et des secrets associés
+- le **déploiement** sur VPS ou cloud, avec registry d'images, SSH, et healthchecks
+- le **serveur MCP** qui permet à un agent IA (Claude, Cursor…) d'utiliser pilot comme outil natif
+
+---
+
+## Pourquoi un modèle de résilience ?
+
+Dans les conditions normales, lancer une app avec pilot doit être trivial.
+Mais le monde réel est chaotique : ports occupés, variables manquantes, migrations qui échouent,
+clés SSH mal configurées, images cassées, containers qui crashent au démarrage.
+
+Le problème actuel : quand pilot échoue, il sort une erreur. L'utilisateur ne sait pas toujours
+quoi faire. L'agent IA, lui, commence à improviser des commandes dans tous les sens —
+ce qui empire souvent la situation.
+
+**Ce qu'on cherche à construire** : un pilot qui ne laisse jamais l'utilisateur ni l'agent
+dans un état ambigu. Chaque échec est diagnostiqué, classé, et résolu — automatiquement
+si possible, avec des instructions exactes sinon. pilot doit être le seul interlocuteur
+fiable entre l'humain ou l'agent et le système, quelle que soit la complexité du projet
+ou le chaos de l'environnement.
+
+Ce document décrit le modèle qui rend ça possible : comment les opérations sont planifiées,
+exécutées, réparées et compensées — sans que l'utilisateur ni l'agent n'aient à comprendre
+la mécanique sous-jacente.
 
 ---
 
@@ -34,10 +72,10 @@ Ce principe gouverne trois dimensions :
 Deux extrêmes existent :
 
 - **Graphe statique pur** : chaque commande a une séquence fixe câblée dans le code.
-  Prévisible mais rigide — un projet avec migrations ressemble au même code qu'un projet sans.
+  Prévisible mais rigide : un projet avec migrations ressemble au même code qu'un projet sans.
 
 - **Graphe dynamique pur** : pilot calcule un graphe arbitraire depuis `pilot.yaml`.
-  Puissant mais imprévisible — l'agent ne sait jamais ce qui va se passer avant de demander.
+  Puissant mais imprévisible : l'agent ne sait jamais ce qui va se passer avant de demander.
 
 Le modèle hybride prend le meilleur des deux :
 
@@ -122,7 +160,7 @@ L'utilisateur ne configure rien de tout cela. pilot le découvre et agit en cons
 
 Quand un projet a plusieurs services, pilot résout l'ordre de déploiement
 depuis les déclarations `depends_on` du fichier compose. L'utilisateur
-n'a pas à gérer ça dans `pilot.yaml` — il le déclare déjà dans compose.
+n'a pas à gérer ça dans `pilot.yaml` : il le déclare déjà dans compose.
 
 ```
 # docker-compose.prod.yml  ← pilot lit ça
@@ -153,7 +191,7 @@ de répondre à la question : *si ça échoue plus tard, que peut-on défaire ?*
 | Nœud | Compensation possible | Condition |
 |---|---|---|
 | [3] migrations | rollback via `rollback_command` | si `reversible: true` (défaut: true) |
-| [4] push | aucune (image publiée, inoffensif) | — |
+| [4] push | aucune (image publiée, inoffensif) | : |
 | [5] deploy | restaurer l'image précédente | image précédente connue dans state.json |
 | [6] post-hooks | dépend du hook | déclaré dans pilot.yaml si besoin |
 | [7] healthcheck | déclenche la compensation | c'est le déclencheur, pas une étape |
@@ -195,7 +233,7 @@ l'état exact du système, sans tenter d'improviser davantage.
 Toute situation anormale est classée dans l'un des 4 types suivants.
 Le type détermine qui agit et comment.
 
-### Type A — Déterministe, sans risque
+### Type A : Déterministe, sans risque
 pilot corrige seul, log ce qu'il a fait, continue.
 
 ```
@@ -205,7 +243,7 @@ Exemples :
   → image locale obsolète → docker pull automatique avant up
 ```
 
-### Type B — Déterministe, impactant
+### Type B : Déterministe, impactant
 pilot corrige seul mais annonce clairement ce qu'il fait.
 Supporte `--dry-run` pour voir sans exécuter.
 
@@ -216,7 +254,7 @@ Exemples :
   → réseau Docker absent → docker network create annoncé
 ```
 
-### Type C — Choix requis, options connues
+### Type C : Choix requis, options connues
 pilot liste les options et **attend** la réponse.
 Il ne choisit jamais arbitrairement.
 
@@ -253,7 +291,7 @@ Exemples :
 }
 ```
 
-### Type D — Choix requis, options non énumérables
+### Type D : Choix requis, options non énumérables
 pilot s'arrête avec des instructions exactes. Il n'improvise jamais.
 
 ```
@@ -279,7 +317,7 @@ $ pilot deploy
   ✓  migrations OK
   ✗  conflit de port détecté
 
-     [choix demandé — voir ci-dessus]
+     [choix demandé : voir ci-dessus]
 
   → Choix saisi : 8081
   ✓  pilot.yaml mis à jour (environments.prod.ports.api: 8081)
@@ -306,7 +344,7 @@ ou à improviser des commandes système en dehors de pilot.
 
 ---
 
-## 5. `pilot diagnose` — le snapshot exhaustif
+## 5. `pilot diagnose` : le snapshot exhaustif
 
 Commande disponible à tout moment, avant ou après une opération.
 Donne une vue complète et fiable de l'état du système.
@@ -334,7 +372,7 @@ $ pilot diagnose
 
 ─── Ports locaux (env: dev) ──────────────────────────
   8080 (api)      : ✓ libre
-  5432 (db)       : ✗ OCCUPÉ — postgres externe (pid 5678)
+  5432 (db)       : ✗ OCCUPÉ : postgres externe (pid 5678)
   6379 (redis)    : ✓ libre
 
 ─── Registry ─────────────────────────────────────────
@@ -370,7 +408,7 @@ avant de lancer n'importe quelle opération.
 
 ---
 
-## 6. `.pilot/state.json` — mémoire persistante
+## 6. `.pilot/state.json` : mémoire persistante
 
 pilot maintient un fichier d'état pour ne pas redécouvrir à chaque exécution
 ce qui a déjà été fait ou ce qui est en attente.
@@ -427,7 +465,7 @@ avant de lancer toute autre opération. Exemple :
 
 ---
 
-## 7. `pilot.yaml` — principe de minimalité
+## 7. `pilot.yaml` : principe de minimalité
 
 > **pilot.yaml exprime l'intention. pilot infère l'exécution.**
 
@@ -488,7 +526,7 @@ C'est tout ce qui est **nécessaire**. Le reste est inféré.
 environments:
   prod:
     migrations:
-      reversible: false     # défaut: true — à déclarer si la migration est destructive
+      reversible: false     # défaut: true : à déclarer si la migration est destructive
       timeout: 300          # défaut: 120s
 
 registry:
