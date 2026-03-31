@@ -1,39 +1,39 @@
 // Package runtime is the only package that imports both interface packages
-// and their implementations. It wires everything together based on kaal.yaml.
+// and their implementations. It wires everything together based on pilot.yaml.
 // cmd/ packages import runtime — never the implementation packages directly.
 package runtime
 
 import (
 	"fmt"
 
-	"github.com/mouhamedsylla/kaal/internal/config"
-	"github.com/mouhamedsylla/kaal/internal/orchestrator"
-	"github.com/mouhamedsylla/kaal/internal/orchestrator/compose"
-	"github.com/mouhamedsylla/kaal/internal/orchestrator/k8s"
-	"github.com/mouhamedsylla/kaal/internal/providers"
-	"github.com/mouhamedsylla/kaal/internal/providers/aws"
-	"github.com/mouhamedsylla/kaal/internal/providers/azure"
-	"github.com/mouhamedsylla/kaal/internal/providers/do"
-	"github.com/mouhamedsylla/kaal/internal/providers/gcp"
-	"github.com/mouhamedsylla/kaal/internal/providers/vps"
-	"github.com/mouhamedsylla/kaal/internal/registry"
-	"github.com/mouhamedsylla/kaal/internal/registry/acr"
-	"github.com/mouhamedsylla/kaal/internal/registry/custom"
-	"github.com/mouhamedsylla/kaal/internal/registry/dockerhub"
-	"github.com/mouhamedsylla/kaal/internal/registry/ecr"
-	"github.com/mouhamedsylla/kaal/internal/registry/gcr"
-	"github.com/mouhamedsylla/kaal/internal/registry/ghcr"
-	"github.com/mouhamedsylla/kaal/internal/secrets"
-	"github.com/mouhamedsylla/kaal/internal/secrets/aws_sm"
-	"github.com/mouhamedsylla/kaal/internal/secrets/gcp_sm"
-	"github.com/mouhamedsylla/kaal/internal/secrets/local"
+	"github.com/mouhamedsylla/pilot/internal/config"
+	"github.com/mouhamedsylla/pilot/internal/orchestrator"
+	"github.com/mouhamedsylla/pilot/internal/orchestrator/compose"
+	"github.com/mouhamedsylla/pilot/internal/orchestrator/k8s"
+	"github.com/mouhamedsylla/pilot/internal/providers"
+	"github.com/mouhamedsylla/pilot/internal/providers/aws"
+	"github.com/mouhamedsylla/pilot/internal/providers/azure"
+	"github.com/mouhamedsylla/pilot/internal/providers/do"
+	"github.com/mouhamedsylla/pilot/internal/providers/gcp"
+	"github.com/mouhamedsylla/pilot/internal/providers/vps"
+	"github.com/mouhamedsylla/pilot/internal/registry"
+	"github.com/mouhamedsylla/pilot/internal/registry/acr"
+	"github.com/mouhamedsylla/pilot/internal/registry/custom"
+	"github.com/mouhamedsylla/pilot/internal/registry/dockerhub"
+	"github.com/mouhamedsylla/pilot/internal/registry/ecr"
+	"github.com/mouhamedsylla/pilot/internal/registry/gcr"
+	"github.com/mouhamedsylla/pilot/internal/registry/ghcr"
+	"github.com/mouhamedsylla/pilot/internal/secrets"
+	"github.com/mouhamedsylla/pilot/internal/secrets/aws_sm"
+	"github.com/mouhamedsylla/pilot/internal/secrets/gcp_sm"
+	"github.com/mouhamedsylla/pilot/internal/secrets/local"
 )
 
 // NewOrchestrator returns the correct Orchestrator for the given environment.
 func NewOrchestrator(cfg *config.Config, env string) (orchestrator.Orchestrator, error) {
 	envCfg, ok := cfg.Environments[env]
 	if !ok {
-		return nil, fmt.Errorf("environment %q not defined in kaal.yaml", env)
+		return nil, fmt.Errorf("environment %q not defined in pilot.yaml", env)
 	}
 	runtime := envCfg.Runtime
 	if runtime == "" {
@@ -53,7 +53,7 @@ func NewOrchestrator(cfg *config.Config, env string) (orchestrator.Orchestrator,
 func NewProvider(cfg *config.Config, targetName string) (providers.Provider, error) {
 	target, ok := cfg.Targets[targetName]
 	if !ok {
-		return nil, fmt.Errorf("target %q not defined in kaal.yaml", targetName)
+		return nil, fmt.Errorf("target %q not defined in pilot.yaml", targetName)
 	}
 	switch target.Type {
 	case "vps", "hetzner":
@@ -71,7 +71,7 @@ func NewProvider(cfg *config.Config, targetName string) (providers.Provider, err
 	}
 }
 
-// NewRegistry returns the correct Registry based on kaal.yaml registry config.
+// NewRegistry returns the correct Registry based on pilot.yaml registry config.
 func NewRegistry(cfg *config.Config) (registry.Registry, error) {
 	r := cfg.Registry
 	switch r.Provider {

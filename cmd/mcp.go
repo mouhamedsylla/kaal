@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/mouhamedsylla/kaal/internal/mcp"
+	"github.com/mouhamedsylla/pilot/internal/mcp"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +13,7 @@ var mcpCmd = &cobra.Command{
 var mcpServeCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Start the MCP server (JSON-RPC 2.0 over stdio)",
-	Long: `Starts kaal as an MCP server. AI clients (Claude Code, Cursor) connect
+	Long: `Starts pilot as an MCP server. AI clients (Claude Code, Cursor) connect
 via stdio transport. Add .mcp.json to your project root to enable it.`,
 	RunE: runMCPServe,
 }

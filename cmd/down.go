@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"github.com/mouhamedsylla/kaal/internal/up"
-	"github.com/mouhamedsylla/kaal/pkg/ui"
+	"github.com/mouhamedsylla/pilot/internal/up"
+	"github.com/mouhamedsylla/pilot/pkg/ui"
 	"github.com/spf13/cobra"
 )
 

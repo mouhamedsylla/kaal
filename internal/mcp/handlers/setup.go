@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/mouhamedsylla/kaal/internal/config"
-	"github.com/mouhamedsylla/kaal/internal/env"
-	"github.com/mouhamedsylla/kaal/internal/runtime"
+	"github.com/mouhamedsylla/pilot/internal/config"
+	"github.com/mouhamedsylla/pilot/internal/env"
+	"github.com/mouhamedsylla/pilot/internal/runtime"
 )
 
 // dockerSetup is a duck-typed interface satisfied by *vps.Provider.
@@ -28,7 +28,7 @@ func HandleSetup(ctx context.Context, params map[string]any) (any, error) {
 
 	envCfg, ok := cfg.Environments[activeEnv]
 	if !ok {
-		return nil, fmt.Errorf("environment %q not defined in kaal.yaml", activeEnv)
+		return nil, fmt.Errorf("environment %q not defined in pilot.yaml", activeEnv)
 	}
 
 	targetName := envCfg.Target
@@ -38,11 +38,11 @@ func HandleSetup(ctx context.Context, params map[string]any) (any, error) {
 
 	target, ok := cfg.Targets[targetName]
 	if !ok {
-		return nil, fmt.Errorf("target %q not defined in kaal.yaml", targetName)
+		return nil, fmt.Errorf("target %q not defined in pilot.yaml", targetName)
 	}
 	if target.Host == "" {
 		return nil, fmt.Errorf(
-			"target %q has no host configured — edit kaal.yaml:\n  targets:\n    %s:\n      host: \"YOUR_VPS_IP\"",
+			"target %q has no host configured — edit pilot.yaml:\n  targets:\n    %s:\n      host: \"YOUR_VPS_IP\"",
 			targetName, targetName,
 		)
 	}
@@ -63,7 +63,7 @@ func HandleSetup(ctx context.Context, params map[string]any) (any, error) {
 
 	return map[string]any{
 		"message": fmt.Sprintf(
-			"User %q added to docker group on %s. Run kaal_deploy — the new SSH session will pick up the group change.",
+			"User %q added to docker group on %s. Run pilot_deploy — the new SSH session will pick up the group change.",
 			target.User, target.Host,
 		),
 		"target": targetName,

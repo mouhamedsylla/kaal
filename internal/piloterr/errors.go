@@ -1,7 +1,7 @@
-// Package kaalerr defines structured error types for kaal.
+// Package piloterr defines structured error types for pilot.
 // Every error carries: what phase failed, what caused it, and an exit code
 // so the CLI can return meaningful codes to scripts and CI pipelines.
-package kaalerr
+package piloterr
 
 import (
 	"errors"
@@ -23,7 +23,7 @@ const (
 
 // ── Config ───────────────────────────────────────────────────────────────────
 
-// ConfigError is returned when kaal.yaml cannot be loaded or is invalid.
+// ConfigError is returned when pilot.yaml cannot be loaded or is invalid.
 type ConfigError struct {
 	Path  string // file that was being read (may be empty if not found)
 	Cause error
@@ -44,7 +44,7 @@ func (e *ConfigError) ExitCode() int { return ExitConfig }
 // DeployError is returned when a deployment step fails on the remote target.
 type DeployError struct {
 	Phase    string // pull | restart | state | sync | rollback-pull | rollback-restart
-	Target   string // host from kaal.yaml
+	Target   string // host from pilot.yaml
 	Command  string // remote command that failed (may be empty)
 	Output   string // combined stdout/stderr captured from the remote command
 	Cause    error
@@ -130,7 +130,7 @@ func (e *RegistryError) ExitCode() int { return ExitRegistry }
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-// ExitCode extracts the exit code from a kaalerr error.
+// ExitCode extracts the exit code from a piloterr error.
 // Returns ExitGeneral if the error does not carry a code.
 func ExitCode(err error) int {
 	if err == nil {

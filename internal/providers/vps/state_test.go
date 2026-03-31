@@ -31,7 +31,7 @@ func composeFileForEnv(env string) string {
 }
 
 func TestStateRotationCommands(t *testing.T) {
-	stateDir := "~/.kaal/my-app"
+	stateDir := "~/.pilot/my-app"
 	tag := "abc1234"
 
 	// These are the commands Deploy builds — verify the rotation logic.

@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 
-	kaalenv "github.com/mouhamedsylla/kaal/internal/env"
-	"github.com/mouhamedsylla/kaal/pkg/ui"
+	pilotenv "github.com/mouhamedsylla/pilot/internal/env"
+	"github.com/mouhamedsylla/pilot/pkg/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -16,7 +16,7 @@ var envCmd = &cobra.Command{
 var envUseCmd = &cobra.Command{
 	Use:   "use <env>",
 	Short: "Switch the active environment",
-	Long: `Switch the active environment. Writes .kaal-current-env at the project root.
+	Long: `Switch the active environment. Writes .pilot-current-env at the project root.
 
 All subsequent commands (up, down, logs, status, deploy...) will use this
 environment unless overridden with --env.`,
@@ -36,15 +36,15 @@ func init() {
 
 func runEnvUse(_ *cobra.Command, args []string) error {
 	env := args[0]
-	if err := kaalenv.Use(env); err != nil {
+	if err := pilotenv.Use(env); err != nil {
 		ui.Fatal(err)
 	}
 	ui.Success(fmt.Sprintf("Active environment → %s", env))
-	ui.Dim(fmt.Sprintf("  Written to %s", kaalenv.StateFilePath()))
+	ui.Dim(fmt.Sprintf("  Written to %s", pilotenv.StateFilePath()))
 	return nil
 }
 
 func runEnvCurrent(_ *cobra.Command, _ []string) error {
-	fmt.Println(kaalenv.Current())
+	fmt.Println(pilotenv.Current())
 	return nil
 }

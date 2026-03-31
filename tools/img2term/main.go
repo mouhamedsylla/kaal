@@ -2,7 +2,7 @@
 //
 // Usage:
 //
-//	go run tools/img2term/main.go assets/kaal_pixel.png [width]
+//	go run tools/img2term/main.go assets/pilot_pixel.png [width]
 //
 // Each terminal row renders 2 pixel rows using the ▀ (U+2580) half-block:
 //   - foreground color = top pixel

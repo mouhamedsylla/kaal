@@ -1,4 +1,4 @@
-// Package push implements the kaal push command logic.
+// Package push implements the pilot push command logic.
 package push
 
 import (
@@ -10,15 +10,15 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/mouhamedsylla/kaal/internal/config"
-	kaalenv "github.com/mouhamedsylla/kaal/internal/env"
-	"github.com/mouhamedsylla/kaal/internal/gitutil"
-	"github.com/mouhamedsylla/kaal/internal/registry"
-	kaalRuntime "github.com/mouhamedsylla/kaal/internal/runtime"
-	"github.com/mouhamedsylla/kaal/pkg/ui"
+	"github.com/mouhamedsylla/pilot/internal/config"
+	pilotenv "github.com/mouhamedsylla/pilot/internal/env"
+	"github.com/mouhamedsylla/pilot/internal/gitutil"
+	"github.com/mouhamedsylla/pilot/internal/registry"
+	pilotRuntime "github.com/mouhamedsylla/pilot/internal/runtime"
+	"github.com/mouhamedsylla/pilot/pkg/ui"
 )
 
-// Options controls kaal push behaviour.
+// Options controls pilot push behaviour.
 type Options struct {
 	Env       string   // active environment — used to resolve build_args from the env file
 	Tag       string   // explicit tag; empty = git short SHA
@@ -27,7 +27,7 @@ type Options struct {
 	Force     bool     // skip compile-time var gap check (use when vars are intentionally excluded)
 }
 
-// Run executes kaal push: login → build → push.
+// Run executes pilot push: login → build → push.
 func Run(ctx context.Context, opts Options) error {
 	cfg, err := config.Load(".")
 	if err != nil {
@@ -35,12 +35,12 @@ func Run(ctx context.Context, opts Options) error {
 	}
 
 	if cfg.Registry.Image == "" {
-		return fmt.Errorf("registry.image is not set in kaal.yaml\n  Add: registry:\n    provider: ghcr\n    image: ghcr.io/<user>/<project>")
+		return fmt.Errorf("registry.image is not set in pilot.yaml\n  Add: registry:\n    provider: ghcr\n    image: ghcr.io/<user>/<project>")
 	}
 	if isPlaceholderImage(cfg.Registry.Image) {
 		return fmt.Errorf(
 			"registry.image still contains a placeholder: %q\n"+
-				"  Edit kaal.yaml and replace it with your real image name, e.g.:\n"+
+				"  Edit pilot.yaml and replace it with your real image name, e.g.:\n"+
 				"    registry:\n"+
 				"      image: ghcr.io/mouhamedsylla/%s",
 			cfg.Registry.Image, cfg.Project.Name,
@@ -69,11 +69,11 @@ func Run(ctx context.Context, opts Options) error {
 
 	dockerfile := resolveDockerfile(cfg)
 	if _, err := os.Stat(dockerfile); os.IsNotExist(err) {
-		return fmt.Errorf("Dockerfile not found at %q\n  Run 'kaal up' or ask your AI agent to generate it first", dockerfile)
+		return fmt.Errorf("Dockerfile not found at %q\n  Run 'pilot up' or ask your AI agent to generate it first", dockerfile)
 	}
 
 	// Resolve build args from the active env file (for VITE_* and similar compile-time vars).
-	buildArgs, err := resolveBuildArgs(cfg, kaalenv.Active(opts.Env), opts.Force)
+	buildArgs, err := resolveBuildArgs(cfg, pilotenv.Active(opts.Env), opts.Force)
 	if err != nil {
 		return err
 	}
@@ -98,7 +98,7 @@ func Run(ctx context.Context, opts Options) error {
 		}
 	}
 
-	reg, err := kaalRuntime.NewRegistry(cfg)
+	reg, err := pilotRuntime.NewRegistry(cfg)
 	if err != nil {
 		return err
 	}
@@ -109,7 +109,7 @@ func Run(ctx context.Context, opts Options) error {
 		return fmt.Errorf(
 			"registry login failed for %s\n\n"+
 				"  Check that your credentials are set:\n"+
-				"    kaal preflight --target push\n\n"+
+				"    pilot preflight --target push\n\n"+
 				"  Cause: %w",
 			cfg.Registry.Provider, err,
 		)
@@ -135,7 +135,7 @@ func Run(ctx context.Context, opts Options) error {
 	fmt.Println()
 	ui.Success(fmt.Sprintf("Pushed %s", fullTag))
 	fmt.Println()
-	ui.Dim(fmt.Sprintf("  kaal deploy --env prod --tag %s", tag))
+	ui.Dim(fmt.Sprintf("  pilot deploy --env prod --tag %s", tag))
 	fmt.Println()
 
 	return nil
@@ -169,10 +169,10 @@ func resolveDockerfile(cfg *config.Config) string {
 
 // resolveBuildArgs collects compile-time variables to inject via --build-arg.
 //
-// Strategy (no kaal.yaml config required for the common case):
+// Strategy (no pilot.yaml config required for the common case):
 //  1. Auto-detect: scan the active env file for vars matching known frontend
 //     conventions (VITE_*, NEXT_PUBLIC_*, REACT_APP_*) — covers 90% of cases.
-//  2. Override/extend: if registry.build_args is set in kaal.yaml, those names
+//  2. Override/extend: if registry.build_args is set in pilot.yaml, those names
 //     are resolved instead (explicit list overrides auto-detection entirely).
 //
 // Values come from the env file first, process environment as fallback (CI/CD).
@@ -196,7 +196,7 @@ func resolveBuildArgs(cfg *config.Config, activeEnv string, force bool) (map[str
 		}
 	}
 
-	// ── Explicit override (registry.build_args in kaal.yaml) ──────────────
+	// ── Explicit override (registry.build_args in pilot.yaml) ──────────────
 	if len(cfg.Registry.BuildArgs) > 0 {
 		result := map[string]string{}
 		var missing []string
@@ -215,8 +215,8 @@ func resolveBuildArgs(cfg *config.Config, activeEnv string, force bool) (map[str
 				src = "environment"
 			}
 			return nil, fmt.Errorf(
-				"build_args declared in kaal.yaml but not found in %s: %s\n"+
-					"  Add them to %s or export them before running kaal push",
+				"build_args declared in pilot.yaml but not found in %s: %s\n"+
+					"  Add them to %s or export them before running pilot push",
 				src, strings.Join(missing, ", "), src,
 			)
 		}
@@ -247,14 +247,14 @@ func resolveBuildArgs(cfg *config.Config, activeEnv string, force bool) (map[str
 				lines = append(lines, fmt.Sprintf("    - %s", name))
 			}
 			return nil, fmt.Errorf(
-				"%d compile-time var(s) in %s are NOT in kaal.yaml registry.build_args:\n%s\n\n"+
+				"%d compile-time var(s) in %s are NOT in pilot.yaml registry.build_args:\n%s\n\n"+
 					"  These vars would be silently EMPTY in the built image.\n\n"+
-					"  Fix: add them to kaal.yaml:\n"+
+					"  Fix: add them to pilot.yaml:\n"+
 					"    registry:\n"+
 					"      build_args:\n"+
 					"%s\n\n"+
 					"  If these vars are intentionally excluded from the build, run:\n"+
-					"    kaal push --force",
+					"    pilot push --force",
 				len(unlisted), envFile,
 				strings.Join(lines, "\n"),
 				strings.Join(lines, "\n"),
@@ -266,7 +266,7 @@ func resolveBuildArgs(cfg *config.Config, activeEnv string, force bool) (map[str
 
 	// ── Auto-detect frontend compile-time vars ─────────────────────────────
 	// Only meaningful for node/frontend stacks. Scan the env file for vars
-	// matching universal frontend conventions — no kaal.yaml config needed.
+	// matching universal frontend conventions — no pilot.yaml config needed.
 	if cfg.Project.Stack != "node" {
 		return nil, nil
 	}
@@ -325,7 +325,7 @@ func patchDockerfileArgs(dockerfile string, argNames []string) (bool, string, er
 
 	// Build the ARG + ENV block to inject.
 	var block strings.Builder
-	block.WriteString("# kaal: auto-injected build args for compile-time env vars\n")
+	block.WriteString("# pilot: auto-injected build args for compile-time env vars\n")
 	for _, name := range missing {
 		block.WriteString(fmt.Sprintf("ARG %s\n", name))
 	}
@@ -379,7 +379,7 @@ func patchDockerfileArgs(dockerfile string, argNames []string) (bool, string, er
 	patched = append(patched, lines[insertAt:]...)
 
 	// Write to a temp file alongside the original.
-	tmp, err := os.CreateTemp(".", ".kaal-dockerfile-*.tmp")
+	tmp, err := os.CreateTemp(".", ".pilot-dockerfile-*.tmp")
 	if err != nil {
 		return false, "", err
 	}

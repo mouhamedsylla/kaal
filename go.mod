@@ -1,4 +1,4 @@
-module github.com/mouhamedsylla/kaal
+module github.com/mouhamedsylla/pilot
 
 go 1.25.3
 

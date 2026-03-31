@@ -1,4 +1,4 @@
-// Package deploy implements the kaal deploy command logic.
+// Package deploy implements the pilot deploy command logic.
 package deploy
 
 import (
@@ -8,25 +8,25 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mouhamedsylla/kaal/internal/config"
-	"github.com/mouhamedsylla/kaal/internal/env"
-	"github.com/mouhamedsylla/kaal/internal/gitutil"
-	"github.com/mouhamedsylla/kaal/internal/providers"
-	"github.com/mouhamedsylla/kaal/internal/runtime"
-	"github.com/mouhamedsylla/kaal/pkg/ui"
+	"github.com/mouhamedsylla/pilot/internal/config"
+	"github.com/mouhamedsylla/pilot/internal/env"
+	"github.com/mouhamedsylla/pilot/internal/gitutil"
+	"github.com/mouhamedsylla/pilot/internal/providers"
+	"github.com/mouhamedsylla/pilot/internal/runtime"
+	"github.com/mouhamedsylla/pilot/pkg/ui"
 )
 
-// Options controls kaal deploy behaviour.
+// Options controls pilot deploy behaviour.
 type Options struct {
 	Env        string // override active env
 	Tag        string // image tag; empty = git short SHA
-	Target     string // override target from kaal.yaml
+	Target     string // override target from pilot.yaml
 	Strategy   string // rolling | blue-green | canary
 	DryRun     bool
 	NoRollback bool // skip auto-rollback on healthcheck failure
 }
 
-// Run executes kaal deploy: sync files → pull image → compose up.
+// Run executes pilot deploy: sync files → pull image → compose up.
 func Run(ctx context.Context, opts Options) error {
 	cfg, err := config.Load(".")
 	if err != nil {
@@ -37,7 +37,7 @@ func Run(ctx context.Context, opts Options) error {
 
 	envCfg, ok := cfg.Environments[activeEnv]
 	if !ok {
-		return fmt.Errorf("environment %q not defined in kaal.yaml", activeEnv)
+		return fmt.Errorf("environment %q not defined in pilot.yaml", activeEnv)
 	}
 
 	// Resolve target
@@ -53,7 +53,7 @@ func Run(ctx context.Context, opts Options) error {
 	}
 	target, ok := cfg.Targets[targetName]
 	if !ok {
-		return fmt.Errorf("target %q not defined in kaal.yaml", targetName)
+		return fmt.Errorf("target %q not defined in pilot.yaml", targetName)
 	}
 
 	// Resolve tag
@@ -66,7 +66,7 @@ func Run(ctx context.Context, opts Options) error {
 	composeFile := fmt.Sprintf("docker-compose.%s.yml", activeEnv)
 	if _, err := os.Stat(composeFile); os.IsNotExist(err) {
 		return fmt.Errorf(
-			"%s not found — generate it first with your AI agent or 'kaal context'",
+			"%s not found — generate it first with your AI agent or 'pilot context'",
 			composeFile,
 		)
 	}
@@ -147,18 +147,18 @@ func Run(ctx context.Context, opts Options) error {
 				return fmt.Errorf(
 					"deploy succeeded but service %q went unhealthy AND auto-rollback failed: %v\n\n"+
 						"  Manual recovery on VPS:\n"+
-						"    docker compose -f ~/kaal/docker-compose.%s.yml down\n"+
-						"    docker compose -f ~/kaal/docker-compose.%s.yml up -d\n\n"+
+						"    docker compose -f ~/pilot/docker-compose.%s.yml down\n"+
+						"    docker compose -f ~/pilot/docker-compose.%s.yml up -d\n\n"+
 						"  Or force a specific tag:\n"+
-						"    kaal rollback --env %s --version <previous-tag>",
+						"    pilot rollback --env %s --version <previous-tag>",
 					failedSvc, rbErr, activeEnv, activeEnv, activeEnv,
 				)
 			}
 			return fmt.Errorf(
 				"deploy of %s went unhealthy — auto-rolled back to %s\n\n"+
 					"  Investigate:\n"+
-					"    kaal logs --env %s --follow\n"+
-					"    kaal status --env %s",
+					"    pilot logs --env %s --follow\n"+
+					"    pilot status --env %s",
 				tag, prevTag, activeEnv, activeEnv,
 			)
 		}
@@ -169,9 +169,9 @@ func Run(ctx context.Context, opts Options) error {
 		printStatuses(statuses)
 	}
 
-	ui.Dim(fmt.Sprintf("  kaal logs --env %s --follow", activeEnv))
-	ui.Dim(fmt.Sprintf("  kaal status --env %s", activeEnv))
-	ui.Dim(fmt.Sprintf("  kaal rollback --env %s   (si quelque chose cloche)", activeEnv))
+	ui.Dim(fmt.Sprintf("  pilot logs --env %s --follow", activeEnv))
+	ui.Dim(fmt.Sprintf("  pilot status --env %s", activeEnv))
+	ui.Dim(fmt.Sprintf("  pilot rollback --env %s   (si quelque chose cloche)", activeEnv))
 	fmt.Println()
 
 	return nil
@@ -239,7 +239,7 @@ func waitForHealth(ctx context.Context, provider providers.Provider, env string)
 	}
 
 	ui.Warn(fmt.Sprintf("Health check timed out after %ds — services may still be starting", int(maxWait.Seconds())))
-	ui.Dim(fmt.Sprintf("  Monitor with: kaal status --env %s", env))
+	ui.Dim(fmt.Sprintf("  Monitor with: pilot status --env %s", env))
 	return "", nil // non-fatal timeout
 }
 
@@ -268,7 +268,7 @@ func printDryRun(cfg *config.Config, activeEnv, targetName string, target config
 	ui.Dim(fmt.Sprintf("  Compose     : %s", composeFile))
 	fmt.Println()
 	ui.Dim("  Steps that would run:")
-	ui.Dim(fmt.Sprintf("    1. SCP %s → %s:~/kaal/", composeFile, target.Host))
+	ui.Dim(fmt.Sprintf("    1. SCP %s → %s:~/pilot/", composeFile, target.Host))
 	ui.Dim(fmt.Sprintf("    2. docker pull %s:%s", cfg.Registry.Image, tag))
 	ui.Dim(fmt.Sprintf("    3. IMAGE_TAG=%s docker compose -f %s up -d --remove-orphans", tag, composeFile))
 	fmt.Println()
@@ -293,7 +293,7 @@ func resolveTag(explicit string) (string, error) {
 // writeTempEnv writes resolved secrets to a temporary env file (0600).
 // Returns the file path; caller is responsible for removing it.
 func writeTempEnv(vars map[string]string) (string, error) {
-	f, err := os.CreateTemp("", "kaal-env-*.env")
+	f, err := os.CreateTemp("", "pilot-env-*.env")
 	if err != nil {
 		return "", err
 	}

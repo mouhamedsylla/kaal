@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/mouhamedsylla/kaal/internal/preflight"
-	"github.com/mouhamedsylla/kaal/pkg/ui"
+	"github.com/mouhamedsylla/pilot/internal/preflight"
+	"github.com/mouhamedsylla/pilot/pkg/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -20,8 +20,8 @@ needs to be fixed before proceeding:
   [AGENT]  actions your AI agent can perform automatically
 
 Examples:
-  kaal preflight --target push
-  kaal preflight --target deploy --env prod`,
+  pilot preflight --target push
+  pilot preflight --target deploy --env prod`,
 	RunE: runPreflight,
 }
 

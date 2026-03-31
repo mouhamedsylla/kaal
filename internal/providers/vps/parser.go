@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/mouhamedsylla/kaal/internal/providers"
+	"github.com/mouhamedsylla/pilot/internal/providers"
 )
 
 type remoteServiceEntry struct {

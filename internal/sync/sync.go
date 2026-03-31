@@ -1,23 +1,23 @@
-// Package sync implements the kaal sync command logic.
+// Package sync implements the pilot sync command logic.
 package sync
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/mouhamedsylla/kaal/internal/config"
-	"github.com/mouhamedsylla/kaal/internal/env"
-	"github.com/mouhamedsylla/kaal/internal/runtime"
-	"github.com/mouhamedsylla/kaal/pkg/ui"
+	"github.com/mouhamedsylla/pilot/internal/config"
+	"github.com/mouhamedsylla/pilot/internal/env"
+	"github.com/mouhamedsylla/pilot/internal/runtime"
+	"github.com/mouhamedsylla/pilot/pkg/ui"
 )
 
-// Options controls kaal sync behaviour.
+// Options controls pilot sync behaviour.
 type Options struct {
 	Env    string
-	Target string // override target from kaal.yaml
+	Target string // override target from pilot.yaml
 }
 
-// Run executes kaal sync: copy kaal.yaml + compose files to the remote target.
+// Run executes pilot sync: copy pilot.yaml + compose files to the remote target.
 func Run(ctx context.Context, opts Options) error {
 	cfg, err := config.Load(".")
 	if err != nil {
@@ -27,7 +27,7 @@ func Run(ctx context.Context, opts Options) error {
 	activeEnv := env.Active(opts.Env)
 	envCfg, ok := cfg.Environments[activeEnv]
 	if !ok {
-		return fmt.Errorf("environment %q not defined in kaal.yaml", activeEnv)
+		return fmt.Errorf("environment %q not defined in pilot.yaml", activeEnv)
 	}
 
 	targetName := opts.Target
@@ -36,7 +36,7 @@ func Run(ctx context.Context, opts Options) error {
 	}
 	if targetName == "" {
 		return fmt.Errorf(
-			"no deploy target for environment %q\n  kaal sync only applies to remote environments",
+			"no deploy target for environment %q\n  pilot sync only applies to remote environments",
 			activeEnv,
 		)
 	}
@@ -55,7 +55,7 @@ func Run(ctx context.Context, opts Options) error {
 
 	fmt.Println()
 	ui.Success(fmt.Sprintf("Config synced to %s", targetName))
-	ui.Dim("  kaal.yaml, compose files, env files and bind-mount config files copied to ~/kaal/")
+	ui.Dim("  pilot.yaml, compose files, env files and bind-mount config files copied to ~/pilot/")
 	fmt.Println()
 
 	return nil

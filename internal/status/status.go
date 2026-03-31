@@ -1,4 +1,4 @@
-// Package status implements the kaal status command logic.
+// Package status implements the pilot status command logic.
 package status
 
 import (
@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mouhamedsylla/kaal/internal/config"
-	"github.com/mouhamedsylla/kaal/internal/env"
-	"github.com/mouhamedsylla/kaal/internal/runtime"
-	"github.com/mouhamedsylla/kaal/pkg/ui"
+	"github.com/mouhamedsylla/pilot/internal/config"
+	"github.com/mouhamedsylla/pilot/internal/env"
+	"github.com/mouhamedsylla/pilot/internal/runtime"
+	"github.com/mouhamedsylla/pilot/pkg/ui"
 )
 
-// Options controls kaal status behaviour.
+// Options controls pilot status behaviour.
 type Options struct {
 	Env     string
 	JSONOut bool
@@ -26,7 +26,7 @@ type serviceRow struct {
 	Info   string // ports (local) or image version (remote)
 }
 
-// Run executes kaal status.
+// Run executes pilot status.
 func Run(ctx context.Context, opts Options) error {
 	cfg, err := config.Load(".")
 	if err != nil {
@@ -36,7 +36,7 @@ func Run(ctx context.Context, opts Options) error {
 	activeEnv := env.Active(opts.Env)
 	envCfg, ok := cfg.Environments[activeEnv]
 	if !ok {
-		return fmt.Errorf("environment %q not defined in kaal.yaml", activeEnv)
+		return fmt.Errorf("environment %q not defined in pilot.yaml", activeEnv)
 	}
 
 	fmt.Println()
@@ -57,11 +57,11 @@ func runLocalStatus(ctx context.Context, cfg *config.Config, activeEnv string, o
 
 	statuses, err := orch.Status(ctx)
 	if err != nil {
-		return fmt.Errorf("local status: %w\n  Is the environment running? Try 'kaal up'", err)
+		return fmt.Errorf("local status: %w\n  Is the environment running? Try 'pilot up'", err)
 	}
 
 	if len(statuses) == 0 {
-		ui.Dim("  No services running — try 'kaal up'")
+		ui.Dim("  No services running — try 'pilot up'")
 		fmt.Println()
 		return nil
 	}
@@ -103,7 +103,7 @@ func runRemoteStatus(ctx context.Context, cfg *config.Config, activeEnv, targetN
 	}
 
 	if len(statuses) == 0 {
-		ui.Dim("  No services found — have you deployed? Try 'kaal deploy'")
+		ui.Dim("  No services found — have you deployed? Try 'pilot deploy'")
 		fmt.Println()
 		return nil
 	}

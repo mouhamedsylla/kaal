@@ -1,4 +1,4 @@
-## kaal — Makefile
+## pilot — Makefile
 ## Usage: make <target>
 ##
 ##   make build        Build the binary for the current platform (./kaal)
@@ -12,8 +12,8 @@
 
 # ──────────────────────────── variables ────────────────────────────────────
 
-MODULE     := github.com/mouhamedsylla/kaal
-BINARY     := kaal
+MODULE     := github.com/mouhamedsylla/pilot
+BINARY     := pilot
 VERSION    ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 COMMIT     := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 BUILD_DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
@@ -43,7 +43,7 @@ build:
 	go build -ldflags "$(LDFLAGS)" -o $(BINARY) .
 	@echo "✓ $(BINARY) built ($(shell du -sh $(BINARY) | cut -f1))"
 
-## install: build + copy to $(INSTALL_DIR) (makes 'kaal' available in PATH)
+## install: build + copy to $(INSTALL_DIR) (makes 'pilot' available in PATH)
 install: build
 	@echo "→ Installing to $(INSTALL_DIR)/$(BINARY)"
 	@mkdir -p $(INSTALL_DIR)
@@ -78,7 +78,7 @@ release:
 	git push origin $(VERSION)
 	@echo "✓ Tagged and pushed $(VERSION)"
 	@echo "  GitHub Actions will build and publish the release binaries."
-	@echo "  Users can then run: kaal update"
+	@echo "  Users can then run: pilot update"
 
 ## test: run all tests
 test:

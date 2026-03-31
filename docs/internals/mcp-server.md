@@ -2,18 +2,18 @@
 
 ## Protocole
 
-kaal implémente le **Model Context Protocol (MCP)** en JSON-RPC 2.0 sur stdin/stdout.
+pilot implémente le **Model Context Protocol (MCP)** en JSON-RPC 2.0 sur stdin/stdout.
 
-- **Pas de port réseau** — communication par pipe standard
-- **Pas de processus séparé** — `kaal mcp serve` *est* le serveur
-- **Intégration IDE** — Claude Code et Cursor gèrent le cycle de vie du processus
+- **Pas de port réseau** : communication par pipe standard
+- **Pas de processus séparé** : `pilot mcp serve` *est* le serveur
+- **Intégration IDE** : Claude Code et Cursor gèrent le cycle de vie du processus
 
 ---
 
 ## Démarrage
 
 ```bash
-kaal mcp serve
+pilot mcp serve
 ```
 
 Le processus lit les requêtes JSON-RPC depuis stdin, écrit les réponses sur stdout.
@@ -23,8 +23,8 @@ Le processus lit les requêtes JSON-RPC depuis stdin, écrit les réponses sur s
 ```json
 {
   "mcpServers": {
-    "kaal": {
-      "command": "kaal",
+    "pilot": {
+      "command": "pilot",
       "args": ["mcp", "serve"],
       "cwd": "${workspaceFolder}"
     }
@@ -32,7 +32,7 @@ Le processus lit les requêtes JSON-RPC depuis stdin, écrit les réponses sur s
 }
 ```
 
-L'IDE démarre `kaal mcp serve` dans le dossier du projet. `cwd` est crucial — kaal lit `kaal.yaml` depuis le répertoire courant.
+L'IDE démarre `pilot mcp serve` dans le dossier du projet. `cwd` est crucial : pilot lit `pilot.yaml` depuis le répertoire courant.
 
 ---
 
@@ -46,7 +46,7 @@ L'IDE démarre `kaal mcp serve` dans le dossier du projet. `cwd` est crucial —
   "id": 1,
   "method": "tools/call",
   "params": {
-    "name": "kaal_context",
+    "name": "pilot_context",
     "arguments": {
       "env": "dev"
     }
@@ -64,7 +64,7 @@ L'IDE démarre `kaal mcp serve` dans le dossier du projet. `cwd` est crucial —
     "content": [
       {
         "type": "text",
-        "text": "{\"kaal_yaml\": \"...\", \"stack\": \"go\", ...}"
+        "text": "{\"pilot_yaml\": \"...\", \"stack\": \"go\", ...}"
       }
     ]
   }
@@ -78,13 +78,13 @@ L'IDE démarre `kaal mcp serve` dans le dossier du projet. `cwd` est crucial —
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
-    "content": [{"type": "text", "text": "kaal_context: kaal.yaml not found"}],
+    "content": [{"type": "text", "text": "pilot_context: pilot.yaml not found"}],
     "isError": true
   }
 }
 ```
 
-Note : les erreurs d'outil retournent un `result` avec `isError: true`, pas un champ `error` JSON-RPC — conformément à la spec MCP.
+Note : les erreurs d'outil retournent un `result` avec `isError: true`, pas un champ `error` JSON-RPC : conformément à la spec MCP.
 
 ---
 
@@ -92,7 +92,7 @@ Note : les erreurs d'outil retournent un `result` avec `isError: true`, pas un c
 
 | Méthode | Description |
 |---------|-------------|
-| `initialize` | Handshake initial — retourne les capabilities du serveur |
+| `initialize` | Handshake initial : retourne les capabilities du serveur |
 | `tools/list` | Liste tous les outils disponibles avec leur schéma |
 | `tools/call` | Appelle un outil avec les paramètres donnés |
 
@@ -102,22 +102,75 @@ Note : les erreurs d'outil retournent un `result` avec `isError: true`, pas un c
 
 | Outil | Handler | Statut |
 |-------|---------|--------|
-| `kaal_context` | `handlers.HandleContext` | ✅ |
-| `kaal_generate_dockerfile` | `handlers.HandleGenerateDockerfile` | ✅ |
-| `kaal_generate_compose` | `handlers.HandleGenerateCompose` | ✅ |
-| `kaal_init` | stub | 🔲 |
-| `kaal_env_switch` | stub | 🔲 |
-| `kaal_up` | stub | 🔲 |
-| `kaal_down` | stub | 🔲 |
-| `kaal_push` | stub | 🔲 |
-| `kaal_deploy` | stub | 🔲 |
-| `kaal_rollback` | stub | 🔲 |
-| `kaal_sync` | stub | 🔲 |
-| `kaal_status` | stub | 🔲 |
-| `kaal_logs` | stub | 🔲 |
-| `kaal_config_get` | stub | 🔲 |
-| `kaal_config_set` | stub | 🔲 |
-| `kaal_secrets_inject` | stub | 🔲 |
+| `pilot_context` | `handlers.HandleContext` | ✅ |
+| `pilot_generate_dockerfile` | `handlers.HandleGenerateDockerfile` | ✅ |
+| `pilot_generate_compose` | `handlers.HandleGenerateCompose` | ✅ |
+| `pilot_push` | `handlers.HandlePush` | ✅ |
+| `pilot_deploy` | `handlers.HandleDeploy` | ✅ |
+| `pilot_rollback` | `handlers.HandleRollback` | ✅ |
+| `pilot_sync` | `handlers.HandleSync` | ✅ |
+| `pilot_up` | `handlers.HandleUp` | ✅ |
+| `pilot_down` | `handlers.HandleDown` | ✅ |
+| `pilot_status` | `handlers.HandleStatus` | ✅ |
+| `pilot_logs` | `handlers.HandleLogs` | ✅ |
+| `pilot_preflight` | `handlers.HandlePreflight` | ✅ |
+| `pilot_setup` | `handlers.HandleSetup` | ✅ |
+| `pilot_init` | stub | 🔲 |
+| `pilot_env_switch` | stub | 🔲 |
+| `pilot_config_get` | stub | 🔲 |
+| `pilot_config_set` | stub | 🔲 |
+
+---
+
+## Description des outils principaux
+
+### `pilot_context`
+
+Retourne le contexte complet du projet : stack, services, fichiers existants/manquants, prompt agent, env_file paths, targets non configurés. **Premier outil à appeler avant toute génération.**
+
+Paramètres : `env` (optionnel)
+
+### `pilot_generate_dockerfile`
+
+Écrit un Dockerfile optimisé sur disque. L'agent doit générer un Dockerfile multi-stage, non-root, avec healthcheck, adapté au stack détecté dans `pilot_context`.
+
+Paramètres : `content` (requis), `path` (optionnel, défaut : `Dockerfile`)
+
+### `pilot_generate_compose`
+
+Écrit un `docker-compose.<env>.yml` sur disque. L'agent doit inclure : `env_file` depuis `pilot.yaml`, healthchecks, limites de ressources, commande `--mode <env>` pour Vite/Next.
+
+Paramètres : `content` (requis), `env` (optionnel), `path` (optionnel)
+
+### `pilot_preflight`
+
+Lance la checklist pré-déploiement. Retourne un plan d'action structuré avec `all_ok`, `checks[]`, `next_steps[]`. L'agent suit les `next_steps` dans l'ordre : actions `[HUMAN]` d'abord, puis `[AGENT]`.
+
+Paramètres : `target` (`push` ou `deploy`), `env` (optionnel)
+
+### `pilot_push`
+
+Build + push de l'image. Injecte automatiquement les vars `VITE_*`/`NEXT_PUBLIC_*`/`REACT_APP_*` depuis l'env file. Patch le Dockerfile si des `ARG` manquent.
+
+Paramètres : `tag` (optionnel), `env` (optionnel), `no_cache` (optionnel), `platform` (optionnel)
+
+### `pilot_deploy`
+
+Déploie sur la cible configurée. Sync automatique des fichiers (compose, env, bind-mounts) vers `~/pilot/` sur le VPS avant chaque déploiement.
+
+Paramètres : `env` (optionnel), `tag` (optionnel)
+
+### `pilot_setup`
+
+Ajoute le user deploy au groupe docker sur le VPS via SSH (`sudo usermod -aG docker <user>`). À appeler quand `pilot_preflight` retourne `vps_docker_group: false`.
+
+Paramètres : `env` (optionnel)
+
+### `pilot_sync`
+
+Copie les fichiers de config vers `~/pilot/` sur le VPS sans redéployer : compose files, env files, et tous les fichiers référencés en bind-mount dans le compose.
+
+Paramètres : `env` (optionnel)
 
 ---
 
@@ -125,12 +178,15 @@ Note : les erreurs d'outil retournent un `result` avec `isError: true`, pas un c
 
 ```
 internal/mcp/
-├── server.go        # Boucle I/O + dispatch JSON-RPC
-├── tools.go         # Définitions Tool + registerAll()
-├── handlers.go      # Wiring des vars HandlerFunc
+├── server.go          # Boucle I/O + dispatch JSON-RPC
+├── tools.go           # Définitions Tool + registerAll()
+├── handlers.go        # Wiring des vars HandlerFunc
 └── handlers/
-    ├── stub.go      # Stub générique
-    └── context.go   # HandleContext, HandleGenerateDockerfile, HandleGenerateCompose
+    ├── stub.go        # Stub générique (retourne "not yet implemented")
+    ├── context.go     # HandleContext, HandleGenerateDockerfile, HandleGenerateCompose
+    └── lifecycle.go   # HandlePush, HandleDeploy, HandleRollback, HandleSync,
+                       # HandleUp, HandleDown, HandleStatus, HandleLogs,
+                       # HandlePreflight, HandleSetup
 ```
 
 ### `HandlerFunc`
@@ -143,38 +199,56 @@ Chaque handler reçoit les arguments de l'outil et retourne n'importe quelle val
 
 ### Ajouter un handler
 
-1. Créer `internal/mcp/handlers/<feature>.go`
+1. Créer ou éditer `internal/mcp/handlers/<feature>.go`
 2. Implémenter la fonction avec la signature `HandlerFunc`
 3. Dans `handlers.go`, remplacer le stub :
    ```go
    // Avant
-   var handleUp HandlerFunc = handlers.Stub("kaal_up")
+   var handleInit HandlerFunc = handlers.Stub("pilot_init")
    // Après
-   var handleUp HandlerFunc = handlers.HandleUp
+   var handleInit HandlerFunc = handlers.HandleInit
    ```
 
 ---
 
-## Workflow typique d'un agent
+## Workflow typique d'un agent AI
 
 ```
 [initialize]
-→ kaal répond avec capabilities
+→ pilot répond avec capabilities + liste des outils
 
-[tools/list]
-→ kaal liste les 16 outils avec leurs schémas
+[tools/call: pilot_preflight {"target": "deploy"}]
+→ pilot vérifie tous les prérequis
+→ retourne next_steps[] avec actions [HUMAN] et [AGENT]
 
-[tools/call: kaal_context]
-→ kaal retourne le contexte complet du projet
+[... l'agent suit les next_steps ...]
 
-[... l'agent analyse et génère ...]
+[tools/call: pilot_push {"env": "prod"}]
+→ pilot build linux/amd64, injecte VITE_*, push
 
-[tools/call: kaal_generate_dockerfile]
-→ kaal écrit Dockerfile sur disque
+[tools/call: pilot_deploy {"env": "prod", "tag": "abc1234"}]
+→ pilot sync + docker pull + docker compose up
 
-[tools/call: kaal_generate_compose]
-→ kaal écrit docker-compose.dev.yml sur disque
+[tools/call: pilot_status {"env": "prod"}]
+→ pilot retourne l'état des services en JSON
+```
 
-[tools/call: kaal_up]
-→ kaal démarre les services
+---
+
+## Workflow de génération d'infrastructure
+
+```
+[tools/call: pilot_context]
+→ pilot retourne stack, services, fichiers manquants, prompt complet
+
+[... l'agent analyse, génère le Dockerfile et le compose ...]
+
+[tools/call: pilot_generate_dockerfile {"content": "FROM ..."}]
+→ pilot écrit Dockerfile sur disque
+
+[tools/call: pilot_generate_compose {"content": "services: ...", "env": "dev"}]
+→ pilot écrit docker-compose.dev.yml sur disque
+
+[tools/call: pilot_up]
+→ pilot démarre les services
 ```

@@ -1,26 +1,26 @@
-# kaal — Dev Environment as Code
+# pilot — Dev Environment as Code
 
 **Auteur** : Mouhamed SYLLA (@mouhamedsylla)
-**Module Go** : `github.com/mouhamedsylla/kaal`
+**Module Go** : `github.com/mouhamedsylla/pilot`
 **Go version** : 1.23
 
 ---
 
 ## Résumé du projet
 
-`kaal` est un CLI terminal-first, opiniated et IA-natif qui accompagne le développeur de l'initialisation du projet jusqu'au déploiement en production. Ce qui tourne en local tourne en production sans modification.
+`pilot` est un CLI terminal-first, opiniated et IA-natif qui accompagne le développeur de l'initialisation du projet jusqu'au déploiement en production. Ce qui tourne en local tourne en production sans modification.
 
 ---
 
 ## Architecture
 
 ```
-kaal/
+pilot/
 ├── main.go
 ├── cmd/                        # Commandes Cobra (1 fichier = 1 commande)
 ├── internal/
-│   ├── config/                 # Parse + valide kaal.yaml
-│   ├── scaffold/               # kaal init — génération de projets
+│   ├── config/                 # Parse + valide pilot.yaml
+│   ├── scaffold/               # pilot init — génération de projets
 │   ├── orchestrator/           # Interface + compose/ + k8s/ (stub)
 │   ├── providers/              # Interface + vps/ + aws/ gcp/ azure/ do/ (stubs)
 │   ├── registry/               # Interface + ghcr/ dockerhub/ custom/ + stubs
@@ -39,7 +39,7 @@ Chaque couche extensible est définie par une **interface Go** dans son package 
 - `internal/registry/registry.go` → `Registry`
 - `internal/secrets/secrets.go` → `SecretManager`
 
-Les `factory.go` dans chaque package instancient la bonne implémentation selon `kaal.yaml`. Les stubs retournent `fmt.Errorf("xxx: not yet implemented")`.
+Les `factory.go` dans chaque package instancient la bonne implémentation selon `pilot.yaml`. Les stubs retournent `fmt.Errorf("xxx: not yet implemented")`.
 
 ---
 
@@ -47,25 +47,25 @@ Les `factory.go` dans chaque package instancient la bonne implémentation selon 
 
 | Commande | Description |
 |---|---|
-| `kaal init [name]` | Scaffold complet d'un projet |
-| `kaal env use <env>` | Switch d'environnement actif |
-| `kaal up [services...]` | Lance l'environnement local |
-| `kaal down` | Arrête l'environnement local |
-| `kaal push` | Build + push image vers le registry |
-| `kaal deploy` | Déploie sur la cible distante |
-| `kaal sync` | Sync config locale → remote |
-| `kaal status` | État complet du projet |
-| `kaal logs [service]` | Logs d'un service |
-| `kaal mcp serve` | Démarre le serveur MCP |
+| `pilot init [name]` | Scaffold complet d'un projet |
+| `pilot env use <env>` | Switch d'environnement actif |
+| `pilot up [services...]` | Lance l'environnement local |
+| `pilot down` | Arrête l'environnement local |
+| `pilot push` | Build + push image vers le registry |
+| `pilot deploy` | Déploie sur la cible distante |
+| `pilot sync` | Sync config locale → remote |
+| `pilot status` | État complet du projet |
+| `pilot logs [service]` | Logs d'un service |
+| `pilot mcp serve` | Démarre le serveur MCP |
 
 Flags globaux : `--env/-e`, `--json`, `--config`
 
 ---
 
-## kaal.yaml — schéma
+## pilot.yaml — schéma
 
 ```yaml
-apiVersion: kaal/v1
+apiVersion: pilot/v1
 project:
   name: mon-projet
   stack: go           # go | node | python | rust | java
@@ -92,7 +92,7 @@ targets:
     type: vps
     host: 1.2.3.4
     user: deploy
-    key: ~/.ssh/id_kaal
+    key: ~/.ssh/id_pilot
     port: 22
 ```
 
@@ -153,8 +153,8 @@ Config client (`.mcp.json` à la racine) :
 ```json
 {
   "mcpServers": {
-    "kaal": {
-      "command": "kaal",
+    "pilot": {
+      "command": "pilot",
       "args": ["mcp", "serve"],
       "cwd": "${workspaceFolder}"
     }
@@ -162,7 +162,7 @@ Config client (`.mcp.json` à la racine) :
 }
 ```
 
-Tools exposés : `kaal_init`, `kaal_env_switch`, `kaal_up`, `kaal_down`, `kaal_push`, `kaal_deploy`, `kaal_rollback`, `kaal_sync`, `kaal_status`, `kaal_logs`, `kaal_config_get`, `kaal_config_set`, `kaal_secrets_inject`
+Tools exposés : `pilot_init`, `pilot_env_switch`, `pilot_up`, `pilot_down`, `pilot_push`, `pilot_deploy`, `pilot_rollback`, `pilot_sync`, `pilot_status`, `pilot_logs`, `pilot_config_get`, `pilot_config_set`, `pilot_secrets_inject`
 
 ---
 
@@ -180,9 +180,9 @@ Tools exposés : `kaal_init`, `kaal_env_switch`, `kaal_up`, `kaal_down`, `kaal_p
 ## Build & run local
 
 ```bash
-go build -o kaal .
-./kaal --help
-./kaal init my-app
-./kaal up
-./kaal deploy --env prod
+go build -o pilot .
+./pilot --help
+./pilot init my-app
+./pilot up
+./pilot deploy --env prod
 ```

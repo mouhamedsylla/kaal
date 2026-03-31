@@ -1,21 +1,21 @@
 package cmd
 
 import (
-	"github.com/mouhamedsylla/kaal/internal/config"
-	"github.com/mouhamedsylla/kaal/internal/runtime"
-	"github.com/mouhamedsylla/kaal/internal/scaffold"
-	"github.com/mouhamedsylla/kaal/pkg/ui"
+	"github.com/mouhamedsylla/pilot/internal/config"
+	"github.com/mouhamedsylla/pilot/internal/runtime"
+	"github.com/mouhamedsylla/pilot/internal/scaffold"
+	"github.com/mouhamedsylla/pilot/pkg/ui"
 	"github.com/spf13/cobra"
 )
 
 var initCmd = &cobra.Command{
 	Use:   "init [project-name]",
-	Short: "Initialize kaal in a new or existing project",
+	Short: "Initialize pilot in a new or existing project",
 	Long: `Launch an interactive wizard to describe your infrastructure.
-Generates kaal.yaml — the single source of truth for all environments.
+Generates pilot.yaml — the single source of truth for all environments.
 
-Works on a fresh directory or an existing project (kaal detects your stack).
-Does NOT generate Dockerfiles — kaal up handles that at runtime.`,
+Works on a fresh directory or an existing project (pilot detects your stack).
+Does NOT generate Dockerfiles — pilot up handles that at runtime.`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: runInit,
 }

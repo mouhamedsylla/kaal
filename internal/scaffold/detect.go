@@ -20,7 +20,7 @@ func Detect(dir string) DetectedProject {
 		Name: filepath.Base(dir),
 	}
 
-	if _, err := os.Stat(filepath.Join(dir, "kaal.yaml")); err == nil {
+	if _, err := os.Stat(filepath.Join(dir, "pilot.yaml")); err == nil {
 		d.HasKaalYAML = true
 	}
 

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	kaalctx "github.com/mouhamedsylla/kaal/internal/context"
-	"github.com/mouhamedsylla/kaal/internal/env"
+	pilotctx "github.com/mouhamedsylla/pilot/internal/context"
+	"github.com/mouhamedsylla/pilot/internal/env"
 )
 
 // HandleContext returns the full project context for AI agents.
@@ -15,13 +15,13 @@ import (
 func HandleContext(_ context.Context, params map[string]any) (any, error) {
 	activeEnv := env.Active(strParam(params, "env"))
 
-	projCtx, err := kaalctx.Collect(activeEnv)
+	projCtx, err := pilotctx.Collect(activeEnv)
 	if err != nil {
 		return nil, fmt.Errorf("collect context: %w", err)
 	}
 
 	return map[string]any{
-		"kaal_yaml":              projCtx.KaalYAML,
+		"pilot_yaml":             projCtx.KaalYAML,
 		"stack":                  projCtx.Stack,
 		"language_version":       projCtx.LanguageVersion,
 		"is_existing_project":    projCtx.IsExistingProject,
@@ -80,7 +80,7 @@ func HandleGenerateCompose(_ context.Context, params map[string]any) (any, error
 
 	return map[string]any{
 		"written": dest,
-		"message": fmt.Sprintf("docker-compose file written to %s — run 'kaal up' to start", dest),
+		"message": fmt.Sprintf("docker-compose file written to %s — run 'pilot up' to start", dest),
 	}, nil
 }
 

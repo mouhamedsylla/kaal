@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"github.com/mouhamedsylla/kaal/internal/logs"
-	"github.com/mouhamedsylla/kaal/pkg/ui"
+	"github.com/mouhamedsylla/pilot/internal/logs"
+	"github.com/mouhamedsylla/pilot/pkg/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -15,10 +15,10 @@ For local environments: streams docker compose logs.
 For remote environments: connects via SSH and streams docker compose logs from the VPS.
 
 Examples:
-  kaal logs                      # all services, last 100 lines
-  kaal logs api                  # api service only
-  kaal logs api --follow         # stream in real time
-  kaal logs --env prod --follow  # prod logs via SSH`,
+  pilot logs                      # all services, last 100 lines
+  pilot logs api                  # api service only
+  pilot logs api --follow         # stream in real time
+  pilot logs --env prod --follow  # prod logs via SSH`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: runLogs,
 }

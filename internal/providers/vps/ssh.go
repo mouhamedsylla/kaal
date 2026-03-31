@@ -8,11 +8,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mouhamedsylla/kaal/internal/config"
-	"github.com/mouhamedsylla/kaal/internal/kaalerr"
-	"github.com/mouhamedsylla/kaal/internal/providers"
-	kaalSSH "github.com/mouhamedsylla/kaal/pkg/ssh"
-	"github.com/mouhamedsylla/kaal/pkg/ui"
+	"github.com/mouhamedsylla/pilot/internal/config"
+	"github.com/mouhamedsylla/pilot/internal/piloterr"
+	"github.com/mouhamedsylla/pilot/internal/providers"
+	pilotSSH "github.com/mouhamedsylla/pilot/pkg/ssh"
+	"github.com/mouhamedsylla/pilot/pkg/ui"
 	"gopkg.in/yaml.v3"
 )
 
@@ -34,12 +34,12 @@ func (p *Provider) Deploy(ctx context.Context, env string, opts providers.Deploy
 	defer client.Close()
 
 	image := fmt.Sprintf("%s:%s", p.cfg.Registry.Image, opts.Tag)
-	composeFile := remoteComposeFile(env) // always ~/kaal/docker-compose.<env>.yml
+	composeFile := remoteComposeFile(env) // always ~/pilot/docker-compose.<env>.yml
 	stateDir := p.stateDir()
 
 	// Copy resolved env files to remote before running compose.
 	if len(opts.EnvFiles) > 0 {
-		if err := client.CopyFiles(ctx, opts.EnvFiles, "~/kaal/"); err != nil {
+		if err := client.CopyFiles(ctx, opts.EnvFiles, "~/pilot/"); err != nil {
 			p.recordDeploy(ctx, client, env, opts.Tag, false, err.Error())
 			return fmt.Errorf("sync env files: %w", err)
 		}
@@ -52,7 +52,7 @@ func (p *Provider) Deploy(ctx context.Context, env string, opts providers.Deploy
 		if idx := strings.LastIndex(f, "/"); idx >= 0 {
 			base = f[idx+1:]
 		}
-		envFileFlags += fmt.Sprintf(" --env-file ~/kaal/%s", base)
+		envFileFlags += fmt.Sprintf(" --env-file ~/pilot/%s", base)
 	}
 
 	// ── Step 1: prepare remote state (fast ops, spinner) ──────────────────
@@ -70,7 +70,7 @@ func (p *Provider) Deploy(ctx context.Context, env string, opts providers.Deploy
 		return nil
 	}); err != nil {
 		p.recordDeploy(ctx, client, env, opts.Tag, false, err.Error())
-		return &kaalerr.DeployError{Phase: "state", Target: p.target.Host, Cause: err}
+		return &piloterr.DeployError{Phase: "state", Target: p.target.Host, Cause: err}
 	}
 
 	// ── Step 2: docker pull — stream output ────────────────────────────────
@@ -82,7 +82,7 @@ func (p *Provider) Deploy(ctx context.Context, env string, opts providers.Deploy
 	var pullBuf strings.Builder
 	if err := client.RunWithOutput(ctx, pullCmd, remoteOutputWriter(&pullBuf)); err != nil {
 		p.recordDeploy(ctx, client, env, opts.Tag, false, pullBuf.String())
-		return &kaalerr.DeployError{
+		return &piloterr.DeployError{
 			Phase:    "pull",
 			Target:   p.target.Host,
 			Command:  pullCmd,
@@ -91,7 +91,7 @@ func (p *Provider) Deploy(ctx context.Context, env string, opts providers.Deploy
 			Cause: fmt.Errorf(
 				"%w\n\n  Hints:\n"+
 					"  • Verify the image tag %q exists in the registry\n"+
-					"  • Check your registry credentials: kaal preflight --target push\n"+
+					"  • Check your registry credentials: pilot preflight --target push\n"+
 					"  • If credentials expired, re-export and retry",
 				err, opts.Tag,
 			),
@@ -112,15 +112,15 @@ func (p *Provider) Deploy(ctx context.Context, env string, opts providers.Deploy
 			cause = fmt.Errorf(
 				"user %q is not in the docker group on %s\n\n"+
 					"  Fix automatically:\n"+
-					"    kaal setup --env %s\n\n"+
+					"    pilot setup --env %s\n\n"+
 					"  Or manually on your VPS:\n"+
 					"    sudo usermod -aG docker %s\n"+
-					"  Then reconnect and run kaal deploy again",
+					"  Then reconnect and run pilot deploy again",
 				p.target.User, p.target.Host, env, p.target.User,
 			)
 		}
 		p.recordDeploy(ctx, client, env, opts.Tag, false, capturedOutput)
-		return &kaalerr.DeployError{
+		return &piloterr.DeployError{
 			Phase:    "restart",
 			Target:   p.target.Host,
 			Command:  composeCmd,
@@ -152,8 +152,8 @@ func (p *Provider) Sync(ctx context.Context, _ string) error {
 	}
 	defer client.Close()
 
-	// ── Flat files: kaal.yaml + compose files + env_file ──────────────────
-	// These all land directly in ~/kaal/ (no subdirectory).
+	// ── Flat files: pilot.yaml + compose files + env_file ──────────────────
+	// These all land directly in ~/pilot/ (no subdirectory).
 	seen := map[string]bool{}
 	var flatFiles []string
 
@@ -167,14 +167,14 @@ func (p *Provider) Sync(ctx context.Context, _ string) error {
 		}
 	}
 
-	addFlat("kaal.yaml")
+	addFlat("pilot.yaml")
 	for envName, envCfg := range p.cfg.Environments {
 		composeFile := composeFileForEnv(envName)
 		addFlat(composeFile)
 		addFlat(envCfg.EnvFile)
 	}
 
-	if err := client.CopyFiles(ctx, flatFiles, "~/kaal/"); err != nil {
+	if err := client.CopyFiles(ctx, flatFiles, "~/pilot/"); err != nil {
 		return fmt.Errorf("sync flat files: %w", err)
 	}
 	// Print each flat file after the batch copy succeeds.
@@ -182,10 +182,10 @@ func (p *Provider) Sync(ctx context.Context, _ string) error {
 		ui.Dim(fmt.Sprintf("  ✓ %s", filepath.Base(f)))
 	}
 
-	// ── Bind-mount config files: preserve relative path under ~/kaal/ ─────
+	// ── Bind-mount config files: preserve relative path under ~/pilot/ ─────
 	// Scan every compose file for local bind-mounts (./nginx/prod.conf, etc.).
-	// If the source is a local file, copy it to ~/kaal/<relative-path> so
-	// docker compose running from ~/kaal/ finds it exactly where it expects.
+	// If the source is a local file, copy it to ~/pilot/<relative-path> so
+	// docker compose running from ~/pilot/ finds it exactly where it expects.
 	seenMounts := map[string]bool{}
 	for envName := range p.cfg.Environments {
 		composeFile := composeFileForEnv(envName)
@@ -205,8 +205,8 @@ func (p *Provider) Sync(ctx context.Context, _ string) error {
 			if info.IsDir() {
 				continue // directories handled separately (not supported yet)
 			}
-			// Remote path mirrors the local relative path: ~/kaal/nginx/prod.conf
-			remotePath := fmt.Sprintf("~/kaal/%s", strings.TrimPrefix(localSrc, "./"))
+			// Remote path mirrors the local relative path: ~/pilot/nginx/prod.conf
+			remotePath := fmt.Sprintf("~/pilot/%s", strings.TrimPrefix(localSrc, "./"))
 			if copyErr := client.CopyFileTo(ctx, localSrc, remotePath); copyErr != nil {
 				return fmt.Errorf("sync bind-mount %s: %w", localSrc, copyErr)
 			}
@@ -233,7 +233,7 @@ func (p *Provider) Sync(ctx context.Context, _ string) error {
 			if reloadErr != nil {
 				// Non-fatal: container may not be running yet (first deploy pending).
 				ui.Warn(fmt.Sprintf("nginx reload skipped — %s not running on remote", svc))
-				ui.Dim(fmt.Sprintf("  Start it with: kaal deploy --env %s", envName))
+				ui.Dim(fmt.Sprintf("  Start it with: pilot deploy --env %s", envName))
 			} else {
 				ui.Success(fmt.Sprintf("nginx reloaded (%s)", svc))
 			}
@@ -389,7 +389,7 @@ func (p *Provider) Rollback(ctx context.Context, env string, version string) (st
 	var pullBuf strings.Builder
 	if err := client.RunWithOutput(ctx, pullCmd, remoteOutputWriter(&pullBuf)); err != nil {
 		p.recordDeploy(ctx, client, env, tag, false, "rollback pull: "+err.Error())
-		return "", &kaalerr.DeployError{
+		return "", &piloterr.DeployError{
 			Phase: "rollback-pull", Target: p.target.Host,
 			Command: pullCmd, Output: pullBuf.String(),
 			Streamed: streamed, Cause: err,
@@ -402,7 +402,7 @@ func (p *Provider) Rollback(ctx context.Context, env string, version string) (st
 	var composeBuf strings.Builder
 	if err := client.RunWithOutput(ctx, composeCmd, remoteOutputWriter(&composeBuf)); err != nil {
 		p.recordDeploy(ctx, client, env, tag, false, "rollback restart: "+err.Error())
-		return "", &kaalerr.DeployError{
+		return "", &piloterr.DeployError{
 			Phase: "rollback-restart", Target: p.target.Host,
 			Command: composeCmd, Output: composeBuf.String(),
 			Streamed: streamed, Cause: err,
@@ -418,30 +418,30 @@ func (p *Provider) Rollback(ctx context.Context, env string, version string) (st
 	return tag, nil
 }
 
-// stateDir returns the remote path where kaal stores deploy state for this project.
+// stateDir returns the remote path where pilot stores deploy state for this project.
 func (p *Provider) stateDir() string {
-	return fmt.Sprintf("~/.kaal/%s", p.cfg.Project.Name)
+	return fmt.Sprintf("~/.pilot/%s", p.cfg.Project.Name)
 }
 
-func (p *Provider) connect() (*kaalSSH.Client, error) {
+func (p *Provider) connect() (*pilotSSH.Client, error) {
 	port := p.target.Port
 	if port == 0 {
 		port = 22
 	}
-	c, err := kaalSSH.NewClient(kaalSSH.Config{
+	c, err := pilotSSH.NewClient(pilotSSH.Config{
 		Host:    p.target.Host,
 		User:    p.target.User,
 		KeyPath: p.target.Key,
 		Port:    port,
 	})
 	if err != nil {
-		return nil, &kaalerr.SSHError{Host: p.target.Host, Op: "connect", Cause: err}
+		return nil, &piloterr.SSHError{Host: p.target.Host, Op: "connect", Cause: err}
 	}
 	return c, nil
 }
 
 // composeFileForEnv returns the conventional compose filename for an environment.
-// Use remoteComposeFile when building SSH commands — files live in ~/kaal/ on the VPS.
+// Use remoteComposeFile when building SSH commands — files live in ~/pilot/ on the VPS.
 func composeFileForEnv(env string) string {
 	return fmt.Sprintf("docker-compose.%s.yml", env)
 }
@@ -450,7 +450,7 @@ func composeFileForEnv(env string) string {
 //   - use an nginx image (image name contains "nginx")
 //   - have at least one bind-mounted file that appears in syncedFiles
 //
-// These services need "nginx -s reload" after kaal sync to pick up config changes.
+// These services need "nginx -s reload" after pilot sync to pick up config changes.
 func nginxServicesWithUpdatedMounts(composeFile string, syncedFiles map[string]bool) []string {
 	data, err := os.ReadFile(composeFile)
 	if err != nil {
@@ -493,11 +493,11 @@ func nginxServicesWithUpdatedMounts(composeFile string, syncedFiles map[string]b
 	return result
 }
 
-// remoteComposeFile returns the full remote path where kaal stores compose files.
-// kaal sync always copies compose files to ~/kaal/, so all remote docker compose
+// remoteComposeFile returns the full remote path where pilot stores compose files.
+// pilot sync always copies compose files to ~/pilot/, so all remote docker compose
 // commands must use this path, not the bare filename.
 func remoteComposeFile(env string) string {
-	return fmt.Sprintf("~/kaal/docker-compose.%s.yml", env)
+	return fmt.Sprintf("~/pilot/docker-compose.%s.yml", env)
 }
 
 // isDockerPermissionError detects the classic "user not in docker group" error.

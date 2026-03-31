@@ -5,10 +5,10 @@
 ```
 Dev local                       VPS (SSH)
 ─────────────                   ──────────────────────────────
-kaal preflight  →               validation de tous les prérequis
-kaal push       →               [image sur le registry]
-kaal deploy     →               SSH connect
-                                ~/kaal/ ← compose + env + config files
+pilot preflight  →               validation de tous les prérequis
+pilot push       →               [image sur le registry]
+pilot deploy     →               SSH connect
+                                ~/pilot/ ← compose + env + config files
                                 docker compose pull
                                 docker compose up -d
                 ◄─              ✓ deployed
@@ -30,9 +30,9 @@ mkdir -p /home/deploy/.ssh
 cat your-key.pub >> /home/deploy/.ssh/authorized_keys
 ```
 
-Le user deploy n'a pas besoin d'être dans le groupe docker dès le départ : `kaal setup` s'en occupe.
+Le user deploy n'a pas besoin d'être dans le groupe docker dès le départ : `pilot setup` s'en occupe.
 
-### Dans kaal.yaml
+### Dans pilot.yaml
 
 ```yaml
 targets:
@@ -40,7 +40,7 @@ targets:
     type: vps
     host: 1.2.3.4
     user: deploy
-    key: ~/.ssh/id_kaal
+    key: ~/.ssh/id_pilot
 
 environments:
   prod:
@@ -51,8 +51,8 @@ environments:
 ### Clé SSH dédiée (recommandé)
 
 ```bash
-ssh-keygen -t ed25519 -f ~/.ssh/id_kaal -C "kaal deploy key"
-ssh-copy-id -i ~/.ssh/id_kaal.pub deploy@1.2.3.4
+ssh-keygen -t ed25519 -f ~/.ssh/id_pilot -C "pilot deploy key"
+ssh-copy-id -i ~/.ssh/id_pilot.pub deploy@1.2.3.4
 ```
 
 ---
@@ -62,7 +62,7 @@ ssh-copy-id -i ~/.ssh/id_kaal.pub deploy@1.2.3.4
 Si le user deploy n'est pas encore dans le groupe docker :
 
 ```bash
-kaal setup --env prod
+pilot setup --env prod
 # → SSH connect
 # → sudo usermod -aG docker deploy
 # → Verified: deploy is in docker group
@@ -72,43 +72,43 @@ kaal setup --env prod
 
 ## Étape 1 : Preflight
 
-Avant chaque déploiement, `kaal preflight` vérifie tout et retourne un plan d'action :
+Avant chaque déploiement, `pilot preflight` vérifie tout et retourne un plan d'action :
 
 ```bash
-kaal preflight --target deploy
+pilot preflight --target deploy
 # (auto-détecte l'env prod si l'env actif est dev)
 ```
 
 ```
-✓ kaal_yaml            project: my-api
+✓ pilot_yaml            project: my-api
 ✓ registry_image       ghcr.io/mouhamedsylla/my-api
 ✓ dockerfile           Dockerfile
 ✓ docker_daemon        reachable
 ✓ registry_creds       GITHUB_ACTOR=mouhamedsylla ✓
 ✓ compose_file         docker-compose.prod.yml
 ✓ target_host          1.2.3.4 (vps-prod)
-✓ ssh_key              ~/.ssh/id_kaal
+✓ ssh_key              ~/.ssh/id_pilot
 ✓ vps_connectivity     connected to deploy@1.2.3.4
 ✓ vps_docker_group     deploy can run docker commands
-✓ vps_env_file         .env.prod synced at ~/kaal/.env.prod
+✓ vps_env_file         .env.prod synced at ~/pilot/.env.prod
 ✓ All checks passed : ready to deploy
 ```
 
 Si une vérification échoue, le rapport indique :
 - `[HUMAN]` : ce que tu dois faire toi-même (crédentials, clé SSH, port firewall)
-- `[AGENT]` : ce que ton agent AI peut fixer automatiquement (`kaal_setup`, `kaal_sync`…)
+- `[AGENT]` : ce que ton agent AI peut fixer automatiquement (`pilot_setup`, `pilot_sync`…)
 
 ---
 
 ## Étape 2 : Push de l'image
 
 ```bash
-kaal push
+pilot push
 # ou avec un tag explicite :
-kaal push --tag v1.0.0
+pilot push --tag v1.0.0
 ```
 
-**Ce que kaal fait automatiquement :**
+**Ce que pilot fait automatiquement :**
 
 - Détecte macOS ARM64 → build `linux/amd64` pour la compatibilité VPS
 - Pour les stacks Node/Vite : scanne `.env.prod` et injecte tous les `VITE_*` / `NEXT_PUBLIC_*` / `REACT_APP_*` en `--build-arg` pour qu'ils soient baked dans le bundle
@@ -128,23 +128,23 @@ kaal push --tag v1.0.0
 ## Étape 3 : Déploiement
 
 ```bash
-kaal deploy --env prod
+pilot deploy --env prod
 # ou avec un tag précis :
-kaal deploy --env prod --tag v1.0.0
+pilot deploy --env prod --tag v1.0.0
 ```
 
-**Ce que kaal fait automatiquement :**
+**Ce que pilot fait automatiquement :**
 
-1. Résout le target (`vps-prod`) depuis `kaal.yaml`
+1. Résout le target (`vps-prod`) depuis `pilot.yaml`
 2. Ouvre une connexion SSH
-3. **Sync automatique** : copie vers `~/kaal/` sur le VPS :
-   - `kaal.yaml`
+3. **Sync automatique** : copie vers `~/pilot/` sur le VPS :
+   - `pilot.yaml`
    - `docker-compose.prod.yml`
    - `.env.prod` (déclaré dans `environments.prod.env_file`)
    - Tous les fichiers référencés en bind-mount dans le compose (ex: `./nginx/prod.conf`)
 4. `docker pull <image>:<tag>` sur le VPS
-5. `IMAGE_TAG=<tag> docker compose -f ~/kaal/docker-compose.prod.yml up -d --remove-orphans`
-6. Sauvegarde le tag dans `~/.kaal/<project>/current-tag` pour permettre un rollback
+5. `IMAGE_TAG=<tag> docker compose -f ~/pilot/docker-compose.prod.yml up -d --remove-orphans`
+6. Sauvegarde le tag dans `~/.pilot/<project>/current-tag` pour permettre un rollback
 
 ```
 → Deploying prod to vps-prod (vps:1.2.3.4)
@@ -155,7 +155,7 @@ kaal deploy --env prod --tag v1.0.0
 
 ### Le répertoire de travail remote
 
-Tous les fichiers vivent dans `~/kaal/` sur le VPS : jamais dans le home directory racine. docker compose est toujours lancé avec le chemin complet `~/kaal/docker-compose.<env>.yml`.
+Tous les fichiers vivent dans `~/pilot/` sur le VPS : jamais dans le home directory racine. docker compose est toujours lancé avec le chemin complet `~/pilot/docker-compose.<env>.yml`.
 
 ---
 
@@ -164,8 +164,8 @@ Tous les fichiers vivent dans `~/kaal/` sur le VPS : jamais dans le home directo
 Pour pousser les fichiers de config sans redéployer :
 
 ```bash
-kaal sync --env prod
-# ✓ kaal.yaml, compose files, env files and bind-mount config files copied to ~/kaal/
+pilot sync --env prod
+# ✓ pilot.yaml, compose files, env files and bind-mount config files copied to ~/pilot/
 ```
 
 Utile après avoir modifié `nginx/prod.conf` ou `.env.prod` sans changer l'image.
@@ -174,21 +174,21 @@ Utile après avoir modifié `nginx/prod.conf` ou `.env.prod` sans changer l'imag
 
 ## Sync sans redéploiement
 
-Quand seuls des **fichiers de configuration** changent (ex : `nginx/prod.conf`, `.env.prod`), utiliser `kaal sync` plutôt que de relancer un push + deploy complet.
+Quand seuls des **fichiers de configuration** changent (ex : `nginx/prod.conf`, `.env.prod`), utiliser `pilot sync` plutôt que de relancer un push + deploy complet.
 
-### Ce que `kaal sync` fait
+### Ce que `pilot sync` fait
 
-`kaal sync --env prod` copie vers `~/kaal/` sur le VPS :
-- Les fichiers plats déclarés dans `kaal.yaml` : fichier compose, fichier env
-- Tous les fichiers référencés en **bind-mount** dans le compose (ex : `./nginx/prod.conf` → `~/kaal/nginx/prod.conf`)
+`pilot sync --env prod` copie vers `~/pilot/` sur le VPS :
+- Les fichiers plats déclarés dans `pilot.yaml` : fichier compose, fichier env
+- Tous les fichiers référencés en **bind-mount** dans le compose (ex : `./nginx/prod.conf` → `~/pilot/nginx/prod.conf`)
 
 ### Rechargement automatique de nginx
 
-Si des fichiers de configuration nginx ont été mis à jour, kaal exécute automatiquement `nginx -s reload` à l'intérieur du container proxy : **sans interruption de service**. Aucune commande manuelle n'est nécessaire.
+Si des fichiers de configuration nginx ont été mis à jour, pilot exécute automatiquement `nginx -s reload` à l'intérieur du container proxy : **sans interruption de service**. Aucune commande manuelle n'est nécessaire.
 
 ```
 → Syncing files to remote
-  ✓ kaal.yaml
+  ✓ pilot.yaml
   ✓ docker-compose.prod.yml
   ✓ .env.prod
   ✓ nginx/prod.conf
@@ -198,21 +198,21 @@ Si des fichiers de configuration nginx ont été mis à jour, kaal exécute auto
 
 ### Quand utiliser quoi
 
-Utiliser `kaal push` + `kaal deploy` uniquement quand le **code source ou le Dockerfile** change.
+Utiliser `pilot push` + `pilot deploy` uniquement quand le **code source ou le Dockerfile** change.
 
 | Changement | Commande |
 |---|---|
-| Code source (`App.jsx`, `main.go`, etc.) | `kaal push --env prod --tag vX` + `kaal deploy --env prod --tag vX` |
-| Config nginx (`nginx/prod.conf`) | `kaal sync --env prod` (+ reload auto) |
-| Variables d'env (`.env.prod`) | `kaal sync --env prod` + `kaal deploy --env prod` |
-| `docker-compose.prod.yml` | `kaal sync --env prod` + `kaal deploy --env prod` |
+| Code source (`App.jsx`, `main.go`, etc.) | `pilot push --env prod --tag vX` + `pilot deploy --env prod --tag vX` |
+| Config nginx (`nginx/prod.conf`) | `pilot sync --env prod` (+ reload auto) |
+| Variables d'env (`.env.prod`) | `pilot sync --env prod` + `pilot deploy --env prod` |
+| `docker-compose.prod.yml` | `pilot sync --env prod` + `pilot deploy --env prod` |
 
 ---
 
 ## Vérifier le déploiement
 
 ```bash
-kaal status --env prod
+pilot status --env prod
 ```
 
 ```
@@ -223,8 +223,8 @@ db        running   healthy
 ```
 
 ```bash
-kaal logs app --env prod --follow
-kaal logs app --env prod --since 1h
+pilot logs app --env prod --follow
+pilot logs app --env prod --since 1h
 ```
 
 ---
@@ -232,10 +232,10 @@ kaal logs app --env prod --since 1h
 ## Rollback
 
 ```bash
-kaal rollback --env prod
+pilot rollback --env prod
 # → revient automatiquement au tag précédent
 
-kaal rollback --env prod --version v0.9.5
+pilot rollback --env prod --version v0.9.5
 # → version explicite
 ```
 
@@ -251,7 +251,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./nginx/prod.conf:/etc/nginx/conf.d/default.conf:ro  # ← kaal sync copie ce fichier
+      - ./nginx/prod.conf:/etc/nginx/conf.d/default.conf:ro  # ← pilot sync copie ce fichier
     depends_on:
       app:
         condition: service_healthy
@@ -261,7 +261,7 @@ services:
     expose:
       - "8080"
     env_file:
-      - .env.prod    # ← kaal sync copie ce fichier
+      - .env.prod    # ← pilot sync copie ce fichier
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -269,26 +269,26 @@ services:
     restart: unless-stopped
 ```
 
-kaal sync détecte `./nginx/prod.conf` dans les volumes, le copie à `~/kaal/nginx/prod.conf`. docker compose le trouve exactement là où il l'attend.
+pilot sync détecte `./nginx/prod.conf` dans les volumes, le copie à `~/pilot/nginx/prod.conf`. docker compose le trouve exactement là où il l'attend.
 
 ---
 
 ## Checklist avant le premier déploiement
 
 ```bash
-# 1. kaal.yaml configuré avec targets et environments.prod
-kaal preflight --target deploy
+# 1. pilot.yaml configuré avec targets et environments.prod
+pilot preflight --target deploy
 
 # 2. Si docker group manquant
-kaal setup --env prod
+pilot setup --env prod
 
 # 3. Push test
-kaal push --tag test-$(date +%s)
+pilot push --tag test-$(date +%s)
 
 # 4. Premier deploy
-kaal deploy --env prod
+pilot deploy --env prod
 
 # 5. Vérification
-kaal status --env prod
-kaal logs app --env prod
+pilot status --env prod
+pilot logs app --env prod
 ```

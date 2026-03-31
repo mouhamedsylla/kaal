@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mouhamedsylla/kaal/internal/secrets/local"
+	"github.com/mouhamedsylla/pilot/internal/secrets/local"
 )
 
 func chdir(t *testing.T, dir string) {
@@ -190,7 +190,7 @@ BAZ=qux
 }
 
 func TestListFile_MissingFile(t *testing.T) {
-	_, err := local.ListFile("/tmp/kaal-no-such-file-xyz.env")
+	_, err := local.ListFile("/tmp/pilot-no-such-file-xyz.env")
 	if err == nil {
 		t.Fatal("expected error for missing file, got nil")
 	}

@@ -6,11 +6,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mouhamedsylla/kaal/internal/config"
-	"github.com/mouhamedsylla/kaal/internal/scaffold"
+	"github.com/mouhamedsylla/pilot/internal/config"
+	"github.com/mouhamedsylla/pilot/internal/scaffold"
 )
 
-// HandleInit creates kaal.yaml non-interactively from MCP params.
+// HandleInit creates pilot.yaml non-interactively from MCP params.
 //
 // Required params:
 //
@@ -30,10 +30,10 @@ func HandleInit(_ context.Context, params map[string]any) (any, error) {
 		return nil, fmt.Errorf("name is required")
 	}
 
-	// Guard: refuse if kaal.yaml already exists.
+	// Guard: refuse if pilot.yaml already exists.
 	if _, err := os.Stat(config.FileName); err == nil {
 		return nil, fmt.Errorf(
-			"kaal.yaml already exists in this directory — edit it directly or delete it first",
+			"pilot.yaml already exists in this directory — edit it directly or delete it first",
 		)
 	}
 
@@ -96,11 +96,11 @@ func HandleInit(_ context.Context, params map[string]any) (any, error) {
 	opts.ApplyDefaults()
 
 	if err := scaffold.Generate(opts); err != nil {
-		return nil, fmt.Errorf("kaal init: %w", err)
+		return nil, fmt.Errorf("pilot init: %w", err)
 	}
 
 	return map[string]any{
-		"message":  fmt.Sprintf("kaal.yaml generated for project %q", name),
+		"message":  fmt.Sprintf("pilot.yaml generated for project %q", name),
 		"name":     name,
 		"stack":    stack,
 		"envs":     envs,

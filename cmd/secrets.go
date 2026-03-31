@@ -4,20 +4,20 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/mouhamedsylla/kaal/internal/config"
-	kaalenv "github.com/mouhamedsylla/kaal/internal/env"
-	"github.com/mouhamedsylla/kaal/internal/runtime"
-	"github.com/mouhamedsylla/kaal/internal/secrets/local"
-	"github.com/mouhamedsylla/kaal/pkg/ui"
+	"github.com/mouhamedsylla/pilot/internal/config"
+	pilotenv "github.com/mouhamedsylla/pilot/internal/env"
+	"github.com/mouhamedsylla/pilot/internal/runtime"
+	"github.com/mouhamedsylla/pilot/internal/secrets/local"
+	"github.com/mouhamedsylla/pilot/pkg/ui"
 	"github.com/spf13/cobra"
 )
 
 var secretsCmd = &cobra.Command{
 	Use:   "secrets",
-	Short: "Manage secrets for a kaal environment",
+	Short: "Manage secrets for a pilot environment",
 }
 
-// kaal secrets list
+// pilot secrets list
 var secretsListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List secret keys for the active environment",
@@ -26,7 +26,7 @@ var secretsListCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		activeEnv := kaalenv.Active(currentEnv)
+		activeEnv := pilotenv.Active(currentEnv)
 		envFile := fmt.Sprintf(".env.%s", activeEnv)
 
 		vars, err := local.ListFile(envFile)
@@ -35,7 +35,7 @@ var secretsListCmd = &cobra.Command{
 			return nil
 		}
 
-		// Also show refs declared in kaal.yaml for this env
+		// Also show refs declared in pilot.yaml for this env
 		var refs map[string]string
 		if e, ok := cfg.Environments[activeEnv]; ok && e.Secrets != nil {
 			refs = e.Secrets.Refs
@@ -62,13 +62,13 @@ var secretsListCmd = &cobra.Command{
 	},
 }
 
-// kaal secrets get KEY
+// pilot secrets get KEY
 var secretsGetCmd = &cobra.Command{
 	Use:   "get KEY",
 	Short: "Get the value of a secret from the active environment's .env file",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		activeEnv := kaalenv.Active(currentEnv)
+		activeEnv := pilotenv.Active(currentEnv)
 		envFile := fmt.Sprintf(".env.%s", activeEnv)
 
 		vars, err := local.ListFile(envFile)
@@ -84,13 +84,13 @@ var secretsGetCmd = &cobra.Command{
 	},
 }
 
-// kaal secrets set KEY VALUE
+// pilot secrets set KEY VALUE
 var secretsSetCmd = &cobra.Command{
 	Use:   "set KEY VALUE",
 	Short: "Set or update a secret in the active environment's .env file",
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		activeEnv := kaalenv.Active(currentEnv)
+		activeEnv := pilotenv.Active(currentEnv)
 		envFile := fmt.Sprintf(".env.%s", activeEnv)
 		key, value := args[0], args[1]
 
@@ -102,11 +102,11 @@ var secretsSetCmd = &cobra.Command{
 	},
 }
 
-// kaal secrets inject — resolves all secrets for the env and prints them
+// pilot secrets inject — resolves all secrets for the env and prints them
 var secretsInjectCmd = &cobra.Command{
 	Use:   "inject",
 	Short: "Resolve and display all secrets for the active environment",
-	Long: `Resolves all secrets declared in kaal.yaml for the active environment
+	Long: `Resolves all secrets declared in pilot.yaml for the active environment
 using the configured provider (local, aws_sm, gcp_sm).
 
 Secrets are printed as KEY=VALUE pairs — pipe to a tool or use in scripts.
@@ -118,10 +118,10 @@ Values are never written to disk by this command.`,
 		if err != nil {
 			return err
 		}
-		activeEnv := kaalenv.Active(currentEnv)
+		activeEnv := pilotenv.Active(currentEnv)
 		envCfg, ok := cfg.Environments[activeEnv]
 		if !ok {
-			return fmt.Errorf("environment %q not defined in kaal.yaml", activeEnv)
+			return fmt.Errorf("environment %q not defined in pilot.yaml", activeEnv)
 		}
 
 		provider := "local"

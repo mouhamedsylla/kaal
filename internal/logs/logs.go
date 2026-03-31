@@ -1,19 +1,19 @@
-// Package logs implements the kaal logs command logic.
+// Package logs implements the pilot logs command logic.
 package logs
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/mouhamedsylla/kaal/internal/config"
-	"github.com/mouhamedsylla/kaal/internal/env"
-	"github.com/mouhamedsylla/kaal/internal/orchestrator"
-	"github.com/mouhamedsylla/kaal/internal/providers"
-	"github.com/mouhamedsylla/kaal/internal/runtime"
-	"github.com/mouhamedsylla/kaal/pkg/ui"
+	"github.com/mouhamedsylla/pilot/internal/config"
+	"github.com/mouhamedsylla/pilot/internal/env"
+	"github.com/mouhamedsylla/pilot/internal/orchestrator"
+	"github.com/mouhamedsylla/pilot/internal/providers"
+	"github.com/mouhamedsylla/pilot/internal/runtime"
+	"github.com/mouhamedsylla/pilot/pkg/ui"
 )
 
-// Options controls kaal logs behaviour.
+// Options controls pilot logs behaviour.
 type Options struct {
 	Env     string
 	Service string // empty = all services
@@ -22,7 +22,7 @@ type Options struct {
 	Lines   int
 }
 
-// Run executes kaal logs — streams to stdout until the channel closes or ctx is cancelled.
+// Run executes pilot logs — streams to stdout until the channel closes or ctx is cancelled.
 func Run(ctx context.Context, opts Options) error {
 	cfg, err := config.Load(".")
 	if err != nil {
@@ -32,7 +32,7 @@ func Run(ctx context.Context, opts Options) error {
 	activeEnv := env.Active(opts.Env)
 	envCfg, ok := cfg.Environments[activeEnv]
 	if !ok {
-		return fmt.Errorf("environment %q not defined in kaal.yaml", activeEnv)
+		return fmt.Errorf("environment %q not defined in pilot.yaml", activeEnv)
 	}
 
 	if envCfg.Target != "" {
@@ -60,7 +60,7 @@ func runLocalLogs(ctx context.Context, cfg *config.Config, activeEnv string, opt
 		Lines:  opts.Lines,
 	})
 	if err != nil {
-		return fmt.Errorf("logs: %w\n  Is the environment running? Try 'kaal up'", err)
+		return fmt.Errorf("logs: %w\n  Is the environment running? Try 'pilot up'", err)
 	}
 
 	stream(ch)

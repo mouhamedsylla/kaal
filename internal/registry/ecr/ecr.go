@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/mouhamedsylla/kaal/internal/registry"
+	"github.com/mouhamedsylla/pilot/internal/registry"
 )
 
 // Registry is a stub — AWS ECR support is not yet implemented.

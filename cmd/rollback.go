@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"github.com/mouhamedsylla/kaal/internal/rollback"
-	"github.com/mouhamedsylla/kaal/pkg/ui"
+	"github.com/mouhamedsylla/pilot/internal/rollback"
+	"github.com/mouhamedsylla/pilot/pkg/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -12,18 +12,18 @@ var rollbackCmd = &cobra.Command{
 	Long: `Roll back services on the remote target to a previous version.
 
 Without --version, rolls back to the version deployed just before the current one.
-kaal tracks the last two deployed tags on the remote in ~/.kaal/<project>/state.
+pilot tracks the last two deployed tags on the remote in ~/.pilot/<project>/state.
 
 Examples:
-  kaal rollback                          # back to previous deployment
-  kaal rollback --env prod               # rollback prod explicitly
-  kaal rollback --version v1.1.0         # rollback to a specific tag`,
+  pilot rollback                          # back to previous deployment
+  pilot rollback --env prod               # rollback prod explicitly
+  pilot rollback --version v1.1.0         # rollback to a specific tag`,
 	RunE: runRollback,
 }
 
 func init() {
 	rollbackCmd.Flags().StringP("version", "v", "", "specific tag to roll back to (default: previous deployment)")
-	rollbackCmd.Flags().String("target", "", "override target from kaal.yaml")
+	rollbackCmd.Flags().String("target", "", "override target from pilot.yaml")
 }
 
 func runRollback(cmd *cobra.Command, _ []string) error {

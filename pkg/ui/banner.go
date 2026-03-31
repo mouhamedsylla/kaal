@@ -13,7 +13,7 @@ const asciiLogo = `
   ██║  ██╗██║  ██║██║  ██║███████╗
   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝`
 
-// PrintBanner displays the kaal ASCII banner with tagline.
+// PrintBanner displays the pilot ASCII banner with tagline.
 func PrintBanner(version string) {
 	ver := version
 	if ver == "" {
@@ -32,9 +32,9 @@ func PrintBanner(version string) {
 	fmt.Println(dim + "  Dev Environment as Code — v" + ver + rst)
 	fmt.Println(dim + "  Describe your infra once. Run locally. Ship anywhere." + rst)
 	fmt.Println()
-	fmt.Println("  kaal init    →  describe your infra in kaal.yaml")
-	fmt.Println("  kaal up      →  simulate it locally")
-	fmt.Println("  kaal push    →  build + push your image")
-	fmt.Println("  kaal deploy  →  SSH into your VPS, pull, restart")
+	fmt.Println("  pilot init    →  describe your infra in pilot.yaml")
+	fmt.Println("  pilot up      →  simulate it locally")
+	fmt.Println("  pilot push    →  build + push your image")
+	fmt.Println("  pilot deploy  →  SSH into your VPS, pull, restart")
 	fmt.Println()
 }

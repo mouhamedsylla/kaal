@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mouhamedsylla/kaal/internal/env"
+	"github.com/mouhamedsylla/pilot/internal/env"
 )
 
 // chdir changes the working directory to dir for the duration of the test.
@@ -30,7 +30,7 @@ func TestActive_Override(t *testing.T) {
 
 func TestActive_DefaultIsDev(t *testing.T) {
 	dir := t.TempDir()
-	chdir(t, dir) // no .kaal-current-env file
+	chdir(t, dir) // no .pilot-current-env file
 
 	got := env.Active("")
 	if got != "dev" {
@@ -42,7 +42,7 @@ func TestActive_ReadsStateFile(t *testing.T) {
 	dir := t.TempDir()
 	chdir(t, dir)
 
-	if err := os.WriteFile(".kaal-current-env", []byte("prod\n"), 0644); err != nil {
+	if err := os.WriteFile(".pilot-current-env", []byte("prod\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -60,12 +60,12 @@ func TestUse_WritesStateFile(t *testing.T) {
 		t.Fatalf("Use(staging) error: %v", err)
 	}
 
-	data, err := os.ReadFile(".kaal-current-env")
+	data, err := os.ReadFile(".pilot-current-env")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if string(data) != "staging" {
-		t.Errorf(".kaal-current-env = %q, want %q", string(data), "staging")
+		t.Errorf(".pilot-current-env = %q, want %q", string(data), "staging")
 	}
 }
 

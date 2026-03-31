@@ -7,7 +7,7 @@ type Provider interface {
 	// Deploy builds and deploys the application to the target environment.
 	Deploy(ctx context.Context, env string, opts DeployOptions) error
 
-	// Sync copies kaal.yaml and related config files to the remote target.
+	// Sync copies pilot.yaml and related config files to the remote target.
 	Sync(ctx context.Context, target string) error
 
 	// Status returns the runtime state of services on the remote target.

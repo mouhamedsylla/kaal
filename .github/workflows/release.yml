@@ -44,10 +44,10 @@ jobs:
           VERSION="${TAG_NAME}"
           COMMIT="$(git rev-parse --short HEAD)"
           BUILD_DATE="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-          LDFLAGS="-X github.com/mouhamedsylla/kaal/internal/version.Version=${VERSION} \
-                   -X github.com/mouhamedsylla/kaal/internal/version.Commit=${COMMIT} \
-                   -X github.com/mouhamedsylla/kaal/internal/version.BuildDate=${BUILD_DATE}"
-          go build -ldflags "${LDFLAGS}" -o kaal .
+          LDFLAGS="-X github.com/mouhamedsylla/pilot/internal/version.Version=${VERSION} \
+                   -X github.com/mouhamedsylla/pilot/internal/version.Commit=${COMMIT} \
+                   -X github.com/mouhamedsylla/pilot/internal/version.BuildDate=${BUILD_DATE}"
+          go build -ldflags "${LDFLAGS}" -o pilot .
 
       - name: Package tarball
         env:
@@ -57,14 +57,14 @@ jobs:
         run: |
           VERSION="${TAG_NAME#v}"
           PLATFORM="${GOOS}_${GOARCH}"
-          TARBALL="kaal_${VERSION}_${PLATFORM}.tar.gz"
-          tar -czf "${TARBALL}" kaal
+          TARBALL="pilot_${VERSION}_${PLATFORM}.tar.gz"
+          tar -czf "${TARBALL}" pilot
           echo "TARBALL=${TARBALL}" >> "$GITHUB_ENV"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: kaal-${{ matrix.goos }}-${{ matrix.goarch }}
+          name: pilot-${{ matrix.goos }}-${{ matrix.goarch }}
           path: ${{ env.TARBALL }}
           retention-days: 1
 
@@ -87,7 +87,7 @@ jobs:
       - name: Generate checksums
         run: |
           cd dist
-          sha256sum kaal_*.tar.gz > checksums.txt
+          sha256sum pilot_*.tar.gz > checksums.txt
           cat checksums.txt
 
       - name: Extract release notes
@@ -119,5 +119,5 @@ jobs:
           body_path: release_notes.txt
           fail_on_unmatched_files: true
           files: |
-            dist/kaal_*.tar.gz
+            dist/pilot_*.tar.gz
             dist/checksums.txt

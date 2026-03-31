@@ -20,7 +20,7 @@ type Orchestrator interface {
 
 ## Implémentations
 
-### `compose` — Docker Compose (implémenté)
+### `compose` : Docker Compose (implémenté)
 
 Fichier : `internal/orchestrator/compose/compose.go`
 
@@ -36,14 +36,14 @@ func (c *Compose) Up(ctx context.Context, env string, services []string) error {
 
 Prérequis : `docker` CLI installé avec le plugin `compose`.
 
-### `k3d` — Kubernetes local (stub)
+### `k3d` : Kubernetes local (stub)
 
 Fichier : `internal/orchestrator/k8s/k8s.go`
 
 k3d crée un cluster Kubernetes local dans Docker. Idéal pour tester en conditions réelles de prod quand la prod tourne sur k8s.
 
 ```yaml
-# kaal.yaml
+# pilot.yaml
 environments:
   test:
     runtime: k3d
@@ -51,10 +51,10 @@ environments:
 
 Roadmap :
 - Créer/supprimer un cluster k3d au `Up`/`Down`
-- Générer les manifests Kubernetes depuis `kaal.yaml` (ou déléguer à l'agent)
+- Générer les manifests Kubernetes depuis `pilot.yaml` (ou déléguer à l'agent)
 - Exposer les services localement via port-forward
 
-### `lima` — VMs légères (stub)
+### `lima` : VMs légères (stub)
 
 Lima crée des VMs Linux légères sur macOS. Permet de simuler une vraie VM locale.
 
@@ -65,7 +65,7 @@ environments:
 ```
 
 Roadmap :
-- Créer une VM Lima avec la config définie dans `kaal.yaml`
+- Créer une VM Lima avec la config définie dans `pilot.yaml`
 - Injecter Docker dans la VM
 - Copier et démarrer les services dans la VM
 
@@ -107,8 +107,8 @@ package myvms
 import (
     "context"
     "fmt"
-    "github.com/mouhamedsylla/kaal/internal/config"
-    "github.com/mouhamedsylla/kaal/internal/orchestrator"
+    "github.com/mouhamedsylla/pilot/internal/config"
+    "github.com/mouhamedsylla/pilot/internal/orchestrator"
 )
 
 type MyVMs struct{ cfg *config.Config }

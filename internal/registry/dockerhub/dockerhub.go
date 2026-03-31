@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/mouhamedsylla/kaal/internal/registry"
+	"github.com/mouhamedsylla/pilot/internal/registry"
 )
 
 // Registry implements registry.Registry for Docker Hub.

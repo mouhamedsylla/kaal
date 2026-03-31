@@ -1,9 +1,9 @@
-# kaal history
+# pilot history
 
 Affiche les 10 derniers enregistrements de déploiement pour l'environnement actif.
 
 ```
-kaal history [flags]
+pilot history [flags]
 ```
 
 ## Flags
@@ -15,7 +15,7 @@ kaal history [flags]
 
 ## Source de données
 
-kaal se connecte au VPS via SSH et lit le fichier `~/.kaal/<project-name>/deployments.json`. Ce fichier est mis à jour automatiquement à chaque `kaal deploy` et `kaal rollback`.
+pilot se connecte au VPS via SSH et lit le fichier `~/.pilot/<project-name>/deployments.json`. Ce fichier est mis à jour automatiquement à chaque `pilot deploy` et `pilot rollback`.
 
 L'historique est limité aux **10 déploiements les plus récents**. Les enregistrements les plus anciens sont supprimés automatiquement au-delà de cette limite.
 
@@ -71,11 +71,11 @@ L'historique est limité aux **10 déploiements les plus récents**. Les enregis
 ## Cas d'usage
 
 - **Connaître la version en production** : le premier enregistrement `ok` est la version actuellement stable
-- **Identifier un tag pour le rollback** : trouver un tag stable et le passer à `kaal rollback --version <tag>`
+- **Identifier un tag pour le rollback** : trouver un tag stable et le passer à `pilot rollback --version <tag>`
 - **Suivre les déploiements échoués** : repérer des patterns d'instabilité avant de déployer à nouveau
 
 ```bash
 # Voir l'historique, puis rollback vers un tag précis
-kaal history --env prod
-kaal rollback --version 9f3e210 --env prod
+pilot history --env prod
+pilot rollback --version 9f3e210 --env prod
 ```

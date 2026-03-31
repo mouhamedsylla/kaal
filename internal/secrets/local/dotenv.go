@@ -92,7 +92,7 @@ func parseEnvFile(path string) (map[string]string, error) {
 // writeEnvFile serialises a map back to KEY=VALUE format (0600 permissions).
 func writeEnvFile(path string, vars map[string]string) error {
 	var sb strings.Builder
-	sb.WriteString("# Managed by kaal — do not commit this file.\n")
+	sb.WriteString("# Managed by pilot — do not commit this file.\n")
 	for k, v := range vars {
 		if strings.ContainsAny(v, " \t\"'") {
 			sb.WriteString(fmt.Sprintf(`%s="%s"`, k, v))

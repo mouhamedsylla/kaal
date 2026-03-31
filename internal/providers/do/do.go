@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/mouhamedsylla/kaal/internal/config"
-	"github.com/mouhamedsylla/kaal/internal/providers"
+	"github.com/mouhamedsylla/pilot/internal/config"
+	"github.com/mouhamedsylla/pilot/internal/providers"
 )
 
 // Provider is a stub — DigitalOcean support is not yet implemented.

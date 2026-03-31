@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mouhamedsylla/kaal/internal/config"
-	"github.com/mouhamedsylla/kaal/internal/env"
-	kaalSSH "github.com/mouhamedsylla/kaal/pkg/ssh"
+	"github.com/mouhamedsylla/pilot/internal/config"
+	"github.com/mouhamedsylla/pilot/internal/env"
+	pilotSSH "github.com/mouhamedsylla/pilot/pkg/ssh"
 	"gopkg.in/yaml.v3"
 )
 
@@ -77,19 +77,19 @@ func Run(ctx context.Context, target Target, activeEnv string) (*Report, error) 
 	cfg, err := config.Load(".")
 	if err != nil {
 		r.add(Check{
-			Name:             "kaal_yaml",
-			Description:      "kaal.yaml exists and is valid",
+			Name:             "pilot_yaml",
+			Description:      "pilot.yaml exists and is valid",
 			Status:           StatusError,
 			Message:          err.Error(),
 			FixType:          FixHuman,
-			HumanInstruction: "Run 'kaal init' to create kaal.yaml, or fix the YAML syntax error.",
+			HumanInstruction: "Run 'pilot init' to create pilot.yaml, or fix the YAML syntax error.",
 		})
 		r.finalize()
 		return r, nil // can't continue without config
 	}
 	r.add(Check{
-		Name:        "kaal_yaml",
-		Description: "kaal.yaml exists and is valid",
+		Name:        "pilot_yaml",
+		Description: "pilot.yaml exists and is valid",
 		Status:      StatusOK,
 		Message:     fmt.Sprintf("project: %s", cfg.Project.Name),
 	})
@@ -102,7 +102,7 @@ func Run(ctx context.Context, target Target, activeEnv string) (*Report, error) 
 			Status:           StatusError,
 			Message:          fmt.Sprintf("image is a placeholder: %q", cfg.Registry.Image),
 			FixType:          FixHuman,
-			HumanInstruction: fmt.Sprintf("Edit kaal.yaml:\n  registry:\n    image: ghcr.io/YOUR_USER/%s\nReplace YOUR_USER with your real username.", cfg.Project.Name),
+			HumanInstruction: fmt.Sprintf("Edit pilot.yaml:\n  registry:\n    image: ghcr.io/YOUR_USER/%s\nReplace YOUR_USER with your real username.", cfg.Project.Name),
 		})
 	} else {
 		r.add(Check{
@@ -123,7 +123,7 @@ func Run(ctx context.Context, target Target, activeEnv string) (*Report, error) 
 				Status:           StatusError,
 				Message:          fmt.Sprintf("%s not found", dockerfile),
 				FixType:          FixAgent,
-				AgentTool:        "kaal_generate_dockerfile",
+				AgentTool:        "pilot_generate_dockerfile",
 				HumanInstruction: "Ask your AI agent to generate the Dockerfile, or create it manually.",
 			})
 		} else {
@@ -176,7 +176,7 @@ func Run(ctx context.Context, target Target, activeEnv string) (*Report, error) 
 				Status:           StatusError,
 				Message:          fmt.Sprintf("%s not found", composeFile),
 				FixType:          FixAgent,
-				AgentTool:        "kaal_generate_compose",
+				AgentTool:        "pilot_generate_compose",
 				HumanInstruction: "Ask your AI agent to generate the compose file, or create it manually.",
 			})
 		} else {
@@ -202,7 +202,7 @@ func Run(ctx context.Context, target Target, activeEnv string) (*Report, error) 
 							strings.Join(missing, ", "), composeFile,
 						),
 						FixType: FixAgent,
-						AgentTool: "kaal_generate_compose",
+						AgentTool: "pilot_generate_compose",
 						HumanInstruction: fmt.Sprintf(
 							"Add env_file: %s to each app service in %s.\n"+
 								"Without it, VITE_*/NEXT_PUBLIC_*/REACT_APP_* vars will be empty in the container.",
@@ -233,12 +233,12 @@ func Run(ctx context.Context, target Target, activeEnv string) (*Report, error) 
 					Description: "All compile-time vars are in registry.build_args",
 					Status:      StatusWarning,
 					Message: fmt.Sprintf(
-						"%d var(s) in %s look like compile-time vars but are not in kaal.yaml registry.build_args: %s — they will be empty in the built image",
+						"%d var(s) in %s look like compile-time vars but are not in pilot.yaml registry.build_args: %s — they will be empty in the built image",
 						len(unlisted), envCfg.EnvFile, strings.Join(unlisted, ", "),
 					),
 					FixType: FixHuman,
 					HumanInstruction: fmt.Sprintf(
-						"Add to kaal.yaml under registry.build_args:\n%s",
+						"Add to pilot.yaml under registry.build_args:\n%s",
 						formatBuildArgsSuggestion(unlisted),
 					),
 				})
@@ -275,9 +275,9 @@ func Run(ctx context.Context, target Target, activeEnv string) (*Report, error) 
 			remoteEnv := firstRemoteEnv(cfg, activeEnv)
 			hint := fmt.Sprintf("Environment %q has no deploy target — it is a local environment.\n", activeEnv)
 			if remoteEnv != "" {
-				hint += fmt.Sprintf("Run: kaal preflight --target deploy --env %s", remoteEnv)
+				hint += fmt.Sprintf("Run: pilot preflight --target deploy --env %s", remoteEnv)
 			} else {
-				hint += "Add a target to kaal.yaml:\n  environments:\n    prod:\n      target: vps-prod\n  targets:\n    vps-prod:\n      type: vps\n      host: \"YOUR_VPS_IP\"\n      user: deploy\n      key: ~/.ssh/id_kaal"
+				hint += "Add a target to pilot.yaml:\n  environments:\n    prod:\n      target: vps-prod\n  targets:\n    vps-prod:\n      type: vps\n      host: \"YOUR_VPS_IP\"\n      user: deploy\n      key: ~/.ssh/id_pilot"
 			}
 			r.add(Check{
 				Name:             "target_host",
@@ -292,9 +292,9 @@ func Run(ctx context.Context, target Target, activeEnv string) (*Report, error) 
 				Name:             "target_host",
 				Description:      "Deploy target host is configured",
 				Status:           StatusError,
-				Message:          fmt.Sprintf("target %q exists in kaal.yaml but has no host set", targetName),
+				Message:          fmt.Sprintf("target %q exists in pilot.yaml but has no host set", targetName),
 				FixType:          FixHuman,
-				HumanInstruction: fmt.Sprintf("Edit kaal.yaml:\n  targets:\n    %s:\n      host: \"YOUR_VPS_IP\"\nThen run: kaal setup --env %s", targetName, activeEnv),
+				HumanInstruction: fmt.Sprintf("Edit pilot.yaml:\n  targets:\n    %s:\n      host: \"YOUR_VPS_IP\"\nThen run: pilot setup --env %s", targetName, activeEnv),
 			})
 		} else {
 			r.add(Check{
@@ -304,21 +304,21 @@ func Run(ctx context.Context, target Target, activeEnv string) (*Report, error) 
 				Message:     fmt.Sprintf("%s (%s)", tgt.Host, targetName),
 			})
 
-			// 8. SSH key — file or KAAL_SSH_KEY env var
+			// 8. SSH key — file or PILOT_SSH_KEY env var
 			keyPath := expandHome(tgt.Key)
 			if keyPath == "" {
-				keyPath = expandHome("~/.ssh/id_kaal")
+				keyPath = expandHome("~/.ssh/id_pilot")
 			}
-			kaalSSHKeyEnv := os.Getenv("KAAL_SSH_KEY")
+			pilotSSHKeyEnv := os.Getenv("PILOT_SSH_KEY")
 			sshKeyOK := false
-			if kaalSSHKeyEnv != "" {
+			if pilotSSHKeyEnv != "" {
 				// Env var takes priority over file — valid for CI/CD pipelines.
 				sshKeyOK = true
 				r.add(Check{
 					Name:        "ssh_key",
 					Description: "SSH key available",
 					Status:      StatusOK,
-					Message:     "KAAL_SSH_KEY env var set (CI/CD mode)",
+					Message:     "PILOT_SSH_KEY env var set (CI/CD mode)",
 				})
 			} else if _, err := os.Stat(keyPath); os.IsNotExist(err) {
 				r.add(Check{
@@ -332,7 +332,7 @@ func Run(ctx context.Context, target Target, activeEnv string) (*Report, error) 
 							"  ssh-keygen -t ed25519 -f %s\n"+
 							"  ssh-copy-id -i %s.pub %s@%s\n\n"+
 							"Option B — use env var (CI/CD):\n"+
-							"  export KAAL_SSH_KEY=\"$(cat %s)\"",
+							"  export PILOT_SSH_KEY=\"$(cat %s)\"",
 						keyPath, keyPath, tgt.User, tgt.Host, keyPath,
 					),
 				})
@@ -355,7 +355,7 @@ func Run(ctx context.Context, target Target, activeEnv string) (*Report, error) 
 				if port == 0 {
 					port = 22
 				}
-				client, sshErr := kaalSSH.NewClient(kaalSSH.Config{
+				client, sshErr := pilotSSH.NewClient(pilotSSH.Config{
 					Host:    tgt.Host,
 					User:    tgt.User,
 					KeyPath: tgt.Key,
@@ -387,7 +387,7 @@ func Run(ctx context.Context, target Target, activeEnv string) (*Report, error) 
 							Status:           StatusError,
 							Message:          fmt.Sprintf("user %q is not in the docker group on %s", tgt.User, tgt.Host),
 							FixType:          FixAgent,
-							AgentTool:        fmt.Sprintf("kaal_setup {\"env\": \"%s\"}", activeEnv),
+							AgentTool:        fmt.Sprintf("pilot_setup {\"env\": \"%s\"}", activeEnv),
 							HumanInstruction: fmt.Sprintf("Or manually on VPS:\n  sudo usermod -aG docker %s\nThen reconnect.", tgt.User),
 						})
 					} else {
@@ -400,12 +400,12 @@ func Run(ctx context.Context, target Target, activeEnv string) (*Report, error) 
 					}
 					// 11. Env file synced to VPS (only if env_file is declared for this env)
 					if envCfg, ok := cfg.Environments[activeEnv]; ok && envCfg.EnvFile != "" {
-						// kaal sync copies files to ~/kaal/ using only the basename
+						// pilot sync copies files to ~/pilot/ using only the basename
 						base := envCfg.EnvFile
 						if idx := strings.LastIndex(base, "/"); idx >= 0 {
 							base = base[idx+1:]
 						}
-						remoteEnvPath := fmt.Sprintf("~/kaal/%s", base)
+						remoteEnvPath := fmt.Sprintf("~/pilot/%s", base)
 						checkOut, _ := client.Run(vpsCtx, fmt.Sprintf("test -f %s && echo ok || echo missing", remoteEnvPath))
 						if strings.TrimSpace(checkOut) != "ok" {
 							r.add(Check{
@@ -414,8 +414,8 @@ func Run(ctx context.Context, target Target, activeEnv string) (*Report, error) 
 								Status:           StatusError,
 								Message:          fmt.Sprintf("%s not found at %s on the VPS", envCfg.EnvFile, remoteEnvPath),
 								FixType:          FixAgent,
-								AgentTool:        fmt.Sprintf("kaal_sync {\"env\": \"%s\"}", activeEnv),
-								HumanInstruction: fmt.Sprintf("Run: kaal sync --env %s\nThis copies kaal.yaml, compose files and env files to ~/kaal/ on the VPS.", activeEnv),
+								AgentTool:        fmt.Sprintf("pilot_sync {\"env\": \"%s\"}", activeEnv),
+								HumanInstruction: fmt.Sprintf("Run: pilot sync --env %s\nThis copies pilot.yaml, compose files and env files to ~/pilot/ on the VPS.", activeEnv),
 							})
 						} else {
 							r.add(Check{
@@ -471,19 +471,19 @@ func (r *Report) finalize() {
 	if r.AllOK {
 		switch r.Target {
 		case TargetPush:
-			r.NextSteps = []string{"[AGENT] call kaal_push"}
+			r.NextSteps = []string{"[AGENT] call pilot_push"}
 		case TargetDeploy:
-			r.NextSteps = []string{"[AGENT] call kaal_push", fmt.Sprintf("[AGENT] call kaal_deploy {\"env\": \"%s\"}", r.Env)}
+			r.NextSteps = []string{"[AGENT] call pilot_push", fmt.Sprintf("[AGENT] call pilot_deploy {\"env\": \"%s\"}", r.Env)}
 		case TargetUp:
-			r.NextSteps = []string{"[AGENT] call kaal_up"}
+			r.NextSteps = []string{"[AGENT] call pilot_up"}
 		}
 	} else {
 		// Add deploy step at the end so agent knows what the goal is
 		switch r.Target {
 		case TargetPush:
-			r.NextSteps = append(r.NextSteps, "[AGENT] call kaal_push  ← final goal")
+			r.NextSteps = append(r.NextSteps, "[AGENT] call pilot_push  ← final goal")
 		case TargetDeploy:
-			r.NextSteps = append(r.NextSteps, "[AGENT] call kaal_push + kaal_deploy  ← final goal")
+			r.NextSteps = append(r.NextSteps, "[AGENT] call pilot_push + pilot_deploy  ← final goal")
 		}
 	}
 }
@@ -621,7 +621,7 @@ func ActiveEnv(override string) string {
 	return env.Active(override)
 }
 
-// DetectRemoteEnv loads kaal.yaml and returns the first environment that has a
+// DetectRemoteEnv loads pilot.yaml and returns the first environment that has a
 // deploy target configured, excluding the currentEnv (which is assumed to be
 // a local-only environment). Returns "" if no remote env is found.
 // Used by cmd/preflight to auto-switch away from local envs when --target deploy
@@ -742,7 +742,7 @@ func buildArgsGap(cfg *config.Config, envFile string) []string {
 	return unlisted
 }
 
-// formatBuildArgsSuggestion formats a list of var names as kaal.yaml build_args entries.
+// formatBuildArgsSuggestion formats a list of var names as pilot.yaml build_args entries.
 func formatBuildArgsSuggestion(names []string) string {
 	lines := []string{"  registry:", "    build_args:"}
 	for _, name := range names {

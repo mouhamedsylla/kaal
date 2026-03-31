@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mouhamedsylla/kaal/internal/config"
-	kaalenv "github.com/mouhamedsylla/kaal/internal/env"
-	"github.com/mouhamedsylla/kaal/internal/orchestrator"
-	"github.com/mouhamedsylla/kaal/internal/providers"
-	"github.com/mouhamedsylla/kaal/internal/runtime"
+	"github.com/mouhamedsylla/pilot/internal/config"
+	pilotenv "github.com/mouhamedsylla/pilot/internal/env"
+	"github.com/mouhamedsylla/pilot/internal/orchestrator"
+	"github.com/mouhamedsylla/pilot/internal/providers"
+	"github.com/mouhamedsylla/pilot/internal/runtime"
 )
 
 // HandleStatus returns the complete project state as structured JSON.
@@ -21,7 +21,7 @@ func HandleStatus(ctx context.Context, params map[string]any) (any, error) {
 		return nil, err
 	}
 
-	activeEnv := kaalenv.Active(strParam(params, "env"))
+	activeEnv := pilotenv.Active(strParam(params, "env"))
 	envCfg, ok := cfg.Environments[activeEnv]
 	if !ok {
 		return nil, fmt.Errorf("environment %q not defined", activeEnv)
@@ -80,7 +80,7 @@ func HandleLogs(ctx context.Context, params map[string]any) (any, error) {
 		return nil, err
 	}
 
-	activeEnv := kaalenv.Active(strParam(params, "env"))
+	activeEnv := pilotenv.Active(strParam(params, "env"))
 	service := strParam(params, "service")
 	lines := 100
 	if l := strParam(params, "lines"); l != "" {
@@ -147,7 +147,7 @@ done:
 	}, nil
 }
 
-// HandleConfigGet reads a dot-notation key from kaal.yaml.
+// HandleConfigGet reads a dot-notation key from pilot.yaml.
 func HandleConfigGet(_ context.Context, params map[string]any) (any, error) {
 	key := strParam(params, "key")
 	if key == "" {
@@ -166,7 +166,7 @@ func HandleConfigGet(_ context.Context, params map[string]any) (any, error) {
 	return map[string]any{"key": key, "value": value}, nil
 }
 
-// HandleConfigSet sets a dot-notation key in kaal.yaml.
+// HandleConfigSet sets a dot-notation key in pilot.yaml.
 func HandleConfigSet(_ context.Context, params map[string]any) (any, error) {
 	key := strParam(params, "key")
 	value := strParam(params, "value")
@@ -182,13 +182,13 @@ func HandleConfigSet(_ context.Context, params map[string]any) (any, error) {
 	if err := configSet(cfg, key, value); err != nil {
 		return nil, err
 	}
-	if err := config.Save(cfg, "kaal.yaml"); err != nil {
+	if err := config.Save(cfg, "pilot.yaml"); err != nil {
 		return nil, err
 	}
 	return map[string]any{
 		"key":     key,
 		"value":   value,
-		"message": fmt.Sprintf("Set %s = %s in kaal.yaml", key, value),
+		"message": fmt.Sprintf("Set %s = %s in pilot.yaml", key, value),
 	}, nil
 }
 
@@ -199,7 +199,7 @@ func HandleSecretsInject(ctx context.Context, params map[string]any) (any, error
 		return nil, err
 	}
 
-	activeEnv := kaalenv.Active(strParam(params, "env"))
+	activeEnv := pilotenv.Active(strParam(params, "env"))
 	envCfg, ok := cfg.Environments[activeEnv]
 	if !ok {
 		return nil, fmt.Errorf("environment %q not defined", activeEnv)

@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/mouhamedsylla/kaal/internal/config"
-	kaalenv "github.com/mouhamedsylla/kaal/internal/env"
-	"github.com/mouhamedsylla/kaal/internal/providers/vps"
-	"github.com/mouhamedsylla/kaal/internal/runtime"
-	"github.com/mouhamedsylla/kaal/pkg/ui"
+	"github.com/mouhamedsylla/pilot/internal/config"
+	pilotenv "github.com/mouhamedsylla/pilot/internal/env"
+	"github.com/mouhamedsylla/pilot/internal/providers/vps"
+	"github.com/mouhamedsylla/pilot/internal/runtime"
+	"github.com/mouhamedsylla/pilot/pkg/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -24,13 +24,13 @@ func runHistory(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	activeEnv := kaalenv.Active(currentEnv)
+	activeEnv := pilotenv.Active(currentEnv)
 	envCfg, ok := cfg.Environments[activeEnv]
 	if !ok {
-		return fmt.Errorf("environment %q not defined in kaal.yaml", activeEnv)
+		return fmt.Errorf("environment %q not defined in pilot.yaml", activeEnv)
 	}
 	if envCfg.Target == "" {
-		return fmt.Errorf("kaal history only applies to remote environments (no target for %q)", activeEnv)
+		return fmt.Errorf("pilot history only applies to remote environments (no target for %q)", activeEnv)
 	}
 
 	provider, err := runtime.NewProvider(cfg, envCfg.Target)

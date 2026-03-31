@@ -1,18 +1,18 @@
 package cmd
 
 import (
-	"github.com/mouhamedsylla/kaal/internal/push"
-	"github.com/mouhamedsylla/kaal/pkg/ui"
+	"github.com/mouhamedsylla/pilot/internal/push"
+	"github.com/mouhamedsylla/pilot/pkg/ui"
 	"github.com/spf13/cobra"
 )
 
 var pushCmd = &cobra.Command{
 	Use:   "push",
 	Short: "Build and push the Docker image to the configured registry",
-	Long: `Build the Docker image and push it to the registry configured in kaal.yaml.
+	Long: `Build the Docker image and push it to the registry configured in pilot.yaml.
 
 Tag defaults to the current git short SHA. The same tag is then passed to
-'kaal deploy' to deploy that exact image version.`,
+'pilot deploy' to deploy that exact image version.`,
 	RunE: runPush,
 }
 

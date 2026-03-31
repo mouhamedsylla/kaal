@@ -1,9 +1,9 @@
-# kaal status
+# pilot status
 
 Affiche l'état de tous les services en cours d'exécution pour un environnement donné.
 
 ```
-kaal status [flags]
+pilot status [flags]
 ```
 
 ## Flags
@@ -17,7 +17,7 @@ kaal status [flags]
 
 **Environnement local** : exécute `docker compose ps` localement à partir du fichier `docker-compose.<env>.yml`.
 
-**Environnement distant** (avec une cible `target` configurée) : se connecte au VPS via SSH et exécute `docker compose ps` depuis `~/kaal/`.
+**Environnement distant** (avec une cible `target` configurée) : se connecte au VPS via SSH et exécute `docker compose ps` depuis `~/pilot/`.
 
 ## Colonnes de sortie
 
@@ -82,6 +82,6 @@ kaal status [flags]
 |-------|--------|---------------|
 | `running` | `healthy` | Nominal : le service fonctionne et répond aux healthchecks |
 | `running` | `-` | En cours d'exécution, mais sans healthcheck configuré : pas nécessairement un problème |
-| `running` | `unhealthy` | Le conteneur tourne, mais le healthcheck échoue : investiguer avec `kaal logs <service>` |
+| `running` | `unhealthy` | Le conteneur tourne, mais le healthcheck échoue : investiguer avec `pilot logs <service>` |
 | `exited` | `-` | Le conteneur s'est arrêté : vérifier les logs pour identifier la cause |
-| `restarting` | `-` | Le conteneur redémarre en boucle : crash loop probable, voir `kaal logs <service>` |
+| `restarting` | `-` | Le conteneur redémarre en boucle : crash loop probable, voir `pilot logs <service>` |

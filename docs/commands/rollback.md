@@ -1,9 +1,9 @@
-# kaal rollback
+# pilot rollback
 
 Revient au déploiement précédent ou à une version spécifique.
 
 ```
-kaal rollback [flags]
+pilot rollback [flags]
 ```
 
 ## Flags
@@ -17,10 +17,10 @@ kaal rollback [flags]
 
 ### État stocké sur le VPS
 
-kaal maintient un répertoire d'état par projet sur le VPS :
+pilot maintient un répertoire d'état par projet sur le VPS :
 
 ```
-~/.kaal/<project-name>/
+~/.pilot/<project-name>/
 ├── current-tag        # tag actuellement déployé
 ├── prev-tag           # tag du déploiement précédent
 └── deployments.json   # historique des 10 derniers déploiements
@@ -29,9 +29,9 @@ kaal maintient un répertoire d'état par projet sur le VPS :
 ### Sans `--version` (rollback rapide)
 
 1. Connexion SSH au VPS
-2. Lecture de `~/.kaal/<project-name>/prev-tag`
+2. Lecture de `~/.pilot/<project-name>/prev-tag`
 3. `docker pull <image>:<prev-tag>` sur le VPS
-4. `IMAGE_TAG=<prev-tag> docker compose -f ~/kaal/docker-compose.<env>.yml up -d`
+4. `IMAGE_TAG=<prev-tag> docker compose -f ~/pilot/docker-compose.<env>.yml up -d`
 5. Mise à jour de `current-tag` ← `prev-tag`
 
 ### Avec `--version <tag>`
@@ -54,24 +54,24 @@ Identique, mais utilise le tag spécifié au lieu de lire `prev-tag`. Permet de 
 | Après deploy v1 | v1 | : |
 | Après deploy v2 | v2 | v1 |
 | Après deploy v3 | v3 | v2 |
-| Après `kaal rollback` | v2 | v2 |
-| Après un 2e `kaal rollback` | v2 | v2 *(no-op)* |
+| Après `pilot rollback` | v2 | v2 |
+| Après un 2e `pilot rollback` | v2 | v2 *(no-op)* |
 
 Un second rollback consécutif est un **no-op** : `prev-tag` et `current-tag` pointent tous deux vers v2.
 
-Pour revenir plus loin : utiliser `--version` avec un tag issu de `kaal history`.
+Pour revenir plus loin : utiliser `--version` avec un tag issu de `pilot history`.
 
 ```bash
 # Voir l'historique des déploiements
-kaal history --env prod
+pilot history --env prod
 
 # Revenir à une version spécifique
-kaal rollback --version v1.0.0 --env prod
+pilot rollback --version v1.0.0 --env prod
 ```
 
 ## Rollback automatique
 
-`kaal deploy` déclenche un rollback automatique si le healthcheck post-déploiement échoue :
+`pilot deploy` déclenche un rollback automatique si le healthcheck post-déploiement échoue :
 
 ```
 → Deploying prod (tag: def5678)
@@ -81,7 +81,7 @@ kaal rollback --version v1.0.0 --env prod
 ✓ Rolled back to abc1234
 ```
 
-Pour désactiver ce comportement : passer `--no-rollback` à `kaal deploy`.
+Pour désactiver ce comportement : passer `--no-rollback` à `pilot deploy`.
 
 ## Erreurs courantes
 
@@ -91,23 +91,23 @@ Correction : utiliser `--version <tag>` pour spécifier explicitement le tag cib
 
 **"image not found"**
 Le tag demandé n'existe plus dans le registry.
-Correction : vérifier que l'image n'a pas été supprimée du registry, ou choisir un autre tag via `kaal history`.
+Correction : vérifier que l'image n'a pas été supprimée du registry, ou choisir un autre tag via `pilot history`.
 
 ## Exemple de workflow
 
 ```bash
 # 1. Déploiement de v3 (qui s'avère défectueux)
-kaal push
-kaal deploy --env prod
+pilot push
+pilot deploy --env prod
 
 # 2. Constatation du problème
-kaal status --env prod
-kaal logs app --env prod
+pilot status --env prod
+pilot logs app --env prod
 
 # 3. Rollback immédiat vers v2
-kaal rollback --env prod
+pilot rollback --env prod
 # → Retour à l'état stable en quelques secondes
 
 # 4. Vérification
-kaal status --env prod
+pilot status --env prod
 ```

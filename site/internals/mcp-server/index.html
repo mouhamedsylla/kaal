@@ -1,0 +1,2308 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Dev Environment as Code">
+      
+      
+        <meta name="author" content="Mouhamed SYLLA">
+      
+      
+      
+        <link rel="prev" href="../context-engine/">
+      
+      
+        <link rel="next" href="../orchestrators/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Serveur MCP - pilot Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#internals-serveur-mcp" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="pilot Documentation" class="md-header__button md-logo" aria-label="pilot Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            pilot Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Serveur MCP
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_1">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../.." class="md-tabs__link">
+          
+  
+  
+  Concept
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../commands/context/" class="md-tabs__link">
+          
+  
+  
+  Commandes CLI
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../workflows/ai-agent/" class="md-tabs__link">
+          
+  
+  
+  Workflows
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../context-engine/" class="md-tabs__link">
+          
+  
+  
+  Internes
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../troubleshooting/env-vars-empty-in-container/" class="md-tabs__link">
+          
+  
+  
+  Dépannage
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="pilot Documentation" class="md-nav__button md-logo" aria-label="pilot Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    pilot Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concept
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concept
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Accueil
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts clés
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pilot-yaml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pilot.yaml
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Commandes CLI
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Commandes CLI
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    context
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/deploy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    deploy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/env/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    env
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/history/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    history
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/logs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    logs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/mcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    mcp
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/preflight/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    preflight
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/push/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    push
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/rollback/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    rollback
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/status/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    status
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/sync/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sync
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/up-down/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    up / down
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Workflows
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Workflows
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../workflows/ai-agent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI Agent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../workflows/ci-cd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CI/CD
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../workflows/deploy-vps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Déploiement VPS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../workflows/local-dev/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dév Local
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Internes
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Internes
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../context-engine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Moteur de context
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Serveur MCP
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Serveur MCP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#protocole" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protocole
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#demarrage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Démarrage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#structure-des-messages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structure des messages
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Structure des messages">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#requete-stdin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requête (stdin)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reponse-stdout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Réponse (stdout)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reponse-derreur" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Réponse d'erreur
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#methodes-supportees" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Méthodes supportées
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#outils-implementes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outils implémentés
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#description-des-outils-principaux" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Description des outils principaux
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Description des outils principaux">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pilot_context" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pilot_context
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pilot_generate_dockerfile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pilot_generate_dockerfile
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pilot_generate_compose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pilot_generate_compose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pilot_preflight" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pilot_preflight
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pilot_push" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pilot_push
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pilot_deploy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pilot_deploy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pilot_setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pilot_setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pilot_sync" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pilot_sync
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-du-package" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture du package
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture du package">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#handlerfunc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HandlerFunc
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ajouter-un-handler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ajouter un handler
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workflow-typique-dun-agent-ai" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workflow typique d'un agent AI
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workflow-de-generation-dinfrastructure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workflow de génération d'infrastructure
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../orchestrators/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Orchestrateurs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../providers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fournisseurs (Providers)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dépannage
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Dépannage
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troubleshooting/env-vars-empty-in-container/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Variables vides en container
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#protocole" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protocole
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#demarrage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Démarrage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#structure-des-messages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structure des messages
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Structure des messages">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#requete-stdin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requête (stdin)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reponse-stdout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Réponse (stdout)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reponse-derreur" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Réponse d'erreur
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#methodes-supportees" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Méthodes supportées
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#outils-implementes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outils implémentés
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#description-des-outils-principaux" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Description des outils principaux
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Description des outils principaux">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pilot_context" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pilot_context
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pilot_generate_dockerfile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pilot_generate_dockerfile
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pilot_generate_compose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pilot_generate_compose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pilot_preflight" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pilot_preflight
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pilot_push" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pilot_push
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pilot_deploy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pilot_deploy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pilot_setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pilot_setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pilot_sync" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pilot_sync
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-du-package" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture du package
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture du package">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#handlerfunc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HandlerFunc
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ajouter-un-handler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ajouter un handler
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workflow-typique-dun-agent-ai" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workflow typique d'un agent AI
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workflow-de-generation-dinfrastructure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workflow de génération d'infrastructure
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="internals-serveur-mcp">Internals : Serveur MCP</h1>
+<h2 id="protocole">Protocole</h2>
+<p>pilot implémente le <strong>Model Context Protocol (MCP)</strong> en JSON-RPC 2.0 sur stdin/stdout.</p>
+<ul>
+<li><strong>Pas de port réseau</strong> : communication par pipe standard</li>
+<li><strong>Pas de processus séparé</strong> : <code>pilot mcp serve</code> <em>est</em> le serveur</li>
+<li><strong>Intégration IDE</strong> : Claude Code et Cursor gèrent le cycle de vie du processus</li>
+</ul>
+<hr />
+<h2 id="demarrage">Démarrage</h2>
+<div class="highlight"><pre><span></span><code>pilot<span class="w"> </span>mcp<span class="w"> </span>serve
+</code></pre></div>
+<p>Le processus lit les requêtes JSON-RPC depuis stdin, écrit les réponses sur stdout.</p>
+<p><strong>Configuration client (<code>.mcp.json</code>) :</strong></p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;mcpServers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;pilot&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pilot&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;mcp&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;serve&quot;</span><span class="p">],</span>
+<span class="w">      </span><span class="nt">&quot;cwd&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${workspaceFolder}&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>L'IDE démarre <code>pilot mcp serve</code> dans le dossier du projet. <code>cwd</code> est crucial : pilot lit <code>pilot.yaml</code> depuis le répertoire courant.</p>
+<hr />
+<h2 id="structure-des-messages">Structure des messages</h2>
+<h3 id="requete-stdin">Requête (stdin)</h3>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;jsonrpc&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2.0&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;method&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;tools/call&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;params&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pilot_context&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;arguments&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;dev&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="reponse-stdout">Réponse (stdout)</h3>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;jsonrpc&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2.0&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;result&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;text&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;text&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;{\&quot;pilot_yaml\&quot;: \&quot;...\&quot;, \&quot;stack\&quot;: \&quot;go\&quot;, ...}&quot;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="reponse-derreur">Réponse d'erreur</h3>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;jsonrpc&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2.0&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;result&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;text&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;text&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pilot_context: pilot.yaml not found&quot;</span><span class="p">}],</span>
+<span class="w">    </span><span class="nt">&quot;isError&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Note : les erreurs d'outil retournent un <code>result</code> avec <code>isError: true</code>, pas un champ <code>error</code> JSON-RPC : conformément à la spec MCP.</p>
+<hr />
+<h2 id="methodes-supportees">Méthodes supportées</h2>
+<table>
+<thead>
+<tr>
+<th>Méthode</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>initialize</code></td>
+<td>Handshake initial : retourne les capabilities du serveur</td>
+</tr>
+<tr>
+<td><code>tools/list</code></td>
+<td>Liste tous les outils disponibles avec leur schéma</td>
+</tr>
+<tr>
+<td><code>tools/call</code></td>
+<td>Appelle un outil avec les paramètres donnés</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="outils-implementes">Outils implémentés</h2>
+<table>
+<thead>
+<tr>
+<th>Outil</th>
+<th>Handler</th>
+<th>Statut</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pilot_context</code></td>
+<td><code>handlers.HandleContext</code></td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>pilot_generate_dockerfile</code></td>
+<td><code>handlers.HandleGenerateDockerfile</code></td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>pilot_generate_compose</code></td>
+<td><code>handlers.HandleGenerateCompose</code></td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>pilot_push</code></td>
+<td><code>handlers.HandlePush</code></td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>pilot_deploy</code></td>
+<td><code>handlers.HandleDeploy</code></td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>pilot_rollback</code></td>
+<td><code>handlers.HandleRollback</code></td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>pilot_sync</code></td>
+<td><code>handlers.HandleSync</code></td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>pilot_up</code></td>
+<td><code>handlers.HandleUp</code></td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>pilot_down</code></td>
+<td><code>handlers.HandleDown</code></td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>pilot_status</code></td>
+<td><code>handlers.HandleStatus</code></td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>pilot_logs</code></td>
+<td><code>handlers.HandleLogs</code></td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>pilot_preflight</code></td>
+<td><code>handlers.HandlePreflight</code></td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>pilot_setup</code></td>
+<td><code>handlers.HandleSetup</code></td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>pilot_init</code></td>
+<td>stub</td>
+<td>🔲</td>
+</tr>
+<tr>
+<td><code>pilot_env_switch</code></td>
+<td>stub</td>
+<td>🔲</td>
+</tr>
+<tr>
+<td><code>pilot_config_get</code></td>
+<td>stub</td>
+<td>🔲</td>
+</tr>
+<tr>
+<td><code>pilot_config_set</code></td>
+<td>stub</td>
+<td>🔲</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="description-des-outils-principaux">Description des outils principaux</h2>
+<h3 id="pilot_context"><code>pilot_context</code></h3>
+<p>Retourne le contexte complet du projet : stack, services, fichiers existants/manquants, prompt agent, env_file paths, targets non configurés. <strong>Premier outil à appeler avant toute génération.</strong></p>
+<p>Paramètres : <code>env</code> (optionnel)</p>
+<h3 id="pilot_generate_dockerfile"><code>pilot_generate_dockerfile</code></h3>
+<p>Écrit un Dockerfile optimisé sur disque. L'agent doit générer un Dockerfile multi-stage, non-root, avec healthcheck, adapté au stack détecté dans <code>pilot_context</code>.</p>
+<p>Paramètres : <code>content</code> (requis), <code>path</code> (optionnel, défaut : <code>Dockerfile</code>)</p>
+<h3 id="pilot_generate_compose"><code>pilot_generate_compose</code></h3>
+<p>Écrit un <code>docker-compose.&lt;env&gt;.yml</code> sur disque. L'agent doit inclure : <code>env_file</code> depuis <code>pilot.yaml</code>, healthchecks, limites de ressources, commande <code>--mode &lt;env&gt;</code> pour Vite/Next.</p>
+<p>Paramètres : <code>content</code> (requis), <code>env</code> (optionnel), <code>path</code> (optionnel)</p>
+<h3 id="pilot_preflight"><code>pilot_preflight</code></h3>
+<p>Lance la checklist pré-déploiement. Retourne un plan d'action structuré avec <code>all_ok</code>, <code>checks[]</code>, <code>next_steps[]</code>. L'agent suit les <code>next_steps</code> dans l'ordre : actions <code>[HUMAN]</code> d'abord, puis <code>[AGENT]</code>.</p>
+<p>Paramètres : <code>target</code> (<code>push</code> ou <code>deploy</code>), <code>env</code> (optionnel)</p>
+<h3 id="pilot_push"><code>pilot_push</code></h3>
+<p>Build + push de l'image. Injecte automatiquement les vars <code>VITE_*</code>/<code>NEXT_PUBLIC_*</code>/<code>REACT_APP_*</code> depuis l'env file. Patch le Dockerfile si des <code>ARG</code> manquent.</p>
+<p>Paramètres : <code>tag</code> (optionnel), <code>env</code> (optionnel), <code>no_cache</code> (optionnel), <code>platform</code> (optionnel)</p>
+<h3 id="pilot_deploy"><code>pilot_deploy</code></h3>
+<p>Déploie sur la cible configurée. Sync automatique des fichiers (compose, env, bind-mounts) vers <code>~/pilot/</code> sur le VPS avant chaque déploiement.</p>
+<p>Paramètres : <code>env</code> (optionnel), <code>tag</code> (optionnel)</p>
+<h3 id="pilot_setup"><code>pilot_setup</code></h3>
+<p>Ajoute le user deploy au groupe docker sur le VPS via SSH (<code>sudo usermod -aG docker &lt;user&gt;</code>). À appeler quand <code>pilot_preflight</code> retourne <code>vps_docker_group: false</code>.</p>
+<p>Paramètres : <code>env</code> (optionnel)</p>
+<h3 id="pilot_sync"><code>pilot_sync</code></h3>
+<p>Copie les fichiers de config vers <code>~/pilot/</code> sur le VPS sans redéployer : compose files, env files, et tous les fichiers référencés en bind-mount dans le compose.</p>
+<p>Paramètres : <code>env</code> (optionnel)</p>
+<hr />
+<h2 id="architecture-du-package">Architecture du package</h2>
+<div class="highlight"><pre><span></span><code>internal/mcp/
+├── server.go          # Boucle I/O + dispatch JSON-RPC
+├── tools.go           # Définitions Tool + registerAll()
+├── handlers.go        # Wiring des vars HandlerFunc
+└── handlers/
+    ├── stub.go        # Stub générique (retourne &quot;not yet implemented&quot;)
+    ├── context.go     # HandleContext, HandleGenerateDockerfile, HandleGenerateCompose
+    └── lifecycle.go   # HandlePush, HandleDeploy, HandleRollback, HandleSync,
+                       # HandleUp, HandleDown, HandleStatus, HandleLogs,
+                       # HandlePreflight, HandleSetup
+</code></pre></div>
+<h3 id="handlerfunc"><code>HandlerFunc</code></h3>
+<div class="highlight"><pre><span></span><code><span class="kd">type</span><span class="w"> </span><span class="nx">HandlerFunc</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">params</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">any</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="kt">any</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
+</code></pre></div>
+<p>Chaque handler reçoit les arguments de l'outil et retourne n'importe quelle valeur sérialisable en JSON, ou une erreur.</p>
+<h3 id="ajouter-un-handler">Ajouter un handler</h3>
+<ol>
+<li>Créer ou éditer <code>internal/mcp/handlers/&lt;feature&gt;.go</code></li>
+<li>Implémenter la fonction avec la signature <code>HandlerFunc</code></li>
+<li>Dans <code>handlers.go</code>, remplacer le stub :
+   <div class="highlight"><pre><span></span><code><span class="c1">// Avant</span>
+<span class="kd">var</span><span class="w"> </span><span class="nx">handleInit</span><span class="w"> </span><span class="nx">HandlerFunc</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">handlers</span><span class="p">.</span><span class="nx">Stub</span><span class="p">(</span><span class="s">&quot;pilot_init&quot;</span><span class="p">)</span>
+<span class="c1">// Après</span>
+<span class="kd">var</span><span class="w"> </span><span class="nx">handleInit</span><span class="w"> </span><span class="nx">HandlerFunc</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">handlers</span><span class="p">.</span><span class="nx">HandleInit</span>
+</code></pre></div></li>
+</ol>
+<hr />
+<h2 id="workflow-typique-dun-agent-ai">Workflow typique d'un agent AI</h2>
+<div class="highlight"><pre><span></span><code>[initialize]
+→ pilot répond avec capabilities + liste des outils
+
+[tools/call: pilot_preflight {&quot;target&quot;: &quot;deploy&quot;}]
+→ pilot vérifie tous les prérequis
+→ retourne next_steps[] avec actions [HUMAN] et [AGENT]
+
+[... l&#39;agent suit les next_steps ...]
+
+[tools/call: pilot_push {&quot;env&quot;: &quot;prod&quot;}]
+→ pilot build linux/amd64, injecte VITE_*, push
+
+[tools/call: pilot_deploy {&quot;env&quot;: &quot;prod&quot;, &quot;tag&quot;: &quot;abc1234&quot;}]
+→ pilot sync + docker pull + docker compose up
+
+[tools/call: pilot_status {&quot;env&quot;: &quot;prod&quot;}]
+→ pilot retourne l&#39;état des services en JSON
+</code></pre></div>
+<hr />
+<h2 id="workflow-de-generation-dinfrastructure">Workflow de génération d'infrastructure</h2>
+<div class="highlight"><pre><span></span><code>[tools/call: pilot_context]
+→ pilot retourne stack, services, fichiers manquants, prompt complet
+
+[... l&#39;agent analyse, génère le Dockerfile et le compose ...]
+
+[tools/call: pilot_generate_dockerfile {&quot;content&quot;: &quot;FROM ...&quot;}]
+→ pilot écrit Dockerfile sur disque
+
+[tools/call: pilot_generate_compose {&quot;content&quot;: &quot;services: ...&quot;, &quot;env&quot;: &quot;dev&quot;}]
+→ pilot écrit docker-compose.dev.yml sur disque
+
+[tools/call: pilot_up]
+→ pilot démarre les services
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

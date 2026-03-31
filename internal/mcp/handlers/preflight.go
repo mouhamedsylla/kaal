@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	kaalenv "github.com/mouhamedsylla/kaal/internal/env"
-	"github.com/mouhamedsylla/kaal/internal/preflight"
+	pilotenv "github.com/mouhamedsylla/pilot/internal/env"
+	"github.com/mouhamedsylla/pilot/internal/preflight"
 )
 
 // HandlePreflight runs pre-flight checks and returns a structured report
@@ -25,7 +25,7 @@ func HandlePreflight(ctx context.Context, params map[string]any) (any, error) {
 
 	activeEnv := strParam(params, "env")
 	if activeEnv == "" {
-		activeEnv = kaalenv.Active("")
+		activeEnv = pilotenv.Active("")
 	}
 
 	report, err := preflight.Run(ctx, target, activeEnv)

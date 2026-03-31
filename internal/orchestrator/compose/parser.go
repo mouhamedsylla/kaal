@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mouhamedsylla/kaal/internal/orchestrator"
+	"github.com/mouhamedsylla/pilot/internal/orchestrator"
 )
 
 // composePSEntry maps docker compose ps --format json output.

@@ -3,9 +3,9 @@ package cmd
 import (
 	"fmt"
 
-	kaalctx "github.com/mouhamedsylla/kaal/internal/context"
-	kaalenv "github.com/mouhamedsylla/kaal/internal/env"
-	"github.com/mouhamedsylla/kaal/pkg/ui"
+	pilotctx "github.com/mouhamedsylla/pilot/internal/context"
+	pilotenv "github.com/mouhamedsylla/pilot/internal/env"
+	"github.com/mouhamedsylla/pilot/pkg/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -14,10 +14,10 @@ var contextCmd = &cobra.Command{
 	Short: "Print the full project context for AI agents",
 	Long: `Print the complete project context as a ready-to-use AI agent prompt.
 
-Includes: kaal.yaml, file tree, detected stack, existing infra files,
+Includes: pilot.yaml, file tree, detected stack, existing infra files,
 service definitions, and explicit instructions for what needs to be generated.
 
-Paste this into any AI chat, or use 'kaal mcp serve' for automatic context
+Paste this into any AI chat, or use 'pilot mcp serve' for automatic context
 delivery via the MCP protocol (Claude Code, Cursor, etc.).`,
 	RunE: runContext,
 }
@@ -29,9 +29,9 @@ func init() {
 }
 
 func runContext(cmd *cobra.Command, _ []string) error {
-	activeEnv := kaalenv.Active(currentEnv)
+	activeEnv := pilotenv.Active(currentEnv)
 
-	projCtx, err := kaalctx.Collect(activeEnv)
+	projCtx, err := pilotctx.Collect(activeEnv)
 	if err != nil {
 		ui.Fatal(err)
 	}

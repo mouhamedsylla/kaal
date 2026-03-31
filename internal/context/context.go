@@ -1,5 +1,5 @@
 // Package context collects the full project context.
-// This is used by kaal up (when files are missing) and by the MCP server
+// This is used by pilot up (when files are missing) and by the MCP server
 // so that AI agents have everything they need to generate infrastructure files.
 package context
 
@@ -10,16 +10,16 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/mouhamedsylla/kaal/internal/config"
-	"github.com/mouhamedsylla/kaal/internal/scaffold"
+	"github.com/mouhamedsylla/pilot/internal/config"
+	"github.com/mouhamedsylla/pilot/internal/scaffold"
 	"gopkg.in/yaml.v3"
 )
 
 // ProjectContext is the complete picture of a project at a given moment.
 // It is serializable to JSON for the MCP response and printable for humans.
 type ProjectContext struct {
-	// From kaal.yaml
-	KaalYAML string `json:"kaal_yaml"`
+	// From pilot.yaml
+	KaalYAML string `json:"pilot_yaml"`
 
 	// Detected project info
 	Stack           string `json:"stack"`
@@ -35,7 +35,7 @@ type ProjectContext struct {
 	ExistingComposeFiles []string `json:"existing_compose_files"`
 	ExistingEnvFiles    []string `json:"existing_env_files"`
 
-	// What's missing (populated by kaal up)
+	// What's missing (populated by pilot up)
 	MissingDockerfile bool   `json:"missing_dockerfile"`
 	MissingCompose    bool   `json:"missing_compose"`
 	ActiveEnv         string `json:"active_env"`
@@ -68,7 +68,7 @@ func Collect(activeEnv string) (*ProjectContext, error) {
 		ctx.LanguageVersion = detected.LanguageVersion
 	}
 
-	// Read kaal.yaml as raw string
+	// Read pilot.yaml as raw string
 	raw, err := os.ReadFile(config.FileName)
 	if err != nil {
 		return nil, err
@@ -123,9 +123,9 @@ func (c *ProjectContext) Summary() string {
 func (c *ProjectContext) AgentPrompt() string {
 	var b strings.Builder
 
-	b.WriteString("Here is the full context of this kaal project.\n\n")
+	b.WriteString("Here is the full context of this pilot project.\n\n")
 
-	b.WriteString("## kaal.yaml\n\n```yaml\n")
+	b.WriteString("## pilot.yaml\n\n```yaml\n")
 	b.WriteString(c.KaalYAML)
 	b.WriteString("```\n\n")
 
@@ -156,7 +156,7 @@ func (c *ProjectContext) AgentPrompt() string {
 	b.WriteString(fmt.Sprintf("- Active environment: %s\n", c.ActiveEnv))
 	b.WriteString("\n")
 
-	b.WriteString("## Services defined in kaal.yaml\n\n")
+	b.WriteString("## Services defined in pilot.yaml\n\n")
 	// Print services as YAML for clarity
 	data, _ := yaml.Marshal(c.Config.Services)
 	b.WriteString("```yaml\n")
@@ -186,7 +186,7 @@ func (c *ProjectContext) AgentPrompt() string {
 
 		// If build_args are declared, the Dockerfile MUST declare them as ARG + ENV
 		if len(c.Config.Registry.BuildArgs) > 0 {
-			b.WriteString("\n**IMPORTANT — build_args are declared in kaal.yaml:**\n\n")
+			b.WriteString("\n**IMPORTANT — build_args are declared in pilot.yaml:**\n\n")
 			b.WriteString("```yaml\nregistry:\n  build_args:\n")
 			for _, arg := range c.Config.Registry.BuildArgs {
 				b.WriteString(fmt.Sprintf("    - %s\n", arg))
@@ -202,10 +202,10 @@ func (c *ProjectContext) AgentPrompt() string {
 			}
 			b.WriteString("RUN npm run build   # or your build command\n")
 			b.WriteString("```\n\n")
-			b.WriteString("Without this, `kaal push --build-arg` will be passed but Vite/webpack will ignore it.\n")
+			b.WriteString("Without this, `pilot push --build-arg` will be passed but Vite/webpack will ignore it.\n")
 		}
 
-		b.WriteString("\nCall `kaal_generate_dockerfile` with the generated content.\n\n")
+		b.WriteString("\nCall `pilot_generate_dockerfile` with the generated content.\n\n")
 	}
 
 	if c.MissingCompose {
@@ -217,10 +217,10 @@ func (c *ProjectContext) AgentPrompt() string {
 		b.WriteString("- **Restart policy**: `restart: unless-stopped` for all long-lived services\n")
 		b.WriteString("- **Health checks + ordered startup**: `healthcheck` blocks + `depends_on: condition: service_healthy`\n")
 
-		// Inject the env_file from kaal.yaml if declared for the active environment
+		// Inject the env_file from pilot.yaml if declared for the active environment
 		if envCfg, ok := c.Config.Environments[c.ActiveEnv]; ok && envCfg.EnvFile != "" {
 			b.WriteString(fmt.Sprintf("- **env_file** (MANDATORY): add `env_file: [%s]` to every app service.\n", envCfg.EnvFile))
-			b.WriteString(fmt.Sprintf("  This is declared in kaal.yaml as `environments.%s.env_file`.\n", c.ActiveEnv))
+			b.WriteString(fmt.Sprintf("  This is declared in pilot.yaml as `environments.%s.env_file`.\n", c.ActiveEnv))
 			b.WriteString("  Never hardcode secret values — they must come from this file.\n")
 		} else {
 			b.WriteString("- **No hardcoded secrets**: use `env_file: .env." + c.ActiveEnv + "` or `${VAR}` substitution\n")
@@ -240,8 +240,8 @@ func (c *ProjectContext) AgentPrompt() string {
 		}
 		b.WriteString("- **Logging limits**: `logging: driver: json-file` with `max-size: 10m, max-file: 3`\n")
 		b.WriteString("- **Pinned image tags**: never use `:latest` for external images\n")
-		b.WriteString("- **Service names**: use the exact names from the kaal.yaml `services:` section\n\n")
-		b.WriteString("Call `kaal_generate_compose` with the generated content.\n\n")
+		b.WriteString("- **Service names**: use the exact names from the pilot.yaml `services:` section\n\n")
+		b.WriteString("Call `pilot_generate_compose` with the generated content.\n\n")
 	}
 
 	// Warn the agent about unconfigured deploy targets.
@@ -253,12 +253,12 @@ func (c *ProjectContext) AgentPrompt() string {
 	}
 	if len(unconfiguredTargets) > 0 {
 		b.WriteString("\n## ⚠ Unconfigured deploy targets\n\n")
-		b.WriteString("The following targets have no `host` set in kaal.yaml.\n")
-		b.WriteString("`kaal deploy` will fail until these are filled in:\n\n")
+		b.WriteString("The following targets have no `host` set in pilot.yaml.\n")
+		b.WriteString("`pilot deploy` will fail until these are filled in:\n\n")
 		for _, name := range unconfiguredTargets {
 			b.WriteString(fmt.Sprintf("- **%s** — set `targets.%s.host` to the VPS IP or hostname\n", name, name))
 		}
-		b.WriteString("\nAsk the user for the VPS IP, then update kaal.yaml or run `kaal setup --env <env>`.\n")
+		b.WriteString("\nAsk the user for the VPS IP, then update pilot.yaml or run `pilot setup --env <env>`.\n")
 	}
 
 	return b.String()
@@ -269,7 +269,7 @@ func (c *ProjectContext) AgentPrompt() string {
 var skipDirs = map[string]bool{
 	".git": true, "node_modules": true, "vendor": true,
 	".cache": true, "dist": true, "build": true, "__pycache__": true,
-	".kaal-current-env": true,
+	".pilot-current-env": true,
 }
 
 func buildFileTree(dir string, depth, maxDepth int) string {

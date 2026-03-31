@@ -3,7 +3,7 @@ package handlers_test
 import (
 	"testing"
 
-	"github.com/mouhamedsylla/kaal/internal/mcp/handlers"
+	"github.com/mouhamedsylla/pilot/internal/mcp/handlers"
 )
 
 func TestSplitTrim(t *testing.T) {

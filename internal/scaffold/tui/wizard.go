@@ -223,7 +223,7 @@ func (m Model) advance() (tea.Model, tea.Cmd) {
 		if host == "" {
 			if !m.hostAttempted {
 				m.hostAttempted = true
-				m.err = "host is required for deployment — press Enter again to skip (you can edit kaal.yaml later)"
+				m.err = "host is required for deployment — press Enter again to skip (you can edit pilot.yaml later)"
 				return m, nil
 			}
 			// Second attempt with empty → allow skip, warn in summary
@@ -312,7 +312,7 @@ func (m Model) View() string {
 }
 
 func (m Model) header() string {
-	left := "  " + StyleTitle.Render("kaal init")
+	left := "  " + StyleTitle.Render("pilot init")
 	right := m.progressBar()
 	gap := width - visibleLen(left) - visibleLen(right)
 	if gap < 1 {
@@ -423,7 +423,7 @@ func (m Model) viewVPSHost() string {
 	b.WriteString("\n  " + StyleTitle.Render("Target host") + "\n")
 	b.WriteString("  " + StyleDim.Render("IP address or hostname of your VPS — needed to deploy") + "\n\n")
 	b.WriteString("  " + m.hostInput.View() + "\n\n")
-	b.WriteString("  " + StyleDim.Render("user: deploy   key: ~/.ssh/id_kaal   port: 22  (edit in kaal.yaml to change)") + "\n")
+	b.WriteString("  " + StyleDim.Render("user: deploy   key: ~/.ssh/id_pilot   port: 22  (edit in pilot.yaml to change)") + "\n")
 	return b.String()
 }
 
@@ -474,7 +474,7 @@ func (m Model) viewConfirm() string {
 		names = append(names, s.Key)
 	}
 	b.WriteString(row("services", strings.Join(names, ", ")))
-	b.WriteString("\n  " + StyleDim.Render("Press Enter to generate kaal.yaml") + "\n")
+	b.WriteString("\n  " + StyleDim.Render("Press Enter to generate pilot.yaml") + "\n")
 	return b.String()
 }
 

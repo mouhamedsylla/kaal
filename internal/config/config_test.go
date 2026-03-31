@@ -5,11 +5,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mouhamedsylla/kaal/internal/config"
+	"github.com/mouhamedsylla/pilot/internal/config"
 )
 
 const validYAML = `
-apiVersion: kaal/v1
+apiVersion: pilot/v1
 project:
   name: test-app
   stack: go
@@ -36,15 +36,15 @@ targets:
     type: vps
     host: 1.2.3.4
     user: deploy
-    key: ~/.ssh/id_kaal
+    key: ~/.ssh/id_pilot
 registry:
   provider: ghcr
   image: ghcr.io/user/test-app
 `
 
-func writeKaalYAML(t *testing.T, dir, content string) string {
+func writePilotYAML(t *testing.T, dir, content string) string {
 	t.Helper()
-	path := filepath.Join(dir, "kaal.yaml")
+	path := filepath.Join(dir, "pilot.yaml")
 	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +53,7 @@ func writeKaalYAML(t *testing.T, dir, content string) string {
 
 func TestLoad_ValidConfig(t *testing.T) {
 	dir := t.TempDir()
-	writeKaalYAML(t, dir, validYAML)
+	writePilotYAML(t, dir, validYAML)
 
 	cfg, err := config.Load(dir)
 	if err != nil {
@@ -76,9 +76,9 @@ func TestLoad_ValidConfig(t *testing.T) {
 
 func TestLoad_WalksUpToParent(t *testing.T) {
 	root := t.TempDir()
-	writeKaalYAML(t, root, validYAML)
+	writePilotYAML(t, root, validYAML)
 
-	// Load from a subdirectory — should walk up and find kaal.yaml.
+	// Load from a subdirectory — should walk up and find pilot.yaml.
 	sub := filepath.Join(root, "cmd", "api")
 	if err := os.MkdirAll(sub, 0755); err != nil {
 		t.Fatal(err)
@@ -97,14 +97,14 @@ func TestLoad_MissingFile(t *testing.T) {
 	dir := t.TempDir()
 	_, err := config.Load(dir)
 	if err == nil {
-		t.Fatal("expected error for missing kaal.yaml, got nil")
+		t.Fatal("expected error for missing pilot.yaml, got nil")
 	}
 }
 
 func TestValidate_MissingProjectName(t *testing.T) {
 	dir := t.TempDir()
-	writeKaalYAML(t, dir, `
-apiVersion: kaal/v1
+	writePilotYAML(t, dir, `
+apiVersion: pilot/v1
 project:
   stack: go
 services:
@@ -120,8 +120,8 @@ services:
 
 func TestValidate_InvalidRuntime(t *testing.T) {
 	dir := t.TempDir()
-	writeKaalYAML(t, dir, `
-apiVersion: kaal/v1
+	writePilotYAML(t, dir, `
+apiVersion: pilot/v1
 project:
   name: app
 services:
@@ -140,8 +140,8 @@ environments:
 
 func TestValidate_AppServiceMissingPort(t *testing.T) {
 	dir := t.TempDir()
-	writeKaalYAML(t, dir, `
-apiVersion: kaal/v1
+	writePilotYAML(t, dir, `
+apiVersion: pilot/v1
 project:
   name: app
 services:
@@ -156,8 +156,8 @@ services:
 
 func TestValidate_UnknownTargetRef(t *testing.T) {
 	dir := t.TempDir()
-	writeKaalYAML(t, dir, `
-apiVersion: kaal/v1
+	writePilotYAML(t, dir, `
+apiVersion: pilot/v1
 project:
   name: app
 services:
@@ -176,8 +176,8 @@ environments:
 
 func TestValidate_WrongAPIVersion(t *testing.T) {
 	dir := t.TempDir()
-	writeKaalYAML(t, dir, `
-apiVersion: kaal/v2
+	writePilotYAML(t, dir, `
+apiVersion: pilot/v2
 project:
   name: app
 services:
@@ -193,7 +193,7 @@ services:
 
 func TestSave_RoundTrip(t *testing.T) {
 	dir := t.TempDir()
-	path := writeKaalYAML(t, dir, validYAML)
+	path := writePilotYAML(t, dir, validYAML)
 
 	cfg, err := config.LoadFromPath(path)
 	if err != nil {

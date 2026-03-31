@@ -1,26 +1,26 @@
-// Package scaffold implements kaal init — project initialization.
-// It collects infrastructure intent via a TUI wizard and writes kaal.yaml.
+// Package scaffold implements pilot init — project initialization.
+// It collects infrastructure intent via a TUI wizard and writes pilot.yaml.
 // It does NOT generate Dockerfiles or compose files — those are generated
-// at runtime by kaal up, based on what already exists in the project.
+// at runtime by pilot up, based on what already exists in the project.
 package scaffold
 
 import (
 	"fmt"
 	"os"
 
-	"github.com/mouhamedsylla/kaal/internal/config"
-	"github.com/mouhamedsylla/kaal/internal/scaffold/tui"
-	"github.com/mouhamedsylla/kaal/pkg/ui"
+	"github.com/mouhamedsylla/pilot/internal/config"
+	"github.com/mouhamedsylla/pilot/internal/scaffold/tui"
+	"github.com/mouhamedsylla/pilot/pkg/ui"
 )
 
-// Flags mirrors the CLI flags available on kaal init.
+// Flags mirrors the CLI flags available on pilot init.
 type Flags struct {
 	Stack    string
 	Registry string
 	Yes      bool
 }
 
-// Run is the entrypoint for kaal init.
+// Run is the entrypoint for pilot init.
 func Run(name string, flags Flags) error {
 	dir, err := os.Getwd()
 	if err != nil {
@@ -33,11 +33,11 @@ func Run(name string, flags Flags) error {
 		detected.Name = name
 	}
 
-	// Guard: refuse if kaal.yaml already exists (use --force to override later)
+	// Guard: refuse if pilot.yaml already exists (use --force to override later)
 	if detected.HasKaalYAML {
 		return fmt.Errorf(
-			"kaal.yaml already exists in this directory\n" +
-				"  Edit it directly, or delete it and re-run kaal init",
+			"pilot.yaml already exists in this directory\n" +
+				"  Edit it directly, or delete it and re-run pilot init",
 		)
 	}
 
@@ -54,7 +54,7 @@ func Run(name string, flags Flags) error {
 
 	opts.ApplyDefaults()
 
-	ui.Info(fmt.Sprintf("Generating kaal.yaml for %q", opts.Name))
+	ui.Info(fmt.Sprintf("Generating pilot.yaml for %q", opts.Name))
 
 	if err := Generate(opts); err != nil {
 		return fmt.Errorf("scaffold failed: %w", err)
@@ -151,26 +151,26 @@ func (o *Options) ApplyDefaults() {
 
 func printSummary(opts Options) {
 	fmt.Println()
-	ui.Success("kaal.yaml generated")
-	ui.Success(".mcp.json generated  ← connects your AI agent to kaal")
+	ui.Success("pilot.yaml generated")
+	ui.Success(".mcp.json generated  ← connects your AI agent to pilot")
 	if opts.TargetHost == "" && opts.TargetType != "" {
 		fmt.Println()
-		ui.Warn("Target host not configured — edit kaal.yaml before deploying:")
+		ui.Warn("Target host not configured — edit pilot.yaml before deploying:")
 		ui.Dim(fmt.Sprintf("  targets:\n    %s-prod:\n      host: \"YOUR_VPS_IP\"", opts.TargetType))
-		ui.Dim("  Or run: kaal setup --env prod  (after filling the host)")
+		ui.Dim("  Or run: pilot setup --env prod  (after filling the host)")
 	}
 	fmt.Println()
 	ui.Bold("  How the AI agent creates missing files (Dockerfile, compose):")
 	ui.Dim("  1. Open this project in Claude Code or Cursor")
 	ui.Dim("     The agent connects automatically via .mcp.json")
 	ui.Dim("  2. Ask: \"generate the Dockerfile and docker-compose.dev.yml\"")
-	ui.Dim("     The agent calls kaal_generate_dockerfile + kaal_generate_compose")
-	ui.Dim("  3. kaal up       — start local services")
-	ui.Dim("  4. kaal push     — build + push image to " + opts.Registry)
-	ui.Dim("  5. kaal deploy   — deploy to your VPS / cloud")
+	ui.Dim("     The agent calls pilot_generate_dockerfile + pilot_generate_compose")
+	ui.Dim("  3. pilot up       — start local services")
+	ui.Dim("  4. pilot push     — build + push image to " + opts.Registry)
+	ui.Dim("  5. pilot deploy   — deploy to your VPS / cloud")
 	fmt.Println()
 	ui.Dim("  Without AI agent:")
-	ui.Dim("  → Write Dockerfile and docker-compose.dev.yml manually, then kaal up")
+	ui.Dim("  → Write Dockerfile and docker-compose.dev.yml manually, then pilot up")
 	fmt.Println()
 }
 

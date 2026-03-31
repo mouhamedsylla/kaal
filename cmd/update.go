@@ -12,18 +12,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mouhamedsylla/kaal/internal/version"
-	"github.com/mouhamedsylla/kaal/pkg/ui"
+	"github.com/mouhamedsylla/pilot/internal/version"
+	"github.com/mouhamedsylla/pilot/pkg/ui"
 	"github.com/spf13/cobra"
 )
 
 var updateCmd = &cobra.Command{
 	Use:   "update",
-	Short: "Update kaal to the latest version",
-	Long: `Check for a new version of kaal on GitHub and update if one is available.
+	Short: "Update pilot to the latest version",
+	Long: `Check for a new version of pilot on GitHub and update if one is available.
 
 Update strategy (in order):
-  1. If 'go' is available → go install github.com/mouhamedsylla/kaal@latest
+  1. If 'go' is available → go install github.com/mouhamedsylla/pilot@latest
   2. Otherwise           → re-run the official install script
 
 Use --check to only show the latest version without updating.`,
@@ -36,7 +36,7 @@ func init() {
 	rootCmd.AddCommand(updateCmd)
 }
 
-const githubRepo = "mouhamedsylla/kaal"
+const githubRepo = "mouhamedsylla/pilot"
 
 type ghRelease struct {
 	TagName string `json:"tag_name"`
@@ -73,7 +73,7 @@ func runUpdate(cmd *cobra.Command, _ []string) error {
 	if checkOnly {
 		ui.Info(fmt.Sprintf("New version available: %s", latest.TagName))
 		ui.Dim(fmt.Sprintf("  Release notes: %s", latest.HTMLURL))
-		ui.Dim("  Run 'kaal update' to install it.")
+		ui.Dim("  Run 'pilot update' to install it.")
 		return nil
 	}
 
@@ -85,7 +85,7 @@ func runUpdate(cmd *cobra.Command, _ []string) error {
 	return updateViaScript(cmd.Context(), latest.TagName)
 }
 
-// updateViaGo runs: go install github.com/mouhamedsylla/kaal@<tag>
+// updateViaGo runs: go install github.com/mouhamedsylla/pilot@<tag>
 func updateViaGo(ctx context.Context, goPath, tag string) error {
 	pkg := fmt.Sprintf("github.com/%s@%s", githubRepo, tag)
 	ui.Info(fmt.Sprintf("Installing via go: %s", pkg))
@@ -99,7 +99,7 @@ func updateViaGo(ctx context.Context, goPath, tag string) error {
 		return fmt.Errorf("go install failed: %w\n  Try manually: go install %s", err, pkg)
 	}
 
-	ui.Success(fmt.Sprintf("kaal updated to %s", tag))
+	ui.Success(fmt.Sprintf("pilot updated to %s", tag))
 	ui.Dim("  Restart your shell or run: hash -r")
 	return nil
 }
@@ -146,7 +146,7 @@ func updateViaScript(ctx context.Context, tag string) error {
 		return fmt.Errorf("curl failed: %w", err)
 	}
 
-	ui.Success(fmt.Sprintf("kaal updated to %s", tag))
+	ui.Success(fmt.Sprintf("pilot updated to %s", tag))
 	return nil
 }
 
@@ -162,7 +162,7 @@ func fetchLatestRelease() (*ghRelease, error) {
 		return nil, err
 	}
 	req.Header.Set("Accept", "application/vnd.github+json")
-	req.Header.Set("User-Agent", fmt.Sprintf("kaal/%s (%s/%s)", version.Version, runtime.GOOS, runtime.GOARCH))
+	req.Header.Set("User-Agent", fmt.Sprintf("pilot/%s (%s/%s)", version.Version, runtime.GOOS, runtime.GOARCH))
 
 	// Use GITHUB_TOKEN if available to avoid rate limiting.
 	if token := os.Getenv("GITHUB_TOKEN"); token != "" {

@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"github.com/mouhamedsylla/kaal/internal/deploy"
-	"github.com/mouhamedsylla/kaal/pkg/ui"
+	"github.com/mouhamedsylla/pilot/internal/deploy"
+	"github.com/mouhamedsylla/pilot/pkg/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -11,8 +11,8 @@ var deployCmd = &cobra.Command{
 	Short: "Deploy to the target environment (VPS or cloud)",
 	Long: `Sync the compose file, pull the image, and restart services on the remote target.
 
-The target is read from kaal.yaml (environments.<env>.target).
-Use 'kaal push' first to build and push the image, then 'kaal deploy' to
+The target is read from pilot.yaml (environments.<env>.target).
+Use 'pilot push' first to build and push the image, then 'pilot deploy' to
 deploy that exact version. The same image can be deployed multiple times
 (e.g. staging then prod) without rebuilding.`,
 	RunE: runDeploy,
@@ -20,7 +20,7 @@ deploy that exact version. The same image can be deployed multiple times
 
 func init() {
 	deployCmd.Flags().StringP("tag", "t", "", "image tag to deploy (default: git short SHA)")
-	deployCmd.Flags().String("target", "", "override target from kaal.yaml")
+	deployCmd.Flags().String("target", "", "override target from pilot.yaml")
 	deployCmd.Flags().StringP("strategy", "s", "rolling", "deployment strategy (rolling)")
 	deployCmd.Flags().Bool("dry-run", false, "show what would happen without executing")
 	deployCmd.Flags().Bool("no-rollback", false, "skip auto-rollback on healthcheck failure")

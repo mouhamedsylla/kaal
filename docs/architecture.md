@@ -3,21 +3,21 @@
 ## Vue d'ensemble
 
 ```
-kaal/
-├── main.go                   # Entrée — appelle cmd.Execute()
+pilot/
+├── main.go                   # Entrée : appelle cmd.Execute()
 ├── cmd/                      # Commandes Cobra (1 fichier = 1 commande)
 ├── internal/                 # Logique métier (non exportée)
-│   ├── config/               # Parse et valide kaal.yaml
+│   ├── config/               # Parse et valide pilot.yaml
 │   ├── context/              # Collecte le contexte projet pour les agents AI
 │   ├── env/                  # Gestion de l'environnement actif
-│   ├── scaffold/             # kaal init — wizard TUI + génération kaal.yaml
-│   ├── up/                   # Logique kaal up / kaal down
+│   ├── scaffold/             # pilot init : wizard TUI + génération pilot.yaml
+│   ├── up/                   # Logique pilot up / pilot down
 │   ├── composer/             # Génération docker-compose (utilisé par le MCP)
 │   ├── orchestrator/         # Interface + implémentations (compose, k8s)
 │   ├── providers/            # Interface + implémentations (vps, aws, gcp...)
 │   ├── registry/             # Interface + implémentations (ghcr, dockerhub...)
 │   ├── secrets/              # Interface + implémentations (local, aws_sm, gcp_sm)
-│   ├── runtime/              # Factory package — instancie les bonnes implémentations
+│   ├── runtime/              # Factory package : instancie les bonnes implémentations
 │   └── mcp/                  # Serveur MCP JSON-RPC 2.0 stdio
 └── pkg/                      # Packages réutilisables (exportés)
     ├── ui/                   # Spinner, couleurs, output JSON
@@ -47,7 +47,7 @@ SecretManager  →   local/ | aws_sm/ | gcp_sm/
 
 ---
 
-## Le problème des imports circulaires — et sa solution
+## Le problème des imports circulaires : et sa solution
 
 En Go, si `orchestrator` importe `orchestrator/compose` ET `orchestrator/compose` importe `orchestrator`, c'est une dépendance cyclique → erreur de compilation.
 
@@ -77,14 +77,14 @@ Les commandes (`cmd/`) importent `internal/runtime` → `runtime` importe les in
 
 ---
 
-## Flux de données : `kaal up`
+## Flux de données : `pilot up`
 
 ```
 cmd/up.go
   └─► up.Run(ctx, opts)
-        ├─► config.Load(".")          // Parse kaal.yaml
-        ├─► env.Active(opts.Env)      // Résout l'env actif (.kaal-current-env)
-        ├─► kaalctx.Collect(env)      // Collecte le contexte projet complet
+        ├─► config.Load(".")          // Parse pilot.yaml
+        ├─► env.Active(opts.Env)      // Résout l'env actif (.pilot-current-env)
+        ├─► pilotctx.Collect(env)      // Collecte le contexte projet complet
         │
         ├─► [fichiers manquants ?]
         │     └─► missingFilesError() // Affiche le prompt agent, STOP
@@ -94,7 +94,7 @@ cmd/up.go
                     └─► docker compose up -d
 ```
 
-## Flux de données : `kaal deploy`
+## Flux de données : `pilot deploy`
 
 ```
 cmd/deploy.go
@@ -118,22 +118,22 @@ cmd/deploy.go
 ```
 Agent AI (Claude / Cursor)
   │
-  ├─► tools/call: kaal_context
+  ├─► tools/call: pilot_context
   │     └─► handlers.HandleContext()
-  │           └─► kaalctx.Collect()
-  │                 └─► {kaal_yaml, file_tree, stack, missing_files, agent_prompt}
+  │           └─► pilotctx.Collect()
+  │                 └─► {pilot_yaml, file_tree, stack, missing_files, agent_prompt}
   │
   ├─► [Agent génère le contenu]
   │
-  ├─► tools/call: kaal_generate_dockerfile
+  ├─► tools/call: pilot_generate_dockerfile
   │     └─► handlers.HandleGenerateDockerfile()
   │           └─► os.WriteFile("Dockerfile", content)
   │
-  ├─► tools/call: kaal_generate_compose
+  ├─► tools/call: pilot_generate_compose
   │     └─► handlers.HandleGenerateCompose()
   │           └─► os.WriteFile("docker-compose.dev.yml", content)
   │
-  └─► tools/call: kaal_up
+  └─► tools/call: pilot_up
         └─► up.Run(ctx, opts)
               └─► docker compose up -d
 ```
@@ -144,16 +144,16 @@ Agent AI (Claude / Cursor)
 
 ### `internal/config`
 
-Responsabilité : lire, parser, valider `kaal.yaml`.
+Responsabilité : lire, parser, valider `pilot.yaml`.
 
 ```
 config/
 ├── types.go     # Structs Go miroir du schéma YAML
-├── loader.go    # Load(dir) — remonte les répertoires pour trouver kaal.yaml
+├── loader.go    # Load(dir) : remonte les répertoires pour trouver pilot.yaml
 └── validator.go # Validation des contraintes métier
 ```
 
-`config.Load(".")` remonte jusqu'à la racine pour trouver `kaal.yaml` — tu peux lancer `kaal up` depuis n'importe quel sous-dossier du projet.
+`config.Load(".")` remonte jusqu'à la racine pour trouver `pilot.yaml` : tu peux lancer `pilot up` depuis n'importe quel sous-dossier du projet.
 
 ### `internal/context`
 
@@ -161,7 +161,7 @@ Responsabilité : assembler une photo complète du projet à un instant T pour l
 
 ```go
 type ProjectContext struct {
-    KaalYAML             string        // Contenu brut de kaal.yaml
+    PilotYAML             string        // Contenu brut de pilot.yaml
     Stack, LanguageVersion string      // Détectés ou déclarés
     FileTree             string        // Arbre de fichiers (3 niveaux)
     KeyFiles             []string      // go.mod, package.json, etc.
@@ -189,8 +189,8 @@ type Orchestrator interface {
 ```
 
 Implémentations :
-- `compose/` — Docker Compose (implémenté)
-- `k8s/` — Kubernetes (stub)
+- `compose/` : Docker Compose (implémenté)
+- `k8s/` : Kubernetes (stub)
 
 Convention de nommage des fichiers : `docker-compose.<env>.yml`
 
@@ -207,8 +207,8 @@ type Provider interface {
 ```
 
 Implémentations :
-- `vps/` — SSH + docker-compose (implémenté)
-- `aws/`, `gcp/`, `azure/`, `do/` — stubs
+- `vps/` : SSH + docker-compose (implémenté)
+- `aws/`, `gcp/`, `azure/`, `do/` : stubs
 
 ### `internal/registry`
 
@@ -223,10 +223,10 @@ type Registry interface {
 ```
 
 Implémentations :
-- `ghcr/` — GitHub Container Registry (implémenté)
-- `dockerhub/` — Docker Hub (implémenté)
-- `custom/` — Registry custom avec auth (implémenté)
-- `ecr/`, `gcr/`, `acr/` — stubs
+- `ghcr/` : GitHub Container Registry (implémenté)
+- `dockerhub/` : Docker Hub (implémenté)
+- `custom/` : Registry custom avec auth (implémenté)
+- `ecr/`, `gcr/`, `acr/` : stubs
 
 ### `internal/mcp`
 
@@ -244,7 +244,7 @@ mcp/
 
 ### `pkg/ui`
 
-Toutes les sorties utilisateur passent par ce package — jamais de `fmt.Println` direct dans `internal/`.
+Toutes les sorties utilisateur passent par ce package : jamais de `fmt.Println` direct dans `internal/`.
 
 ```go
 ui.Success("message")  // vert

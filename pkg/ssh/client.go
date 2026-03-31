@@ -29,7 +29,7 @@ type Client struct {
 // NewClient establishes an SSH connection using the given config.
 //
 // Key resolution order:
-//  1. KAAL_SSH_KEY env var — PEM content directly (CI/CD pipelines, GitHub Actions secrets)
+//  1. PILOT_SSH_KEY env var — PEM content directly (CI/CD pipelines, GitHub Actions secrets)
 //  2. cfg.KeyPath file — local path, supports ~/  expansion
 func NewClient(cfg Config) (*Client, error) {
 	if cfg.Port == 0 {
@@ -65,11 +65,11 @@ func NewClient(cfg Config) (*Client, error) {
 // resolveSSHKey returns the PEM bytes for the SSH private key.
 //
 // Priority:
-//  1. KAAL_SSH_KEY env var — PEM content as a string (for CI/CD).
+//  1. PILOT_SSH_KEY env var — PEM content as a string (for CI/CD).
 //     GitHub Actions encodes secrets with literal \n; we normalise them.
 //  2. keyPath file — expanded from ~/
 func resolveSSHKey(keyPath string) ([]byte, error) {
-	if raw := os.Getenv("KAAL_SSH_KEY"); raw != "" {
+	if raw := os.Getenv("PILOT_SSH_KEY"); raw != "" {
 		// GitHub Actions stores multi-line secrets with literal \n sequences.
 		// Normalize them to actual newlines so ssh.ParsePrivateKey works.
 		raw = strings.ReplaceAll(raw, `\n`, "\n")
@@ -80,8 +80,8 @@ func resolveSSHKey(keyPath string) ([]byte, error) {
 		return nil, fmt.Errorf(
 			"no SSH key configured\n" +
 				"  Set one of:\n" +
-				"    targets.<name>.key in kaal.yaml  (e.g. ~/.ssh/id_kaal)\n" +
-				"    export KAAL_SSH_KEY=\"$(cat ~/.ssh/id_kaal)\"  (for CI/CD)",
+				"    targets.<name>.key in pilot.yaml  (e.g. ~/.ssh/id_pilot)\n" +
+				"    export PILOT_SSH_KEY=\"$(cat ~/.ssh/id_pilot)\"  (for CI/CD)",
 		)
 	}
 
@@ -96,7 +96,7 @@ func resolveSSHKey(keyPath string) ([]byte, error) {
 			"cannot read SSH key %s: %w\n"+
 				"  Alternatives:\n"+
 				"    ssh-keygen -t ed25519 -f %s\n"+
-				"    export KAAL_SSH_KEY=\"$(cat %s)\"",
+				"    export PILOT_SSH_KEY=\"$(cat %s)\"",
 			keyPath, err, keyPath, keyPath,
 		)
 	}
@@ -142,7 +142,7 @@ func (c *Client) CopyFiles(ctx context.Context, localPaths []string, remoteDir s
 // CopyFileTo uploads a single local file to an exact remote path,
 // creating parent directories as needed.
 // Use this instead of CopyFiles when the remote path must differ from the basename
-// (e.g. preserving relative directory structure: ./nginx/prod.conf → ~/kaal/nginx/prod.conf).
+// (e.g. preserving relative directory structure: ./nginx/prod.conf → ~/pilot/nginx/prod.conf).
 func (c *Client) CopyFileTo(ctx context.Context, localPath, remotePath string) error {
 	// Ensure the parent directory exists on the remote.
 	remoteDir := filepath.Dir(remotePath)

@@ -1,6 +1,6 @@
 package config
 
-// Config is the in-memory representation of kaal.yaml.
+// Config is the in-memory representation of pilot.yaml.
 type Config struct {
 	APIVersion   string                 `yaml:"apiVersion"`
 	Project      Project                `yaml:"project"`
@@ -18,7 +18,7 @@ type Project struct {
 }
 
 // Service describes one logical service in the application topology.
-// kaal does not generate Dockerfiles at init — it generates them at runtime (kaal up).
+// pilot does not generate Dockerfiles at init — it generates them at runtime (pilot up).
 type Service struct {
 	Type       string `yaml:"type"`                  // app | postgres | mysql | mongodb | redis | rabbitmq | nats | nginx | custom
 	Port       int    `yaml:"port,omitempty"`        // exposed port (app services)
@@ -53,7 +53,7 @@ type Target struct {
 	Type      string     `yaml:"type"`                  // vps | aws | gcp | azure | do | hetzner
 	Host      string     `yaml:"host"`                  // VPS IP or hostname
 	User      string     `yaml:"user,omitempty"`        // SSH user
-	Key       string     `yaml:"key,omitempty"`         // SSH key path (~/.ssh/id_kaal)
+	Key       string     `yaml:"key,omitempty"`         // SSH key path (~/.ssh/id_pilot)
 	Port      int        `yaml:"port,omitempty"`        // SSH port (default 22)
 	Resources *Resources `yaml:"resources,omitempty"`  // actual prod resources (for local simulation)
 	// Cloud-specific fields

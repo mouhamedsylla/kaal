@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/mouhamedsylla/kaal/internal/config"
-	"github.com/mouhamedsylla/kaal/internal/orchestrator"
+	"github.com/mouhamedsylla/pilot/internal/config"
+	"github.com/mouhamedsylla/pilot/internal/orchestrator"
 )
 
 // Orchestrator is a stub — Kubernetes support is not yet implemented.

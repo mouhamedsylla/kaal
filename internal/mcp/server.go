@@ -105,7 +105,7 @@ func (s *Server) dispatch(ctx context.Context, req *request) *response {
 			Result: map[string]any{
 				"protocolVersion": "2024-11-05",
 				"capabilities":    map[string]any{"tools": map[string]any{}},
-				"serverInfo":      map[string]any{"name": "kaal", "version": "0.1.0"},
+				"serverInfo":      map[string]any{"name": "pilot", "version": "0.1.0"},
 			},
 		}
 

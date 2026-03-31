@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"github.com/mouhamedsylla/kaal/internal/up"
-	"github.com/mouhamedsylla/kaal/pkg/ui"
+	"github.com/mouhamedsylla/pilot/internal/up"
+	"github.com/mouhamedsylla/pilot/pkg/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -11,13 +11,13 @@ var upCmd = &cobra.Command{
 	Short: "Start the local environment",
 	Long: `Start services for the active environment.
 
-kaal up reads kaal.yaml and:
+pilot up reads pilot.yaml and:
   1. Generates a Dockerfile if none exists (based on detected stack)
   2. Generates docker-compose.<env>.yml if none exists
   3. Starts all services via Docker Compose
 
 Generated files are placed at the project root. Commit them if they look
-right, or delete them to let kaal regenerate on the next run.`,
+right, or delete them to let pilot regenerate on the next run.`,
 	RunE: runUp,
 }
 

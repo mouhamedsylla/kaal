@@ -3,11 +3,12 @@ package compose
 import (
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 
-	"github.com/mouhamedsylla/kaal/internal/config"
-	"github.com/mouhamedsylla/kaal/internal/orchestrator"
+	"github.com/mouhamedsylla/pilot/internal/config"
+	"github.com/mouhamedsylla/pilot/internal/orchestrator"
 )
 
 // Orchestrator implements orchestrator.Orchestrator using docker compose.
@@ -31,7 +32,7 @@ func New(cfg *config.Config, env string) *Orchestrator {
 }
 
 // composeFileForEnv returns the conventional compose filename for an environment.
-// kaal up generates this file if it doesn't already exist.
+// pilot up generates this file if it doesn't already exist.
 func composeFileForEnv(env string) string {
 	return fmt.Sprintf("docker-compose.%s.yml", env)
 }
@@ -119,10 +120,14 @@ func (o *Orchestrator) baseArgs() []string {
 
 func (o *Orchestrator) run(ctx context.Context, args ...string) error {
 	cmd := exec.CommandContext(ctx, "docker", args...)
-	cmd.Stdout = nil
-	cmd.Stderr = nil
+	// Always stream docker compose output to the terminal.
+	// The user needs to see what compose is doing — pulling images,
+	// starting containers, health checks, error messages.
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("docker %s: %w", strings.Join(args, " "), err)
+		// The output was already printed above — just signal failure.
+		return fmt.Errorf("exit status 1")
 	}
 	return nil
 }

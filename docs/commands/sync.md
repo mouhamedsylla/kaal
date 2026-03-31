@@ -1,9 +1,9 @@
-# kaal sync
+# pilot sync
 
 Copie les fichiers de configuration locaux vers le VPS sans effectuer de redéploiement complet.
 
 ```
-kaal sync [flags]
+pilot sync [flags]
 ```
 
 ## Flags
@@ -14,19 +14,19 @@ kaal sync [flags]
 
 ## Ce qui est synchronisé
 
-### Fichiers plats → `~/kaal/`
+### Fichiers plats → `~/pilot/`
 
-Ces fichiers sont copiés directement à la racine du répertoire de travail kaal sur le VPS :
+Ces fichiers sont copiés directement à la racine du répertoire de travail pilot sur le VPS :
 
 | Fichier local | Destination VPS |
 |---|---|
-| `kaal.yaml` | `~/kaal/kaal.yaml` |
-| `docker-compose.<env>.yml` | `~/kaal/docker-compose.<env>.yml` |
-| Fichier env (`environments.<env>.env_file`) | `~/kaal/.env.<env>` |
+| `pilot.yaml` | `~/pilot/pilot.yaml` |
+| `docker-compose.<env>.yml` | `~/pilot/docker-compose.<env>.yml` |
+| Fichier env (`environments.<env>.env_file`) | `~/pilot/.env.<env>` |
 
-### Fichiers bind-mount → `~/kaal/<chemin-relatif>/`
+### Fichiers bind-mount → `~/pilot/<chemin-relatif>/`
 
-kaal analyse les fichiers `docker-compose` pour détecter tous les montages en bind-mount locaux (sources relatives) et les copie en préservant la structure de répertoires :
+pilot analyse les fichiers `docker-compose` pour détecter tous les montages en bind-mount locaux (sources relatives) et les copie en préservant la structure de répertoires :
 
 ```yaml
 # docker-compose.prod.yml
@@ -37,13 +37,13 @@ volumes:
 
 Résultat sur le VPS :
 ```
-~/kaal/nginx/prod.conf
-~/kaal/certs/fullchain.pem
+~/pilot/nginx/prod.conf
+~/pilot/certs/fullchain.pem
 ```
 
 ## Rechargement automatique de nginx
 
-Après la synchronisation, kaal détecte les services dont l'image contient `nginx` et dont les fichiers de configuration ont été modifiés. Si de tels services sont en cours d'exécution, kaal exécute automatiquement :
+Après la synchronisation, pilot détecte les services dont l'image contient `nginx` et dont les fichiers de configuration ont été modifiés. Si de tels services sont en cours d'exécution, pilot exécute automatiquement :
 
 ```
 docker compose exec -T <service> nginx -s reload
@@ -51,10 +51,10 @@ docker compose exec -T <service> nginx -s reload
 
 Ce rechargement est **sans interruption** : les connexions actives sont préservées, aucun redémarrage de conteneur n'est nécessaire.
 
-Si le conteneur nginx n'est pas encore démarré, kaal affiche un avertissement non-fatal :
+Si le conteneur nginx n'est pas encore démarré, pilot affiche un avertissement non-fatal :
 
 ```
-⚠  nginx non démarré (proxy) : démarrer avec : kaal deploy --env prod
+⚠  nginx non démarré (proxy) : démarrer avec : pilot deploy --env prod
 ```
 
 ## Exemple de sortie
@@ -62,7 +62,7 @@ Si le conteneur nginx n'est pas encore démarré, kaal affiche un avertissement 
 ```
 → Syncing files to vps-prod (1.2.3.4)
 
-  ✓  kaal.yaml
+  ✓  pilot.yaml
   ✓  docker-compose.prod.yml
   ✓  .env.prod
   ✓  nginx/prod.conf
@@ -71,22 +71,22 @@ Si le conteneur nginx n'est pas encore démarré, kaal affiche un avertissement 
 ✓ Sync complete
 ```
 
-## kaal sync vs kaal push + kaal deploy
+## pilot sync vs pilot push + pilot deploy
 
 | Action | Commande recommandée |
 |---|---|
-| Modification de la config nginx | `kaal sync` |
-| Mise à jour du fichier `.env` | `kaal sync` (puis `docker compose restart` si les vars sont lues au démarrage) |
-| Mise à jour de `kaal.yaml` | `kaal sync` |
-| Ajout d'un certificat TLS | `kaal sync` |
-| Modification du code applicatif | `kaal push` + `kaal deploy` |
-| Modification du `Dockerfile` | `kaal push` + `kaal deploy` |
-| Mise à jour de `package.json` / `go.mod` | `kaal push` + `kaal deploy` |
+| Modification de la config nginx | `pilot sync` |
+| Mise à jour du fichier `.env` | `pilot sync` (puis `docker compose restart` si les vars sont lues au démarrage) |
+| Mise à jour de `pilot.yaml` | `pilot sync` |
+| Ajout d'un certificat TLS | `pilot sync` |
+| Modification du code applicatif | `pilot push` + `pilot deploy` |
+| Modification du `Dockerfile` | `pilot push` + `pilot deploy` |
+| Mise à jour de `package.json` / `go.mod` | `pilot push` + `pilot deploy` |
 
-`kaal sync` est conçu pour les changements de configuration qui n'impliquent pas de rebuilder l'image Docker. Il est rapide, atomique, et évite une interruption de service inutile.
+`pilot sync` est conçu pour les changements de configuration qui n'impliquent pas de rebuilder l'image Docker. Il est rapide, atomique, et évite une interruption de service inutile.
 
 ## Notes
 
-- La synchronisation utilise la connexion SSH définie dans `targets.<name>` de `kaal.yaml`
+- La synchronisation utilise la connexion SSH définie dans `targets.<name>` de `pilot.yaml`
 - Les fichiers sont transférés via SFTP (même connexion SSH, pas de `rsync` requis)
-- Si un fichier bind-mount référencé dans le compose n'existe pas localement, kaal affiche une erreur et interrompt la synchronisation
+- Si un fichier bind-mount référencé dans le compose n'existe pas localement, pilot affiche une erreur et interrompt la synchronisation

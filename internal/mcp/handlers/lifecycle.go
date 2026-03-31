@@ -5,21 +5,21 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mouhamedsylla/kaal/internal/deploy"
-	kaalenv "github.com/mouhamedsylla/kaal/internal/env"
-	"github.com/mouhamedsylla/kaal/internal/push"
-	"github.com/mouhamedsylla/kaal/internal/rollback"
-	kaalSync "github.com/mouhamedsylla/kaal/internal/sync"
-	"github.com/mouhamedsylla/kaal/internal/up"
+	"github.com/mouhamedsylla/pilot/internal/deploy"
+	pilotenv "github.com/mouhamedsylla/pilot/internal/env"
+	"github.com/mouhamedsylla/pilot/internal/push"
+	"github.com/mouhamedsylla/pilot/internal/rollback"
+	pilotSync "github.com/mouhamedsylla/pilot/internal/sync"
+	"github.com/mouhamedsylla/pilot/internal/up"
 )
 
-// HandleEnvSwitch switches the active kaal environment.
+// HandleEnvSwitch switches the active pilot environment.
 func HandleEnvSwitch(_ context.Context, params map[string]any) (any, error) {
 	env := strParam(params, "env")
 	if env == "" {
 		return nil, fmt.Errorf("env is required")
 	}
-	if err := kaalenv.Use(env); err != nil {
+	if err := pilotenv.Use(env); err != nil {
 		return nil, err
 	}
 	return map[string]any{
@@ -43,7 +43,7 @@ func HandleUp(_ context.Context, params map[string]any) (any, error) {
 		})
 	})
 	if err != nil {
-		return nil, fmt.Errorf("kaal up: %w\n%s", err, output)
+		return nil, fmt.Errorf("pilot up: %w\n%s", err, output)
 	}
 	return map[string]any{
 		"message": "Services started",
@@ -59,7 +59,7 @@ func HandleDown(_ context.Context, params map[string]any) (any, error) {
 		return up.RunDown(context.Background(), up.DownOptions{Env: env})
 	})
 	if err != nil {
-		return nil, fmt.Errorf("kaal down: %w\n%s", err, output)
+		return nil, fmt.Errorf("pilot down: %w\n%s", err, output)
 	}
 	return map[string]any{
 		"message": "Services stopped",
@@ -86,7 +86,7 @@ func HandlePush(_ context.Context, params map[string]any) (any, error) {
 		})
 	})
 	if err != nil {
-		return nil, fmt.Errorf("kaal push: %w\n%s", err, output)
+		return nil, fmt.Errorf("pilot push: %w\n%s", err, output)
 	}
 	return map[string]any{
 		"message": "Image built and pushed",
@@ -110,7 +110,7 @@ func HandleDeploy(_ context.Context, params map[string]any) (any, error) {
 		})
 	})
 	if err != nil {
-		return nil, fmt.Errorf("kaal deploy: %w\n%s", err, output)
+		return nil, fmt.Errorf("pilot deploy: %w\n%s", err, output)
 	}
 	return map[string]any{
 		"message": "Deployed successfully",
@@ -132,7 +132,7 @@ func HandleRollback(_ context.Context, params map[string]any) (any, error) {
 		})
 	})
 	if err != nil {
-		return nil, fmt.Errorf("kaal rollback: %w\n%s", err, output)
+		return nil, fmt.Errorf("pilot rollback: %w\n%s", err, output)
 	}
 	return map[string]any{
 		"message": "Rolled back successfully",
@@ -146,13 +146,13 @@ func HandleSync(_ context.Context, params map[string]any) (any, error) {
 	target := strParam(params, "target")
 
 	output, err := captureOutput(func() error {
-		return kaalSync.Run(context.Background(), kaalSync.Options{
+		return pilotSync.Run(context.Background(), pilotSync.Options{
 			Env:    env,
 			Target: target,
 		})
 	})
 	if err != nil {
-		return nil, fmt.Errorf("kaal sync: %w\n%s", err, output)
+		return nil, fmt.Errorf("pilot sync: %w\n%s", err, output)
 	}
 	return map[string]any{
 		"message": "Config synced",

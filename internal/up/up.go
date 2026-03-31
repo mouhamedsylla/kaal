@@ -1,4 +1,4 @@
-// Package up implements the kaal up and kaal down command logic.
+// Package up implements the pilot up and pilot down command logic.
 package up
 
 import (
@@ -6,21 +6,21 @@ import (
 	"fmt"
 	"os"
 
-	kaalctx "github.com/mouhamedsylla/kaal/internal/context"
-	"github.com/mouhamedsylla/kaal/internal/config"
-	"github.com/mouhamedsylla/kaal/internal/env"
-	"github.com/mouhamedsylla/kaal/internal/runtime"
-	"github.com/mouhamedsylla/kaal/pkg/ui"
+	pilotctx "github.com/mouhamedsylla/pilot/internal/context"
+	"github.com/mouhamedsylla/pilot/internal/config"
+	"github.com/mouhamedsylla/pilot/internal/env"
+	"github.com/mouhamedsylla/pilot/internal/runtime"
+	"github.com/mouhamedsylla/pilot/pkg/ui"
 )
 
-// Options controls kaal up behaviour.
+// Options controls pilot up behaviour.
 type Options struct {
 	Env      string   // override active env
 	Services []string // empty = all services
 	Build    bool     // force image rebuild
 }
 
-// Run executes kaal up.
+// Run executes pilot up.
 func Run(ctx context.Context, opts Options) error {
 	cfg, err := config.Load(".")
 	if err != nil {
@@ -30,14 +30,14 @@ func Run(ctx context.Context, opts Options) error {
 	activeEnv := env.Active(opts.Env)
 
 	if _, ok := cfg.Environments[activeEnv]; !ok {
-		return fmt.Errorf("environment %q not defined in kaal.yaml\n  Run 'kaal env use <env>' or add it to kaal.yaml", activeEnv)
+		return fmt.Errorf("environment %q not defined in pilot.yaml\n  Run 'pilot env use <env>' or add it to pilot.yaml", activeEnv)
 	}
 
 	ui.Info(fmt.Sprintf("Starting environment %q", activeEnv))
 
 	// Collect full project context — used to check what's missing
 	// and to surface context to the agent if generation is needed
-	projCtx, err := kaalctx.Collect(activeEnv)
+	projCtx, err := pilotctx.Collect(activeEnv)
 	if err != nil {
 		return err
 	}
@@ -51,15 +51,15 @@ func Run(ctx context.Context, opts Options) error {
 
 	// Warn when running a remote-deploy environment locally.
 	// These environments use pre-built registry images (no build: section)
-	// that must be pulled from the registry — kaal push must have run first.
+	// that must be pulled from the registry — pilot push must have run first.
 	if envCfg.Target != "" {
 		ui.Warn(fmt.Sprintf(
 			"Environment %q is configured for remote deployment (target: %s)",
 			activeEnv, envCfg.Target,
 		))
 		ui.Dim("  Running it locally requires the image to already exist in the registry.")
-		ui.Dim(fmt.Sprintf("  If you haven't pushed yet: kaal push --env %s", activeEnv))
-		ui.Dim("  To develop locally, use the dev environment: kaal env use dev && kaal up")
+		ui.Dim(fmt.Sprintf("  If you haven't pushed yet: pilot push --env %s", activeEnv))
+		ui.Dim("  To develop locally, use the dev environment: pilot env use dev && pilot up")
 		fmt.Println()
 	}
 
@@ -81,7 +81,7 @@ func Run(ctx context.Context, opts Options) error {
 		return fmt.Errorf(
 			"docker compose up failed for environment %q\n\n"+
 				"  Common causes:\n"+
-				"  • Image not found in registry → kaal push --env %s first\n"+
+				"  • Image not found in registry → pilot push --env %s first\n"+
 				"  • Port already in use → check what's running on the configured ports\n"+
 				"  • Missing env variable → check %s\n"+
 				"  • Syntax error in compose file → ask your AI agent to fix it",
@@ -97,7 +97,7 @@ func Run(ctx context.Context, opts Options) error {
 
 // missingFilesError returns a rich error that tells the developer exactly
 // what to ask their AI agent to generate.
-func missingFilesError(projCtx *kaalctx.ProjectContext) error {
+func missingFilesError(projCtx *pilotctx.ProjectContext) error {
 	var missing []string
 	if projCtx.MissingDockerfile {
 		missing = append(missing, "Dockerfile")
@@ -113,9 +113,9 @@ func missingFilesError(projCtx *kaalctx.ProjectContext) error {
 	ui.Bold("Ask your AI agent to generate them.")
 	fmt.Println()
 	ui.Dim("  Option 1 — via MCP (Claude Code, Cursor):")
-	ui.Dim("    kaal mcp serve is already configured in .mcp.json")
+	ui.Dim("    pilot mcp serve is already configured in .mcp.json")
 	ui.Dim("    Ask Claude: \"Generate the missing infrastructure files for this project\"")
-	ui.Dim("    Claude will call kaal_context to get the full project details,")
+	ui.Dim("    Claude will call pilot_context to get the full project details,")
 	ui.Dim("    then write the files directly.")
 	fmt.Println()
 	ui.Dim("  Option 2 — paste this context into any AI chat:")
@@ -126,27 +126,27 @@ func missingFilesError(projCtx *kaalctx.ProjectContext) error {
 	lines := splitLines(prompt)
 	for i, line := range lines {
 		if i >= 40 {
-			ui.Dim(fmt.Sprintf("  ... (%d more lines — use 'kaal context' to get the full prompt)", len(lines)-40))
+			ui.Dim(fmt.Sprintf("  ... (%d more lines — use 'pilot context' to get the full prompt)", len(lines)-40))
 			break
 		}
 		ui.Dim("  " + line)
 	}
 
 	fmt.Println()
-	ui.Dim("  Run 'kaal context' to print the full agent prompt")
-	ui.Dim("  Then re-run 'kaal up' once the files are created")
+	ui.Dim("  Run 'pilot context' to print the full agent prompt")
+	ui.Dim("  Then re-run 'pilot up' once the files are created")
 	fmt.Println()
 
 	return fmt.Errorf("infrastructure files missing — see above")
 }
 
-// DownOptions controls kaal down behaviour.
+// DownOptions controls pilot down behaviour.
 type DownOptions struct {
 	Env     string
 	Volumes bool
 }
 
-// RunDown executes kaal down.
+// RunDown executes pilot down.
 func RunDown(ctx context.Context, opts DownOptions) error {
 	cfg, err := config.Load(".")
 	if err != nil {
@@ -155,7 +155,7 @@ func RunDown(ctx context.Context, opts DownOptions) error {
 
 	activeEnv := env.Active(opts.Env)
 	if _, ok := cfg.Environments[activeEnv]; !ok {
-		return fmt.Errorf("environment %q not defined in kaal.yaml", activeEnv)
+		return fmt.Errorf("environment %q not defined in pilot.yaml", activeEnv)
 	}
 
 	ui.Info(fmt.Sprintf("Stopping environment %q", activeEnv))
@@ -181,9 +181,9 @@ func printServiceURLs(cfg *config.Config) {
 		}
 	}
 	fmt.Println()
-	ui.Dim("kaal logs --follow   stream logs")
-	ui.Dim("kaal down            stop services")
-	ui.Dim("kaal status          inspect services")
+	ui.Dim("pilot logs --follow   stream logs")
+	ui.Dim("pilot down            stop services")
+	ui.Dim("pilot status          inspect services")
 }
 
 func splitLines(s string) []string {

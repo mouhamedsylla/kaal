@@ -3,16 +3,16 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/mouhamedsylla/kaal/internal/config"
-	"github.com/mouhamedsylla/kaal/internal/env"
-	"github.com/mouhamedsylla/kaal/internal/providers/vps"
-	"github.com/mouhamedsylla/kaal/pkg/ui"
+	"github.com/mouhamedsylla/pilot/internal/config"
+	"github.com/mouhamedsylla/pilot/internal/env"
+	"github.com/mouhamedsylla/pilot/internal/providers/vps"
+	"github.com/mouhamedsylla/pilot/pkg/ui"
 	"github.com/spf13/cobra"
 )
 
 var setupCmd = &cobra.Command{
 	Use:   "setup",
-	Short: "Prepare the remote VPS for kaal deployments",
+	Short: "Prepare the remote VPS for pilot deployments",
 	Long: `Run one-time setup tasks on the target VPS:
   - Add the deploy user to the docker group
   - Verify docker is accessible without sudo
@@ -35,7 +35,7 @@ func runSetup(cmd *cobra.Command, _ []string) error {
 
 	envCfg, ok := cfg.Environments[activeEnv]
 	if !ok {
-		return fmt.Errorf("environment %q not defined in kaal.yaml", activeEnv)
+		return fmt.Errorf("environment %q not defined in pilot.yaml", activeEnv)
 	}
 
 	targetName := envCfg.Target
@@ -48,16 +48,16 @@ func runSetup(cmd *cobra.Command, _ []string) error {
 
 	target, ok := cfg.Targets[targetName]
 	if !ok {
-		return fmt.Errorf("target %q not defined in kaal.yaml", targetName)
+		return fmt.Errorf("target %q not defined in pilot.yaml", targetName)
 	}
 	if target.Host == "" {
 		return fmt.Errorf(
-			"target %q has no host configured\n  Edit kaal.yaml:\n    targets:\n      %s:\n        host: \"YOUR_VPS_IP\"",
+			"target %q has no host configured\n  Edit pilot.yaml:\n    targets:\n      %s:\n        host: \"YOUR_VPS_IP\"",
 			targetName, targetName,
 		)
 	}
 	if target.Type != "vps" && target.Type != "hetzner" {
-		return fmt.Errorf("kaal setup only supports vps/hetzner targets (got %q)", target.Type)
+		return fmt.Errorf("pilot setup only supports vps/hetzner targets (got %q)", target.Type)
 	}
 
 	ui.Info(fmt.Sprintf("Setting up %s (%s@%s)", targetName, target.User, target.Host))
@@ -73,7 +73,7 @@ func runSetup(cmd *cobra.Command, _ []string) error {
 		ui.Success(fmt.Sprintf("User %q added to docker group", target.User))
 		fmt.Println()
 		ui.Dim("  Group changes take effect on the next SSH connection.")
-		ui.Dim("  Run kaal deploy — it opens a fresh SSH session automatically.")
+		ui.Dim("  Run pilot deploy — it opens a fresh SSH session automatically.")
 		fmt.Println()
 	}
 

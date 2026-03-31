@@ -1,8 +1,8 @@
 package scaffold
 
-import "github.com/mouhamedsylla/kaal/internal/config"
+import "github.com/mouhamedsylla/pilot/internal/config"
 
-// Options holds everything collected during kaal init.
+// Options holds everything collected during pilot init.
 type Options struct {
 	// Project
 	Name            string
@@ -19,7 +19,7 @@ type Options struct {
 	TargetType    string // vps | aws | gcp | azure | do | hetzner
 	TargetHost    string // IP or hostname (empty = not yet configured)
 	TargetUser    string // SSH user (default: deploy)
-	TargetSSHKey  string // SSH key path (default: ~/.ssh/id_kaal)
+	TargetSSHKey  string // SSH key path (default: ~/.ssh/id_pilot)
 
 	// Registry
 	Registry      string // ghcr | dockerhub | custom
@@ -99,7 +99,7 @@ func (o *Options) ToConfig() *config.Config {
 			}
 			key := o.TargetSSHKey
 			if key == "" {
-				key = "~/.ssh/id_kaal"
+				key = "~/.ssh/id_pilot"
 			}
 			cfg.Targets[targetName] = config.Target{
 				Type: o.TargetType,

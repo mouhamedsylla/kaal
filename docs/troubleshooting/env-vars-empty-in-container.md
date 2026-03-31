@@ -2,7 +2,7 @@
 
 ## Symptôme
 
-L'application tourne, `kaal status` montre les services `healthy`, mais les variables
+L'application tourne, `pilot status` montre les services `healthy`, mais les variables
 d'environnement affichent des valeurs par défaut ou vides :
 
 ```
@@ -31,7 +31,7 @@ ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL   # idem
 ```
 
-Quand `kaal up` lance `docker compose up --build` **sans** `--build-arg`
+Quand `pilot up` lance `docker compose up --build` **sans** `--build-arg`
 (ce qui est le cas pour l'environnement dev), Docker bake une **chaîne vide** dans
 l'image :
 
@@ -104,7 +104,7 @@ Avec ce pattern, **rien n'est baked dans l'image**. Les containers dev démarren
 vars VITE_* dans leur process env : Vite lit alors `.env.dev` normalement.
 
 > **Pourquoi ça marche pour le build prod ?**
-> `kaal push` passe `--build-arg VITE_APP_ENV=prod` → la valeur est disponible pour
+> `pilot push` passe `--build-arg VITE_APP_ENV=prod` → la valeur est disponible pour
 > `npm run build` via le ARG, baked dans le bundle JS. Le container runtime n'a pas
 > besoin d'avoir cette var puisqu'elle est compilée dans le JS.
 
@@ -210,46 +210,46 @@ Même principe. `ARG` pour les vars build-time, jamais `ENV VAR=$ARG`,
 
 ---
 
-## Protections intégrées dans kaal
+## Protections intégrées dans pilot
 
-kaal embarque désormais deux protections automatiques qui détectent ce problème **avant** qu'il cause des dégâts en production.
+pilot embarque désormais deux protections automatiques qui détectent ce problème **avant** qu'il cause des dégâts en production.
 
-### Protection 1 : `kaal push` bloque si des vars sont manquantes dans build_args
+### Protection 1 : `pilot push` bloque si des vars sont manquantes dans build_args
 
-Quand `registry.build_args` est explicitement défini dans `kaal.yaml`, `kaal push` scanne le fichier env actif à la recherche de vars compile-time (`VITE_*`, `NEXT_PUBLIC_*`, `REACT_APP_*`, `PUBLIC_*`, `NUXT_PUBLIC_*`, `NG_APP_*`) qui ne figurent **pas** dans `build_args`. Si des vars manquantes sont détectées, le push est **bloqué** avec un message d'erreur actionnable :
+Quand `registry.build_args` est explicitement défini dans `pilot.yaml`, `pilot push` scanne le fichier env actif à la recherche de vars compile-time (`VITE_*`, `NEXT_PUBLIC_*`, `REACT_APP_*`, `PUBLIC_*`, `NUXT_PUBLIC_*`, `NG_APP_*`) qui ne figurent **pas** dans `build_args`. Si des vars manquantes sont détectées, le push est **bloqué** avec un message d'erreur actionnable :
 
 ```
-✗ 1 compile-time var(s) in .env.prod are NOT in kaal.yaml registry.build_args:
+✗ 1 compile-time var(s) in .env.prod are NOT in pilot.yaml registry.build_args:
     - VITE_FEATURE_BROKEN
 
   These vars would be silently EMPTY in the built image.
 
-  Fix: add them to kaal.yaml:
+  Fix: add them to pilot.yaml:
     registry:
       build_args:
     - VITE_FEATURE_BROKEN
 
   If these vars are intentionally excluded from the build, run:
-    kaal push --force
+    pilot push --force
 ```
 
-### Protection 2 : `kaal preflight` détecte les deux gaps
+### Protection 2 : `pilot preflight` détecte les deux gaps
 
-`kaal preflight --target push` exécute deux nouveaux contrôles :
+`pilot preflight --target push` exécute deux nouveaux contrôles :
 - `build_args_gap` (WARNING) : même vérification que ci-dessus, avant même que le push ne démarre
 - `compose_env_file` (WARNING) : détecte les services applicatifs dans le compose file qui n'ont pas de `env_file` déclaré
 
 La chaîne de protection complète est donc :
-1. `kaal preflight` → avertit sur les deux gaps → l'agent ou le développeur corrige `kaal.yaml` / le compose
-2. `kaal push` → bloque si le gap `build_args` subsiste après avoir sauté le preflight
-3. `kaal push --force` → contournement quand des vars sont intentionnellement exclues
+1. `pilot preflight` → avertit sur les deux gaps → l'agent ou le développeur corrige `pilot.yaml` / le compose
+2. `pilot push` → bloque si le gap `build_args` subsiste après avoir sauté le preflight
+3. `pilot push --force` → contournement quand des vars sont intentionnellement exclues
 
-Les agents AI exécutent toujours le preflight en premier dans leur boucle, ils n'atteindront donc jamais le bloqueur de `kaal push`. Pour les développeurs qui sautent le preflight, le push joue le rôle de dernier filet de sécurité.
+Les agents AI exécutent toujours le preflight en premier dans leur boucle, ils n'atteindront donc jamais le bloqueur de `pilot push`. Pour les développeurs qui sautent le preflight, le push joue le rôle de dernier filet de sécurité.
 
 ---
 
 ## Voir aussi
 
-- [kaal up / kaal down](../commands/up-down.md)
+- [pilot up / pilot down](../commands/up-down.md)
 - [Workflow dev local](../workflows/local-dev.md)
 - [Variables dans CI/CD](../workflows/ci-cd.md)

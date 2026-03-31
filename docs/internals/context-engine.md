@@ -12,7 +12,7 @@ Un agent AI a besoin de contexte pour générer de bons fichiers d'infra. Sans c
 - Il ne sait pas si tu as un Dockerfile existant à respecter
 - Il ne connaît pas tes services
 
-Avec `kaal context`, l'agent reçoit tout ce dont il a besoin en un seul appel.
+Avec `pilot context`, l'agent reçoit tout ce dont il a besoin en un seul appel.
 
 ---
 
@@ -21,7 +21,7 @@ Avec `kaal context`, l'agent reçoit tout ce dont il a besoin en un seul appel.
 ```go
 type ProjectContext struct {
     // Source de vérité
-    KaalYAML string
+    PilotYAML string
 
     // Détection automatique
     Stack            string  // "go", "node", "python", "rust", "java"
@@ -59,12 +59,12 @@ projCtx, err := context.Collect("dev")
 
 **Ce que Collect fait :**
 
-1. `config.Load(".")` — parse kaal.yaml
-2. `scaffold.Detect(".")` — détecte le stack depuis les fichiers manifestes
+1. `config.Load(".")` : parse pilot.yaml
+2. `scaffold.Detect(".")` : détecte le stack depuis les fichiers manifestes
 3. Construit le `FileTree` en ignorant : `.git`, `node_modules`, `vendor`, `.cache`, `dist`, `build`, `__pycache__`
-4. `scanKeyFiles(".")` — cherche `go.mod`, `package.json`, `Cargo.toml`, `requirements.txt`, `pyproject.toml`, `pom.xml`, `build.gradle`, `Makefile`
-5. `glob(".", "Dockerfile*")` — liste les Dockerfiles existants
-6. `glob(".", "docker-compose*.yml")` — liste les compose files existants
+4. `scanKeyFiles(".")` : cherche `go.mod`, `package.json`, `Cargo.toml`, `requirements.txt`, `pyproject.toml`, `pom.xml`, `build.gradle`, `Makefile`
+5. `glob(".", "Dockerfile*")` : liste les Dockerfiles existants
+6. `glob(".", "docker-compose*.yml")` : liste les compose files existants
 7. Détermine `MissingDockerfile` et `MissingCompose` pour l'env actif
 
 ---
@@ -75,7 +75,7 @@ Génère un document Markdown structuré prêt à être consommé par n'importe 
 
 Structure du document généré :
 ```
-## kaal.yaml
+## pilot.yaml
 [contenu brut]
 
 ## Project structure
@@ -91,7 +91,7 @@ Structure du document généré :
 - Language: go 1.23
 - Active environment: dev
 
-## Services defined in kaal.yaml
+## Services defined in pilot.yaml
 [YAML des services]
 
 ## What is needed
@@ -103,7 +103,7 @@ Structure du document généré :
 
 ## `Summary()`
 
-Version courte pour l'affichage terminal (`kaal context --summary`).
+Version courte pour l'affichage terminal (`pilot context --summary`).
 
 ```
 Project:  taskflow
@@ -127,19 +127,19 @@ Compose:     docker-compose.dev.yml
 var skipDirs = map[string]bool{
     ".git": true, "node_modules": true, "vendor": true,
     ".cache": true, "dist": true, "build": true, "__pycache__": true,
-    ".kaal-current-env": true,
+    ".pilot-current-env": true,
 }
 ```
 
-Les fichiers cachés (`.`) à la racine sont ignorés, sauf `.env.example` — car `.env.example` documente les variables requises et est utile pour l'agent.
+Les fichiers cachés (`.`) à la racine sont ignorés, sauf `.env.example` : car `.env.example` documente les variables requises et est utile pour l'agent.
 
 ---
 
-## Utilisation dans l'écosystème kaal
+## Utilisation dans l'écosystème pilot
 
 | Consommateur | Usage |
 |--------------|-------|
-| `kaal up` | Vérifie `MissingDockerfile` et `MissingCompose` |
-| `kaal context` | Affiche `AgentPrompt()` ou `Summary()` |
-| MCP `kaal_context` | Retourne le contexte en JSON pour l'agent |
-| MCP `kaal_up` | Passe le contexte à l'agent si fichiers manquants |
+| `pilot up` | Vérifie `MissingDockerfile` et `MissingCompose` |
+| `pilot context` | Affiche `AgentPrompt()` ou `Summary()` |
+| MCP `pilot_context` | Retourne le contexte en JSON pour l'agent |
+| MCP `pilot_up` | Passe le contexte à l'agent si fichiers manquants |

@@ -1,15 +1,15 @@
 #!/usr/bin/env sh
-# kaal install script
-# Usage: curl -fsSL https://raw.githubusercontent.com/mouhamedsylla/kaal/main/install.sh | sh
+# pilot install script
+# Usage: curl -fsSL https://raw.githubusercontent.com/mouhamedsylla/pilot/main/install.sh | sh
 #
 # Supports: macOS (arm64, amd64), Linux (arm64, amd64)
 # Requirements: curl or wget, tar
 
 set -e
 
-REPO="mouhamedsylla/kaal"
-BINARY="kaal"
-INSTALL_DIR="${KAAL_INSTALL_DIR:-}"
+REPO="mouhamedsylla/pilot"
+BINARY="pilot"
+INSTALL_DIR="${PILOT_INSTALL_DIR:-}"
 
 # ──────────────── helpers ────────────────────────────────────────────────────
 
@@ -62,7 +62,7 @@ fi
 
 # ──────────────── fetch latest version ───────────────────────────────────────
 
-printf "\n  \033[1mkaal installer\033[0m\n\n"
+printf "\n  \033[1mpilot installer\033[0m\n\n"
 
 need_cmd curl
 
@@ -102,17 +102,17 @@ mv "$TMP_DIR/$BINARY" "$INSTALL_DIR/$BINARY"
 
 # ──────────────── verify installation ────────────────────────────────────────
 
-if ! command -v kaal > /dev/null 2>&1; then
-  warn "kaal installed to $INSTALL_DIR but is not in PATH."
+if ! command -v pilot > /dev/null 2>&1; then
+  warn "pilot installed to $INSTALL_DIR but is not in PATH."
   warn "Add this to your shell profile (~/.zshrc, ~/.bashrc, etc.):"
   warn "  export PATH=\"$INSTALL_DIR:\$PATH\""
   warn "Then restart your shell or run: source ~/.zshrc"
 else
-  INSTALLED_VERSION="$(kaal version 2>/dev/null || echo 'unknown')"
-  success "kaal $LATEST installed successfully!"
+  INSTALLED_VERSION="$(pilot version 2>/dev/null || echo 'unknown')"
+  success "pilot $LATEST installed successfully!"
   success "Version: $INSTALLED_VERSION"
 fi
 
 printf "\n  Next steps:\n"
-printf "    kaal --help\n"
-printf "    kaal init my-project\n\n"
+printf "    pilot --help\n"
+printf "    pilot init my-project\n\n"

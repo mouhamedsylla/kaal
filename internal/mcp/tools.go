@@ -38,10 +38,10 @@ func (s *Server) registerAll() {
 // ──────────────────── context + infra generation ────────────────────
 
 var toolContext = Tool{
-	Name: "kaal_context",
-	Description: `Return the complete project context for this kaal project.
+	Name: "pilot_context",
+	Description: `Return the complete project context for this pilot project.
 Call this FIRST before generating any infrastructure files.
-Returns: kaal.yaml, file tree, detected stack, existing Dockerfiles/compose files,
+Returns: pilot.yaml, file tree, detected stack, existing Dockerfiles/compose files,
 service definitions, missing file list, and a ready-to-use agent_prompt.`,
 	InputSchema: InputSchema{
 		Type: "object",
@@ -52,10 +52,10 @@ service definitions, missing file list, and a ready-to-use agent_prompt.`,
 }
 
 var toolGenerateDockerfile = Tool{
-	Name: "kaal_generate_dockerfile",
+	Name: "pilot_generate_dockerfile",
 	Description: `Write a Dockerfile to the project directory.
-Call kaal_context first to understand the project stack and requirements.
-The agent is responsible for generating the Dockerfile content — kaal writes it to disk.
+Call pilot_context first to understand the project stack and requirements.
+The agent is responsible for generating the Dockerfile content — pilot writes it to disk.
 
 OPTIMIZATION REQUIREMENTS — every Dockerfile you generate MUST follow these rules:
 
@@ -112,11 +112,11 @@ OPTIMIZATION REQUIREMENTS — every Dockerfile you generate MUST follow these ru
 }
 
 var toolGenerateCompose = Tool{
-	Name: "kaal_generate_compose",
+	Name: "pilot_generate_compose",
 	Description: `Write a docker-compose.<env>.yml to the project directory.
-Call kaal_context first to understand the services and environment configuration.
-The agent is responsible for generating the compose file content — kaal writes it to disk.
-After writing, the agent should tell the user to run 'kaal up'.
+Call pilot_context first to understand the services and environment configuration.
+The agent is responsible for generating the compose file content — pilot writes it to disk.
+After writing, the agent should tell the user to run 'pilot up'.
 
 OPTIMIZATION REQUIREMENTS — every docker-compose file you generate MUST follow these rules:
 
@@ -127,7 +127,7 @@ OPTIMIZATION REQUIREMENTS — every docker-compose file you generate MUST follow
 5. Health checks: add healthcheck blocks for every service, especially databases.
    Depend on health: use depends_on with condition: service_healthy so services start in order.
 6. env_file injection: ALWAYS add env_file to EVERY app service — MANDATORY for all stacks,
-   all environments (dev, staging, prod). Read the env_file from kaal.yaml:
+   all environments (dev, staging, prod). Read the env_file from pilot.yaml:
    (environments.<env>.env_file) and inject it:
      env_file:
        - .env.dev   # match the environment: .env.dev / .env.staging / .env.prod
@@ -158,7 +158,7 @@ OPTIMIZATION REQUIREMENTS — every docker-compose file you generate MUST follow
 10. Dev compose: dev files may use build: context and volume mounts for live reload.
 11. Logging: configure logging driver with max-size and max-file to avoid disk exhaustion.
     Example: logging: { driver: json-file, options: { max-size: "10m", max-file: "3" } }
-12. Service naming: use the exact service names from kaal.yaml services section.
+12. Service naming: use the exact service names from pilot.yaml services section.
 13. Pinned image tags: never use :latest for external images.`,
 	InputSchema: InputSchema{
 		Type: "object",
@@ -174,8 +174,8 @@ OPTIMIZATION REQUIREMENTS — every docker-compose file you generate MUST follow
 // ──────────────────────── environment lifecycle ────────────────────────
 
 var toolInit = Tool{
-	Name:        "kaal_init",
-	Description: "Initialize a new kaal project with scaffold, Dockerfiles, and kaal.yaml",
+	Name:        "pilot_init",
+	Description: "Initialize a new pilot project with scaffold, Dockerfiles, and pilot.yaml",
 	InputSchema: InputSchema{
 		Type: "object",
 		Properties: map[string]Property{
@@ -190,8 +190,8 @@ var toolInit = Tool{
 }
 
 var toolEnvSwitch = Tool{
-	Name:        "kaal_env_switch",
-	Description: "Switch the active kaal environment",
+	Name:        "pilot_env_switch",
+	Description: "Switch the active pilot environment",
 	InputSchema: InputSchema{
 		Type: "object",
 		Properties: map[string]Property{
@@ -202,7 +202,7 @@ var toolEnvSwitch = Tool{
 }
 
 var toolUp = Tool{
-	Name:        "kaal_up",
+	Name:        "pilot_up",
 	Description: "Start local services for the active environment",
 	InputSchema: InputSchema{
 		Type: "object",
@@ -214,7 +214,7 @@ var toolUp = Tool{
 }
 
 var toolDown = Tool{
-	Name:        "kaal_down",
+	Name:        "pilot_down",
 	Description: "Stop and remove local services for the active environment",
 	InputSchema: InputSchema{
 		Type: "object",
@@ -225,10 +225,10 @@ var toolDown = Tool{
 }
 
 var toolPush = Tool{
-	Name: "kaal_push",
+	Name: "pilot_push",
 	Description: `Build the Docker image and push it to the configured registry. Defaults to linux/amd64 for VPS compatibility.
 
-If registry.build_args is declared in kaal.yaml, the values are read from the active
+If registry.build_args is declared in pilot.yaml, the values are read from the active
 environment's env_file and injected as --build-arg at build time. This is required for
 frontend stacks (Vite, Next.js, CRA) where VITE_* / NEXT_PUBLIC_* variables must be
 baked into the bundle during 'npm run build'. Pass 'env' to select which env file to read.`,
@@ -244,14 +244,14 @@ baked into the bundle during 'npm run build'. Pass 'env' to select which env fil
 }
 
 var toolDeploy = Tool{
-	Name:        "kaal_deploy",
+	Name:        "pilot_deploy",
 	Description: "Deploy the application to a remote target (VPS or cloud)",
 	InputSchema: InputSchema{
 		Type: "object",
 		Properties: map[string]Property{
 			"env":      {Type: "string", Description: "Environment to deploy (defaults to active env)"},
 			"tag":      {Type: "string", Description: "Image tag to deploy (defaults to git short SHA)"},
-			"target":   {Type: "string", Description: "Target name from kaal.yaml (overrides env default)"},
+			"target":   {Type: "string", Description: "Target name from pilot.yaml (overrides env default)"},
 			"strategy": {Type: "string", Description: "Deployment strategy", Enum: []string{"rolling", "blue-green", "canary"}},
 			"dry_run":  {Type: "string", Description: "Show what would happen without executing (true/false)"},
 		},
@@ -259,7 +259,7 @@ var toolDeploy = Tool{
 }
 
 var toolRollback = Tool{
-	Name:        "kaal_rollback",
+	Name:        "pilot_rollback",
 	Description: "Roll back to a previous deployment version",
 	InputSchema: InputSchema{
 		Type: "object",
@@ -273,18 +273,18 @@ var toolRollback = Tool{
 }
 
 var toolSync = Tool{
-	Name:        "kaal_sync",
-	Description: "Synchronize local kaal.yaml and compose files to the remote target",
+	Name:        "pilot_sync",
+	Description: "Synchronize local pilot.yaml and compose files to the remote target",
 	InputSchema: InputSchema{
 		Type: "object",
 		Properties: map[string]Property{
-			"target": {Type: "string", Description: "Target name from kaal.yaml"},
+			"target": {Type: "string", Description: "Target name from pilot.yaml"},
 		},
 	},
 }
 
 var toolStatus = Tool{
-	Name:        "kaal_status",
+	Name:        "pilot_status",
 	Description: "Return the complete project state as JSON (local containers + remote services)",
 	InputSchema: InputSchema{
 		Type: "object",
@@ -295,7 +295,7 @@ var toolStatus = Tool{
 }
 
 var toolLogs = Tool{
-	Name:        "kaal_logs",
+	Name:        "pilot_logs",
 	Description: "Return logs for a service (local or remote based on active env)",
 	InputSchema: InputSchema{
 		Type: "object",
@@ -308,8 +308,8 @@ var toolLogs = Tool{
 }
 
 var toolConfigGet = Tool{
-	Name:        "kaal_config_get",
-	Description: "Read a value from kaal.yaml using dot-notation key",
+	Name:        "pilot_config_get",
+	Description: "Read a value from pilot.yaml using dot-notation key",
 	InputSchema: InputSchema{
 		Type: "object",
 		Properties: map[string]Property{
@@ -320,8 +320,8 @@ var toolConfigGet = Tool{
 }
 
 var toolConfigSet = Tool{
-	Name:        "kaal_config_set",
-	Description: "Set a value in kaal.yaml using dot-notation key",
+	Name:        "pilot_config_set",
+	Description: "Set a value in pilot.yaml using dot-notation key",
 	InputSchema: InputSchema{
 		Type: "object",
 		Properties: map[string]Property{
@@ -333,17 +333,17 @@ var toolConfigSet = Tool{
 }
 
 var toolPreflight = Tool{
-	Name: "kaal_preflight",
+	Name: "pilot_preflight",
 	Description: `Run pre-flight checks for the deployment pipeline and return an ordered action plan.
 
-CALL THIS FIRST before kaal_push or kaal_deploy. It returns a structured report with:
+CALL THIS FIRST before pilot_push or pilot_deploy. It returns a structured report with:
 - all_ok: true/false — whether all checks pass
 - checks[]: each check with status (ok/error) and fix instructions
 - next_steps[]: ordered action plan tagged [HUMAN] or [AGENT]
 
 For each [HUMAN] step: tell the user exactly what to do and wait for confirmation.
 For each [AGENT] step: call the indicated tool directly.
-Repeat until all_ok is true, then proceed with kaal_push / kaal_deploy.`,
+Repeat until all_ok is true, then proceed with pilot_push / pilot_deploy.`,
 	InputSchema: InputSchema{
 		Type: "object",
 		Properties: map[string]Property{
@@ -354,10 +354,10 @@ Repeat until all_ok is true, then proceed with kaal_push / kaal_deploy.`,
 }
 
 var toolSetup = Tool{
-	Name: "kaal_setup",
+	Name: "pilot_setup",
 	Description: `Run one-time VPS setup tasks required before the first deploy.
 Connects via SSH and adds the deploy user to the docker group.
-Call this when kaal_deploy fails with a docker permission error.
+Call this when pilot_deploy fails with a docker permission error.
 Requires password-less sudo on the VPS (standard on Hetzner, DigitalOcean, OVH with cloud-init).`,
 	InputSchema: InputSchema{
 		Type: "object",
@@ -368,7 +368,7 @@ Requires password-less sudo on the VPS (standard on Hetzner, DigitalOcean, OVH w
 }
 
 var toolSecretsInject = Tool{
-	Name:        "kaal_secrets_inject",
+	Name:        "pilot_secrets_inject",
 	Description: "Inject secrets from the configured secret manager into the target environment",
 	InputSchema: InputSchema{
 		Type: "object",
