@@ -1,9 +1,11 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/mouhamedsylla/kaal/internal/kaalerr"
+	"github.com/mouhamedsylla/kaal/internal/version"
 	"github.com/mouhamedsylla/kaal/pkg/ui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -59,7 +61,16 @@ func init() {
 		setupCmd,
 		preflightCmd,
 		mcpCmd,
+		versionCmd,
 	)
+}
+
+var versionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "Print kaal version information",
+	Run: func(cmd *cobra.Command, _ []string) {
+		fmt.Println(version.String())
+	},
 }
 
 func initConfig() {

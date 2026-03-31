@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"sort"
 	"strings"
 
 	"github.com/mouhamedsylla/kaal/internal/config"
@@ -23,6 +24,7 @@ type Options struct {
 	Tag       string   // explicit tag; empty = git short SHA
 	NoCache   bool
 	Platforms []string // empty = current platform only
+	Force     bool     // skip compile-time var gap check (use when vars are intentionally excluded)
 }
 
 // Run executes kaal push: login → build → push.
@@ -71,7 +73,7 @@ func Run(ctx context.Context, opts Options) error {
 	}
 
 	// Resolve build args from the active env file (for VITE_* and similar compile-time vars).
-	buildArgs, err := resolveBuildArgs(cfg, kaalenv.Active(opts.Env))
+	buildArgs, err := resolveBuildArgs(cfg, kaalenv.Active(opts.Env), opts.Force)
 	if err != nil {
 		return err
 	}
@@ -101,9 +103,16 @@ func Run(ctx context.Context, opts Options) error {
 		return err
 	}
 
-	ui.Info(fmt.Sprintf("Logging in to %s", cfg.Registry.Provider))
-	if err := reg.Login(ctx); err != nil {
-		return fmt.Errorf("registry login: %w", err)
+	if err := ui.Spinner(fmt.Sprintf("Logging in to %s", cfg.Registry.Provider), func() error {
+		return reg.Login(ctx)
+	}); err != nil {
+		return fmt.Errorf(
+			"registry login failed for %s\n\n"+
+				"  Check that your credentials are set:\n"+
+				"    kaal preflight --target push\n\n"+
+				"  Cause: %w",
+			cfg.Registry.Provider, err,
+		)
 	}
 
 	ui.Info(fmt.Sprintf("Building %s [%s]", fullTag, strings.Join(platforms, ",")))
@@ -169,7 +178,7 @@ func resolveDockerfile(cfg *config.Config) string {
 // Values come from the env file first, process environment as fallback (CI/CD).
 // Missing vars in override mode are a hard error; in auto-detect mode they are silently
 // skipped (the env file simply may not have VITE_ vars for non-frontend projects).
-func resolveBuildArgs(cfg *config.Config, activeEnv string) (map[string]string, error) {
+func resolveBuildArgs(cfg *config.Config, activeEnv string, force bool) (map[string]string, error) {
 	// Find the env file for the active environment.
 	envFile := ""
 	if envCfg, ok := cfg.Environments[activeEnv]; ok {
@@ -211,6 +220,47 @@ func resolveBuildArgs(cfg *config.Config, activeEnv string) (map[string]string, 
 				src, strings.Join(missing, ", "), src,
 			)
 		}
+
+		// Detect compile-time vars present in the env file but absent from
+		// build_args. These would be silently empty in the built image — block.
+		declaredSet := map[string]bool{}
+		for _, name := range cfg.Registry.BuildArgs {
+			declaredSet[name] = true
+		}
+		compilePrefixes := []string{"VITE_", "NEXT_PUBLIC_", "REACT_APP_", "PUBLIC_", "NUXT_PUBLIC_", "NG_APP_"}
+		var unlisted []string
+		for name := range fileVars {
+			if declaredSet[name] {
+				continue
+			}
+			for _, prefix := range compilePrefixes {
+				if strings.HasPrefix(name, prefix) {
+					unlisted = append(unlisted, name)
+					break
+				}
+			}
+		}
+		if len(unlisted) > 0 && !force {
+			sort.Strings(unlisted)
+			lines := []string{}
+			for _, name := range unlisted {
+				lines = append(lines, fmt.Sprintf("    - %s", name))
+			}
+			return nil, fmt.Errorf(
+				"%d compile-time var(s) in %s are NOT in kaal.yaml registry.build_args:\n%s\n\n"+
+					"  These vars would be silently EMPTY in the built image.\n\n"+
+					"  Fix: add them to kaal.yaml:\n"+
+					"    registry:\n"+
+					"      build_args:\n"+
+					"%s\n\n"+
+					"  If these vars are intentionally excluded from the build, run:\n"+
+					"    kaal push --force",
+				len(unlisted), envFile,
+				strings.Join(lines, "\n"),
+				strings.Join(lines, "\n"),
+			)
+		}
+
 		return result, nil
 	}
 

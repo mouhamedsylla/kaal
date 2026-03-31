@@ -3,6 +3,7 @@ package vps
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,6 +12,7 @@ import (
 	"github.com/mouhamedsylla/kaal/internal/kaalerr"
 	"github.com/mouhamedsylla/kaal/internal/providers"
 	kaalSSH "github.com/mouhamedsylla/kaal/pkg/ssh"
+	"github.com/mouhamedsylla/kaal/pkg/ui"
 	"gopkg.in/yaml.v3"
 )
 
@@ -46,7 +48,6 @@ func (p *Provider) Deploy(ctx context.Context, env string, opts providers.Deploy
 	// Build --env-file flags for docker compose.
 	envFileFlags := ""
 	for _, f := range opts.EnvFiles {
-		// Remote path: ~/kaal/<basename>
 		base := f
 		if idx := strings.LastIndex(f, "/"); idx >= 0 {
 			base = f[idx+1:]
@@ -54,43 +55,94 @@ func (p *Provider) Deploy(ctx context.Context, env string, opts providers.Deploy
 		envFileFlags += fmt.Sprintf(" --env-file ~/kaal/%s", base)
 	}
 
-	commands := []string{
-		// Ensure state dir exists
+	// ── Step 1: prepare remote state (fast ops, spinner) ──────────────────
+	setupCmds := []string{
 		fmt.Sprintf("mkdir -p %s", stateDir),
-		// Rotate tags: current → prev, new → current
 		fmt.Sprintf("[ -f %s/current-tag ] && cp %s/current-tag %s/prev-tag || true", stateDir, stateDir, stateDir),
 		fmt.Sprintf("echo %s > %s/current-tag", opts.Tag, stateDir),
-		// Pull and restart
-		fmt.Sprintf("docker pull %s", image),
-		fmt.Sprintf("IMAGE_TAG=%s docker compose -f %s%s up -d --remove-orphans", opts.Tag, composeFile, envFileFlags),
 	}
-	for _, cmd := range commands {
-		if out, err := client.Run(ctx, cmd); err != nil {
-			cause := err
-			if isDockerPermissionError(out) {
-				cause = fmt.Errorf(
-					"user %q is not in the docker group\n\n"+
-						"  Fix it automatically:\n"+
-						"    kaal setup --env %s\n\n"+
-						"  Or manually on your VPS:\n"+
-						"    sudo usermod -aG docker %s\n"+
-						"  Then run kaal deploy again (new SSH session picks up the group change)",
-					p.target.User, env, p.target.User,
-				)
+	if err := ui.Spinner("Preparing remote state", func() error {
+		for _, cmd := range setupCmds {
+			if _, err := client.Run(ctx, cmd); err != nil {
+				return fmt.Errorf("state setup: %w", err)
 			}
-			deployErr := &kaalerr.DeployError{
-				Phase:   "restart",
-				Target:  p.target.Host,
-				Command: cmd,
-				Output:  out,
-				Cause:   cause,
-			}
-			p.recordDeploy(ctx, client, env, opts.Tag, false, err.Error())
-			return deployErr
+		}
+		return nil
+	}); err != nil {
+		p.recordDeploy(ctx, client, env, opts.Tag, false, err.Error())
+		return &kaalerr.DeployError{Phase: "state", Target: p.target.Host, Cause: err}
+	}
+
+	// ── Step 2: docker pull — stream output ────────────────────────────────
+	// Always capture in a buffer for error reporting.
+	// Only forward to the terminal when stdout is a real TTY (not MCP/CI pipe).
+	streamed := ui.IsTerminal()
+	ui.Info(fmt.Sprintf("Pulling %s", image))
+	pullCmd := fmt.Sprintf("docker pull %s", image)
+	var pullBuf strings.Builder
+	if err := client.RunWithOutput(ctx, pullCmd, remoteOutputWriter(&pullBuf)); err != nil {
+		p.recordDeploy(ctx, client, env, opts.Tag, false, pullBuf.String())
+		return &kaalerr.DeployError{
+			Phase:    "pull",
+			Target:   p.target.Host,
+			Command:  pullCmd,
+			Output:   pullBuf.String(),
+			Streamed: streamed,
+			Cause: fmt.Errorf(
+				"%w\n\n  Hints:\n"+
+					"  • Verify the image tag %q exists in the registry\n"+
+					"  • Check your registry credentials: kaal preflight --target push\n"+
+					"  • If credentials expired, re-export and retry",
+				err, opts.Tag,
+			),
 		}
 	}
+
+	// ── Step 3: docker compose up — stream output ─────────────────────────
+	ui.Info("Restarting services")
+	composeCmd := fmt.Sprintf(
+		"IMAGE_TAG=%s docker compose -f %s%s up -d --remove-orphans",
+		opts.Tag, composeFile, envFileFlags,
+	)
+	var composeBuf strings.Builder
+	if err := client.RunWithOutput(ctx, composeCmd, remoteOutputWriter(&composeBuf)); err != nil {
+		cause := err
+		capturedOutput := composeBuf.String()
+		if isDockerPermissionError(capturedOutput) {
+			cause = fmt.Errorf(
+				"user %q is not in the docker group on %s\n\n"+
+					"  Fix automatically:\n"+
+					"    kaal setup --env %s\n\n"+
+					"  Or manually on your VPS:\n"+
+					"    sudo usermod -aG docker %s\n"+
+					"  Then reconnect and run kaal deploy again",
+				p.target.User, p.target.Host, env, p.target.User,
+			)
+		}
+		p.recordDeploy(ctx, client, env, opts.Tag, false, capturedOutput)
+		return &kaalerr.DeployError{
+			Phase:    "restart",
+			Target:   p.target.Host,
+			Command:  composeCmd,
+			Output:   capturedOutput,
+			Streamed: streamed,
+			Cause:    cause,
+		}
+	}
+
 	p.recordDeploy(ctx, client, env, opts.Tag, true, "")
 	return nil
+}
+
+// remoteOutputWriter returns a writer that:
+//   - always captures into buf (for error reporting and AI agents)
+//   - additionally forwards each line to stdout with a 2-space indent,
+//     but ONLY when stdout is an interactive terminal (not MCP/CI mode).
+func remoteOutputWriter(buf *strings.Builder) io.Writer {
+	if ui.IsTerminal() {
+		return io.MultiWriter(ui.PrefixWriter(os.Stdout, "  "), buf)
+	}
+	return buf
 }
 
 func (p *Provider) Sync(ctx context.Context, _ string) error {
@@ -123,7 +175,11 @@ func (p *Provider) Sync(ctx context.Context, _ string) error {
 	}
 
 	if err := client.CopyFiles(ctx, flatFiles, "~/kaal/"); err != nil {
-		return err
+		return fmt.Errorf("sync flat files: %w", err)
+	}
+	// Print each flat file after the batch copy succeeds.
+	for _, f := range flatFiles {
+		ui.Dim(fmt.Sprintf("  ✓ %s", filepath.Base(f)))
 	}
 
 	// ── Bind-mount config files: preserve relative path under ~/kaal/ ─────
@@ -153,6 +209,33 @@ func (p *Provider) Sync(ctx context.Context, _ string) error {
 			remotePath := fmt.Sprintf("~/kaal/%s", strings.TrimPrefix(localSrc, "./"))
 			if copyErr := client.CopyFileTo(ctx, localSrc, remotePath); copyErr != nil {
 				return fmt.Errorf("sync bind-mount %s: %w", localSrc, copyErr)
+			}
+			ui.Dim(fmt.Sprintf("  ✓ %s", strings.TrimPrefix(localSrc, "./")))
+		}
+	}
+
+	// ── Auto-reload nginx for any service whose config was just synced ─────
+	// nginx keeps its config in memory; a file update on disk has no effect
+	// until nginx reloads. We detect nginx services in each compose file and
+	// run "nginx -s reload" inside the container — no restart, zero downtime.
+	for envName := range p.cfg.Environments {
+		composeFile := composeFileForEnv(envName)
+		svcs := nginxServicesWithUpdatedMounts(composeFile, seenMounts)
+		for _, svc := range svcs {
+			reloadCmd := fmt.Sprintf(
+				"docker compose -f %s exec -T %s nginx -s reload",
+				remoteComposeFile(envName), svc,
+			)
+			reloadErr := ui.Spinner(fmt.Sprintf("Reloading nginx (%s)", svc), func() error {
+				_, runErr := client.Run(ctx, reloadCmd)
+				return runErr
+			})
+			if reloadErr != nil {
+				// Non-fatal: container may not be running yet (first deploy pending).
+				ui.Warn(fmt.Sprintf("nginx reload skipped — %s not running on remote", svc))
+				ui.Dim(fmt.Sprintf("  Start it with: kaal deploy --env %s", envName))
+			} else {
+				ui.Success(fmt.Sprintf("nginx reloaded (%s)", svc))
 			}
 		}
 	}
@@ -277,11 +360,15 @@ func (p *Provider) Rollback(ctx context.Context, env string, version string) (st
 	}
 	defer client.Close()
 
-	// Resolve version: explicit tag or read prev-tag from VPS state
+	// Resolve version: explicit tag or read prev-tag from VPS state.
 	tag := version
 	if tag == "" {
-		out, err := client.Run(ctx, fmt.Sprintf("cat %s/prev-tag 2>/dev/null", p.stateDir()))
-		if err != nil || strings.TrimSpace(out) == "" {
+		var out string
+		if err := ui.Spinner("Reading previous deployment tag", func() error {
+			var runErr error
+			out, runErr = client.Run(ctx, fmt.Sprintf("cat %s/prev-tag 2>/dev/null", p.stateDir()))
+			return runErr
+		}); err != nil || strings.TrimSpace(out) == "" {
 			return "", fmt.Errorf(
 				"no previous deployment found on %s\n  Use --version <tag> to specify a version explicitly",
 				p.target.Host,
@@ -291,27 +378,42 @@ func (p *Provider) Rollback(ctx context.Context, env string, version string) (st
 	}
 
 	image := fmt.Sprintf("%s:%s", p.cfg.Registry.Image, tag)
-	composeFile := remoteComposeFile(env) // always ~/kaal/docker-compose.<env>.yml
+	composeFile := remoteComposeFile(env)
 	stateDir := p.stateDir()
 
-	commands := []string{
-		fmt.Sprintf("docker pull %s", image),
-		fmt.Sprintf("IMAGE_TAG=%s docker compose -f %s up -d --remove-orphans", tag, composeFile),
-		fmt.Sprintf("echo %s > %s/current-tag", tag, stateDir),
-	}
-	for _, cmd := range commands {
-		if out, err := client.Run(ctx, cmd); err != nil {
-			deployErr := &kaalerr.DeployError{
-				Phase:   "rollback",
-				Target:  p.target.Host,
-				Command: cmd,
-				Output:  out,
-				Cause:   err,
-			}
-			p.recordDeploy(ctx, client, env, tag, false, "rollback: "+err.Error())
-			return "", deployErr
+	streamed := ui.IsTerminal()
+
+	// docker pull
+	ui.Info(fmt.Sprintf("Pulling %s", image))
+	pullCmd := fmt.Sprintf("docker pull %s", image)
+	var pullBuf strings.Builder
+	if err := client.RunWithOutput(ctx, pullCmd, remoteOutputWriter(&pullBuf)); err != nil {
+		p.recordDeploy(ctx, client, env, tag, false, "rollback pull: "+err.Error())
+		return "", &kaalerr.DeployError{
+			Phase: "rollback-pull", Target: p.target.Host,
+			Command: pullCmd, Output: pullBuf.String(),
+			Streamed: streamed, Cause: err,
 		}
 	}
+
+	// docker compose up
+	ui.Info("Restarting services")
+	composeCmd := fmt.Sprintf("IMAGE_TAG=%s docker compose -f %s up -d --remove-orphans", tag, composeFile)
+	var composeBuf strings.Builder
+	if err := client.RunWithOutput(ctx, composeCmd, remoteOutputWriter(&composeBuf)); err != nil {
+		p.recordDeploy(ctx, client, env, tag, false, "rollback restart: "+err.Error())
+		return "", &kaalerr.DeployError{
+			Phase: "rollback-restart", Target: p.target.Host,
+			Command: composeCmd, Output: composeBuf.String(),
+			Streamed: streamed, Cause: err,
+		}
+	}
+
+	// Persist the rolled-back tag as current.
+	if _, saveErr := client.Run(ctx, fmt.Sprintf("echo %s > %s/current-tag", tag, stateDir)); saveErr != nil {
+		ui.Warn(fmt.Sprintf("Could not save current-tag on remote: %v", saveErr))
+	}
+
 	p.recordDeploy(ctx, client, env, tag, true, "rollback")
 	return tag, nil
 }
@@ -342,6 +444,53 @@ func (p *Provider) connect() (*kaalSSH.Client, error) {
 // Use remoteComposeFile when building SSH commands — files live in ~/kaal/ on the VPS.
 func composeFileForEnv(env string) string {
 	return fmt.Sprintf("docker-compose.%s.yml", env)
+}
+
+// nginxServicesWithUpdatedMounts returns the names of services that:
+//   - use an nginx image (image name contains "nginx")
+//   - have at least one bind-mounted file that appears in syncedFiles
+//
+// These services need "nginx -s reload" after kaal sync to pick up config changes.
+func nginxServicesWithUpdatedMounts(composeFile string, syncedFiles map[string]bool) []string {
+	data, err := os.ReadFile(composeFile)
+	if err != nil {
+		return nil
+	}
+
+	var compose struct {
+		Services map[string]struct {
+			Image   string `yaml:"image"`
+			Volumes []any  `yaml:"volumes"`
+		} `yaml:"services"`
+	}
+	if err := yaml.Unmarshal(data, &compose); err != nil {
+		return nil
+	}
+
+	var result []string
+	for name, svc := range compose.Services {
+		if !strings.Contains(svc.Image, "nginx") {
+			continue
+		}
+		for _, v := range svc.Volumes {
+			var src string
+			switch vol := v.(type) {
+			case string:
+				parts := strings.SplitN(vol, ":", 2)
+				src = parts[0]
+			case map[string]any:
+				if t, _ := vol["type"].(string); t != "bind" {
+					continue
+				}
+				src, _ = vol["source"].(string)
+			}
+			if syncedFiles[src] {
+				result = append(result, name)
+				break
+			}
+		}
+	}
+	return result
 }
 
 // remoteComposeFile returns the full remote path where kaal stores compose files.

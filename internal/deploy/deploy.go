@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/mouhamedsylla/kaal/internal/config"
 	"github.com/mouhamedsylla/kaal/internal/env"
@@ -17,11 +18,12 @@ import (
 
 // Options controls kaal deploy behaviour.
 type Options struct {
-	Env      string // override active env
-	Tag      string // image tag; empty = git short SHA
-	Target   string // override target from kaal.yaml
-	Strategy string // rolling | blue-green | canary
-	DryRun   bool
+	Env        string // override active env
+	Tag        string // image tag; empty = git short SHA
+	Target     string // override target from kaal.yaml
+	Strategy   string // rolling | blue-green | canary
+	DryRun     bool
+	NoRollback bool // skip auto-rollback on healthcheck failure
 }
 
 // Run executes kaal deploy: sync files → pull image → compose up.
@@ -127,34 +129,132 @@ func Run(ctx context.Context, opts Options) error {
 		return fmt.Errorf("deploy: %w", err)
 	}
 
-	// Post-deploy status check
-	statuses, err := provider.Status(ctx, activeEnv)
-	if err != nil {
-		// Non-blocking — deploy succeeded even if status check fails
-		ui.Warn(fmt.Sprintf("Could not retrieve post-deploy status: %v", err))
-	}
-
+	// ── Post-deploy: health check with optional auto-rollback ────────────
 	fmt.Println()
-	ui.Success(fmt.Sprintf("Deployed %s:%s → %s (%s)", cfg.Registry.Image, tag, targetName, target.Host))
-	fmt.Println()
-
-	if len(statuses) > 0 {
-		for _, s := range statuses {
-			health := s.Health
-			if health == "" {
-				health = s.State
+	if opts.NoRollback {
+		// Quick status snapshot, no waiting.
+		statuses, _ := provider.Status(ctx, activeEnv)
+		ui.Success(fmt.Sprintf("Deployed %s:%s → %s (%s)", cfg.Registry.Image, tag, targetName, target.Host))
+		printStatuses(statuses)
+	} else {
+		failedSvc, err := waitForHealth(ctx, provider, activeEnv)
+		if err != nil {
+			// A service went unhealthy — auto-rollback.
+			ui.Warn(fmt.Sprintf("Service %q went unhealthy — rolling back automatically", failedSvc))
+			fmt.Println()
+			prevTag, rbErr := provider.Rollback(ctx, activeEnv, "")
+			if rbErr != nil {
+				return fmt.Errorf(
+					"deploy succeeded but service %q went unhealthy AND auto-rollback failed: %v\n\n"+
+						"  Manual recovery on VPS:\n"+
+						"    docker compose -f ~/kaal/docker-compose.%s.yml down\n"+
+						"    docker compose -f ~/kaal/docker-compose.%s.yml up -d\n\n"+
+						"  Or force a specific tag:\n"+
+						"    kaal rollback --env %s --version <previous-tag>",
+					failedSvc, rbErr, activeEnv, activeEnv, activeEnv,
+				)
 			}
-			ui.Dim(fmt.Sprintf("  %-16s %s", s.Name, health))
+			return fmt.Errorf(
+				"deploy of %s went unhealthy — auto-rolled back to %s\n\n"+
+					"  Investigate:\n"+
+					"    kaal logs --env %s --follow\n"+
+					"    kaal status --env %s",
+				tag, prevTag, activeEnv, activeEnv,
+			)
 		}
+
+		statuses, _ := provider.Status(ctx, activeEnv)
 		fmt.Println()
+		ui.Success(fmt.Sprintf("Deployed %s:%s → %s (%s)", cfg.Registry.Image, tag, targetName, target.Host))
+		printStatuses(statuses)
 	}
 
 	ui.Dim(fmt.Sprintf("  kaal logs --env %s --follow", activeEnv))
 	ui.Dim(fmt.Sprintf("  kaal status --env %s", activeEnv))
-	ui.Dim(fmt.Sprintf("  kaal rollback --env %s   (if something looks wrong)", activeEnv))
+	ui.Dim(fmt.Sprintf("  kaal rollback --env %s   (si quelque chose cloche)", activeEnv))
 	fmt.Println()
 
 	return nil
+}
+
+// waitForHealth polls service health after a deploy, up to 60 seconds.
+//
+// Returns ("", nil)        — all services healthy or running (no healthcheck)
+// Returns ("svc", error)   — service "svc" went unhealthy → caller should rollback
+// Returns ("", nil)        — timeout: services still starting, non-fatal warning
+func waitForHealth(ctx context.Context, provider providers.Provider, env string) (string, error) {
+	const (
+		pollInterval = 5 * time.Second
+		maxWait      = 60 * time.Second
+	)
+
+	ui.Info("Verifying service health")
+	deadline := time.Now().Add(maxWait)
+	elapsed := 0
+
+	for time.Now().Before(deadline) {
+		statuses, err := provider.Status(ctx, env)
+		if err != nil {
+			time.Sleep(pollInterval)
+			elapsed += int(pollInterval.Seconds())
+			continue
+		}
+
+		var report []string
+		unhealthySvc := ""
+		allOK := true
+
+		for _, s := range statuses {
+			label := s.State
+			if s.Health != "" {
+				label = s.Health
+			}
+			report = append(report, fmt.Sprintf("%s=%s", s.Name, label))
+
+			switch s.Health {
+			case "unhealthy":
+				unhealthySvc = s.Name
+				allOK = false
+			case "starting":
+				allOK = false
+			case "":
+				if s.State != "running" {
+					allOK = false
+				}
+			}
+		}
+
+		ui.Dim(fmt.Sprintf("  [%ds] %s", elapsed, strings.Join(report, "  ")))
+
+		if unhealthySvc != "" {
+			return unhealthySvc, fmt.Errorf("service %q went unhealthy", unhealthySvc)
+		}
+		if allOK && len(statuses) > 0 {
+			ui.Success("All services healthy")
+			return "", nil
+		}
+
+		time.Sleep(pollInterval)
+		elapsed += int(pollInterval.Seconds())
+	}
+
+	ui.Warn(fmt.Sprintf("Health check timed out after %ds — services may still be starting", int(maxWait.Seconds())))
+	ui.Dim(fmt.Sprintf("  Monitor with: kaal status --env %s", env))
+	return "", nil // non-fatal timeout
+}
+
+func printStatuses(statuses []providers.ServiceStatus) {
+	if len(statuses) == 0 {
+		return
+	}
+	for _, s := range statuses {
+		health := s.Health
+		if health == "" {
+			health = s.State
+		}
+		ui.Dim(fmt.Sprintf("  %-20s %s", s.Name, health))
+	}
+	fmt.Println()
 }
 
 // printDryRun shows what would happen without executing.

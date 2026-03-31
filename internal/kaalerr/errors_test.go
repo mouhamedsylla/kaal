@@ -54,7 +54,7 @@ func TestErrorMessages(t *testing.T) {
 	}{
 		{
 			&kaalerr.DeployError{Phase: "pull", Target: "vps-prod", Cause: errors.New("timeout")},
-			"deploy [pull] on vps-prod",
+			"deploy [pull] failed on vps-prod",
 		},
 		{
 			&kaalerr.ConfigError{Path: "kaal.yaml", Cause: errors.New("invalid yaml")},

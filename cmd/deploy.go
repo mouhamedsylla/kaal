@@ -23,6 +23,7 @@ func init() {
 	deployCmd.Flags().String("target", "", "override target from kaal.yaml")
 	deployCmd.Flags().StringP("strategy", "s", "rolling", "deployment strategy (rolling)")
 	deployCmd.Flags().Bool("dry-run", false, "show what would happen without executing")
+	deployCmd.Flags().Bool("no-rollback", false, "skip auto-rollback on healthcheck failure")
 }
 
 func runDeploy(cmd *cobra.Command, _ []string) error {
@@ -30,13 +31,15 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 	target, _ := cmd.Flags().GetString("target")
 	strategy, _ := cmd.Flags().GetString("strategy")
 	dryRun, _ := cmd.Flags().GetBool("dry-run")
+	noRollback, _ := cmd.Flags().GetBool("no-rollback")
 
 	if err := deploy.Run(cmd.Context(), deploy.Options{
-		Env:      currentEnv,
-		Tag:      tag,
-		Target:   target,
-		Strategy: strategy,
-		DryRun:   dryRun,
+		Env:        currentEnv,
+		Tag:        tag,
+		Target:     target,
+		Strategy:   strategy,
+		DryRun:     dryRun,
+		NoRollback: noRollback,
 	}); err != nil {
 		ui.Fatal(err)
 	}

@@ -1,0 +1,123 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build (${{ matrix.goos }}/${{ matrix.goarch }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: darwin
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+          cache: true
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: "0"
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          VERSION="${TAG_NAME}"
+          COMMIT="$(git rev-parse --short HEAD)"
+          BUILD_DATE="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          LDFLAGS="-X github.com/mouhamedsylla/kaal/internal/version.Version=${VERSION} \
+                   -X github.com/mouhamedsylla/kaal/internal/version.Commit=${COMMIT} \
+                   -X github.com/mouhamedsylla/kaal/internal/version.BuildDate=${BUILD_DATE}"
+          go build -ldflags "${LDFLAGS}" -o kaal .
+
+      - name: Package tarball
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          VERSION="${TAG_NAME#v}"
+          PLATFORM="${GOOS}_${GOARCH}"
+          TARBALL="kaal_${VERSION}_${PLATFORM}.tar.gz"
+          tar -czf "${TARBALL}" kaal
+          echo "TARBALL=${TARBALL}" >> "$GITHUB_ENV"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kaal-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: ${{ env.TARBALL }}
+          retention-days: 1
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist/
+          merge-multiple: true
+
+      - name: Generate checksums
+        run: |
+          cd dist
+          sha256sum kaal_*.tar.gz > checksums.txt
+          cat checksums.txt
+
+      - name: Extract release notes
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          touch release_notes.txt
+          # Try to extract section from CHANGELOG.md
+          if [ -f CHANGELOG.md ]; then
+            awk -v tag="${TAG_NAME}" '
+              /^## / { if (found) exit; if (index($0, tag)) found=1; next }
+              found { print }
+            ' CHANGELOG.md > release_notes.txt
+          fi
+          # Fallback: git log since previous tag
+          if [ ! -s release_notes.txt ]; then
+            PREV_TAG=$(git tag --sort=-version:refname | grep -v "^${TAG_NAME}$" | head -1)
+            if [ -n "$PREV_TAG" ]; then
+              git log "${PREV_TAG}..HEAD" --pretty=format:"- %s" > release_notes.txt
+            fi
+          fi
+          echo "--- release notes ---"
+          cat release_notes.txt
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          body_path: release_notes.txt
+          fail_on_unmatched_files: true
+          files: |
+            dist/kaal_*.tar.gz
+            dist/checksums.txt

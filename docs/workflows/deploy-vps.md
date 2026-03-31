@@ -30,7 +30,7 @@ mkdir -p /home/deploy/.ssh
 cat your-key.pub >> /home/deploy/.ssh/authorized_keys
 ```
 
-Le user deploy n'a pas besoin d'être dans le groupe docker dès le départ — `kaal setup` s'en occupe.
+Le user deploy n'a pas besoin d'être dans le groupe docker dès le départ : `kaal setup` s'en occupe.
 
 ### Dans kaal.yaml
 
@@ -91,12 +91,12 @@ kaal preflight --target deploy
 ✓ vps_connectivity     connected to deploy@1.2.3.4
 ✓ vps_docker_group     deploy can run docker commands
 ✓ vps_env_file         .env.prod synced at ~/kaal/.env.prod
-✓ All checks passed — ready to deploy
+✓ All checks passed : ready to deploy
 ```
 
 Si une vérification échoue, le rapport indique :
-- `[HUMAN]` — ce que tu dois faire toi-même (crédentials, clé SSH, port firewall)
-- `[AGENT]` — ce que ton agent AI peut fixer automatiquement (`kaal_setup`, `kaal_sync`…)
+- `[HUMAN]` : ce que tu dois faire toi-même (crédentials, clé SSH, port firewall)
+- `[AGENT]` : ce que ton agent AI peut fixer automatiquement (`kaal_setup`, `kaal_sync`…)
 
 ---
 
@@ -115,7 +115,7 @@ kaal push --tag v1.0.0
 - Si le Dockerfile manque les `ARG` correspondants → patch transparent dans un fichier temporaire (l'original n'est pas modifié)
 
 ```
-→ Detected macOS ARM64 — building for linux/amd64 (VPS target)
+→ Detected macOS ARM64 : building for linux/amd64 (VPS target)
 → Injecting build args: VITE_APP_ENV, VITE_API_URL
   ARG/ENV lines auto-injected into builder stage (original Dockerfile unchanged)
 → Building ghcr.io/mouhamedsylla/my-api:abc1234 [linux/amd64]
@@ -137,7 +137,7 @@ kaal deploy --env prod --tag v1.0.0
 
 1. Résout le target (`vps-prod`) depuis `kaal.yaml`
 2. Ouvre une connexion SSH
-3. **Sync automatique** — copie vers `~/kaal/` sur le VPS :
+3. **Sync automatique** : copie vers `~/kaal/` sur le VPS :
    - `kaal.yaml`
    - `docker-compose.prod.yml`
    - `.env.prod` (déclaré dans `environments.prod.env_file`)
@@ -155,7 +155,7 @@ kaal deploy --env prod --tag v1.0.0
 
 ### Le répertoire de travail remote
 
-Tous les fichiers vivent dans `~/kaal/` sur le VPS — jamais dans le home directory racine. docker compose est toujours lancé avec le chemin complet `~/kaal/docker-compose.<env>.yml`.
+Tous les fichiers vivent dans `~/kaal/` sur le VPS : jamais dans le home directory racine. docker compose est toujours lancé avec le chemin complet `~/kaal/docker-compose.<env>.yml`.
 
 ---
 
@@ -169,6 +169,43 @@ kaal sync --env prod
 ```
 
 Utile après avoir modifié `nginx/prod.conf` ou `.env.prod` sans changer l'image.
+
+---
+
+## Sync sans redéploiement
+
+Quand seuls des **fichiers de configuration** changent (ex : `nginx/prod.conf`, `.env.prod`), utiliser `kaal sync` plutôt que de relancer un push + deploy complet.
+
+### Ce que `kaal sync` fait
+
+`kaal sync --env prod` copie vers `~/kaal/` sur le VPS :
+- Les fichiers plats déclarés dans `kaal.yaml` : fichier compose, fichier env
+- Tous les fichiers référencés en **bind-mount** dans le compose (ex : `./nginx/prod.conf` → `~/kaal/nginx/prod.conf`)
+
+### Rechargement automatique de nginx
+
+Si des fichiers de configuration nginx ont été mis à jour, kaal exécute automatiquement `nginx -s reload` à l'intérieur du container proxy : **sans interruption de service**. Aucune commande manuelle n'est nécessaire.
+
+```
+→ Syncing files to remote
+  ✓ kaal.yaml
+  ✓ docker-compose.prod.yml
+  ✓ .env.prod
+  ✓ nginx/prod.conf
+→ Nginx config updated : reloading proxy container
+✓ nginx -s reload (zero downtime)
+```
+
+### Quand utiliser quoi
+
+Utiliser `kaal push` + `kaal deploy` uniquement quand le **code source ou le Dockerfile** change.
+
+| Changement | Commande |
+|---|---|
+| Code source (`App.jsx`, `main.go`, etc.) | `kaal push --env prod --tag vX` + `kaal deploy --env prod --tag vX` |
+| Config nginx (`nginx/prod.conf`) | `kaal sync --env prod` (+ reload auto) |
+| Variables d'env (`.env.prod`) | `kaal sync --env prod` + `kaal deploy --env prod` |
+| `docker-compose.prod.yml` | `kaal sync --env prod` + `kaal deploy --env prod` |
 
 ---
 

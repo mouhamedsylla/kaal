@@ -2,6 +2,7 @@ package compose
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/mouhamedsylla/kaal/internal/orchestrator"
@@ -32,10 +33,18 @@ func parseComposePS(data []byte) ([]orchestrator.ServiceStatus, error) {
 		if err := json.Unmarshal([]byte(line), &entry); err != nil {
 			continue
 		}
+		// Deduplicate by port number: docker reports the same published port
+		// twice (once for 0.0.0.0 IPv4, once for :: IPv6). Show each port once.
+		seen := map[int]bool{}
 		var ports []string
 		for _, p := range entry.Publishers {
-			if p.PublishedPort > 0 {
-				ports = append(ports, p.URL)
+			if p.PublishedPort > 0 && !seen[p.PublishedPort] {
+				seen[p.PublishedPort] = true
+				host := p.URL
+				if host == "" || host == "::" {
+					host = "0.0.0.0"
+				}
+				ports = append(ports, fmt.Sprintf("%s:%d", host, p.PublishedPort))
 			}
 		}
 		statuses = append(statuses, orchestrator.ServiceStatus{

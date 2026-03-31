@@ -27,20 +27,18 @@ type Client struct {
 }
 
 // NewClient establishes an SSH connection using the given config.
+//
+// Key resolution order:
+//  1. KAAL_SSH_KEY env var — PEM content directly (CI/CD pipelines, GitHub Actions secrets)
+//  2. cfg.KeyPath file — local path, supports ~/  expansion
 func NewClient(cfg Config) (*Client, error) {
 	if cfg.Port == 0 {
 		cfg.Port = 22
 	}
 
-	keyPath := cfg.KeyPath
-	if strings.HasPrefix(keyPath, "~/") {
-		home, _ := os.UserHomeDir()
-		keyPath = filepath.Join(home, keyPath[2:])
-	}
-
-	key, err := os.ReadFile(keyPath)
+	key, err := resolveSSHKey(cfg.KeyPath)
 	if err != nil {
-		return nil, fmt.Errorf("cannot read SSH key %s: %w", keyPath, err)
+		return nil, err
 	}
 
 	signer, err := ssh.ParsePrivateKey(key)
@@ -62,6 +60,47 @@ func NewClient(cfg Config) (*Client, error) {
 	}
 
 	return &Client{conn: conn, cfg: cfg}, nil
+}
+
+// resolveSSHKey returns the PEM bytes for the SSH private key.
+//
+// Priority:
+//  1. KAAL_SSH_KEY env var — PEM content as a string (for CI/CD).
+//     GitHub Actions encodes secrets with literal \n; we normalise them.
+//  2. keyPath file — expanded from ~/
+func resolveSSHKey(keyPath string) ([]byte, error) {
+	if raw := os.Getenv("KAAL_SSH_KEY"); raw != "" {
+		// GitHub Actions stores multi-line secrets with literal \n sequences.
+		// Normalize them to actual newlines so ssh.ParsePrivateKey works.
+		raw = strings.ReplaceAll(raw, `\n`, "\n")
+		return []byte(strings.TrimSpace(raw) + "\n"), nil
+	}
+
+	if keyPath == "" {
+		return nil, fmt.Errorf(
+			"no SSH key configured\n" +
+				"  Set one of:\n" +
+				"    targets.<name>.key in kaal.yaml  (e.g. ~/.ssh/id_kaal)\n" +
+				"    export KAAL_SSH_KEY=\"$(cat ~/.ssh/id_kaal)\"  (for CI/CD)",
+		)
+	}
+
+	if strings.HasPrefix(keyPath, "~/") {
+		home, _ := os.UserHomeDir()
+		keyPath = filepath.Join(home, keyPath[2:])
+	}
+
+	key, err := os.ReadFile(keyPath)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"cannot read SSH key %s: %w\n"+
+				"  Alternatives:\n"+
+				"    ssh-keygen -t ed25519 -f %s\n"+
+				"    export KAAL_SSH_KEY=\"$(cat %s)\"",
+			keyPath, err, keyPath, keyPath,
+		)
+	}
+	return key, nil
 }
 
 // Run executes a command on the remote host and returns combined output.
@@ -167,6 +206,33 @@ func (c *Client) scpFile(ctx context.Context, localPath, remoteDir string) error
 
 	_ = remotePath
 	return session.Run(fmt.Sprintf("scp -t %s", remoteDir))
+}
+
+// RunWithOutput executes a command on the remote host and writes combined
+// stdout+stderr to w in real time. Returns an error if the command exits
+// non-zero. Unlike Run, the caller sees output as it arrives — useful for
+// long-running commands such as docker pull or docker compose up.
+func (c *Client) RunWithOutput(ctx context.Context, command string, w io.Writer) error {
+	session, err := c.conn.NewSession()
+	if err != nil {
+		return fmt.Errorf("new SSH session: %w", err)
+	}
+	defer session.Close()
+
+	session.Stdout = w
+	session.Stderr = w
+
+	done := make(chan struct{})
+	go func() {
+		select {
+		case <-ctx.Done():
+			session.Close()
+		case <-done:
+		}
+	}()
+	defer close(done)
+
+	return session.Run(command)
 }
 
 // Stream executes a command on the remote host and streams output line by line.

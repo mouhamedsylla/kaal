@@ -6,6 +6,7 @@ package kaalerr
 import (
 	"errors"
 	"fmt"
+	"strings"
 )
 
 // Exit codes — stable across releases, safe to use in scripts.
@@ -42,25 +43,35 @@ func (e *ConfigError) ExitCode() int { return ExitConfig }
 
 // DeployError is returned when a deployment step fails on the remote target.
 type DeployError struct {
-	Phase   string // pull | restart | state | sync
-	Target  string // target name from kaal.yaml
-	Command string // remote command that failed (may be empty)
-	Output  string // combined stdout/stderr from the remote
-	Cause   error
+	Phase    string // pull | restart | state | sync | rollback-pull | rollback-restart
+	Target   string // host from kaal.yaml
+	Command  string // remote command that failed (may be empty)
+	Output   string // combined stdout/stderr captured from the remote command
+	Cause    error
+	Streamed bool // true when Output was already printed live to the terminal
 }
 
 func (e *DeployError) Error() string {
-	msg := fmt.Sprintf("deploy [%s] on %s", e.Phase, e.Target)
-	if e.Command != "" {
-		msg += fmt.Sprintf(": command %q failed", e.Command)
-	}
+	var b strings.Builder
+
+	// Header: which phase and where it failed.
+	fmt.Fprintf(&b, "deploy [%s] failed on %s", e.Phase, e.Target)
+
+	// Root cause on the same line.
 	if e.Cause != nil {
-		msg += ": " + e.Cause.Error()
+		fmt.Fprintf(&b, ": %s", e.Cause.Error())
 	}
-	if e.Output != "" {
-		msg += "\n" + e.Output
+
+	// Remote output — only include when it was NOT already streamed to the
+	// terminal (i.e. MCP / CI mode where the caller never saw it).
+	if e.Output != "" && !e.Streamed {
+		b.WriteString("\n\n  Remote output:\n")
+		for _, line := range strings.Split(strings.TrimRight(e.Output, "\n"), "\n") {
+			fmt.Fprintf(&b, "  │ %s\n", line)
+		}
 	}
-	return msg
+
+	return b.String()
 }
 
 func (e *DeployError) Unwrap() error { return e.Cause }

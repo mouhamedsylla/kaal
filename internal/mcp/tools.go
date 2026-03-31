@@ -73,7 +73,34 @@ OPTIMIZATION REQUIREMENTS — every Dockerfile you generate MUST follow these ru
 7. Read-only filesystem: avoid writing to the container filesystem at runtime where possible.
 8. No secrets in image: never COPY .env files or secret files into the image.
 9. Pinned versions: use pinned base image tags (not :latest).
-10. Single responsibility: one process per container; use CMD not ENTRYPOINT+CMD unless an entrypoint script is needed.`,
+10. Single responsibility: one process per container; use CMD not ENTRYPOINT+CMD unless an entrypoint script is needed.
+11. ARG vs ENV for build-time vars — applies to ALL stacks, not just Vite:
+    Any var that is only needed at build time (compile/bundle step) must be declared as ARG only.
+    NEVER follow a build-time ARG with ENV VAR=$ARG. Here is why:
+    - Docker ARG vars are available as process env to every RUN command in the same stage.
+      So "RUN npm run build", "RUN go build", "RUN python setup.py" etc. all see ARG vars directly.
+    - If you also write "ENV VAR=$ARG", Docker bakes the value (or "" if no --build-arg was
+      passed) permanently into the image layer. Every container started from that image will have
+      VAR="" in its process env. That empty string overrides any runtime source (env_file, .env
+      files, secrets) because process env has highest priority in every major framework:
+        Vite      → process env beats .env.* files
+        Next.js   → process env beats .env.* files  (NEXT_PUBLIC_* same issue)
+        CRA       → process env beats .env.* files  (REACT_APP_* same issue)
+        SvelteKit → process env beats .env.* files  (PUBLIC_* same issue)
+        Nuxt      → process env beats .env.* files  (NUXT_PUBLIC_* same issue)
+        Angular   → ng build reads process env; empty var baked into bundle
+        Go/Rust   → ldflags / build tags read from env; "" gets compiled in
+        Python    → os.environ reads process env first
+    CORRECT pattern (build-time only — nothing baked into the image):
+      ARG NEXT_PUBLIC_API_URL
+      ARG VITE_APP_ENV
+      ARG REACT_APP_FEATURE_FLAG
+      RUN npm run build       # or: RUN go build, RUN cargo build, etc.
+    WRONG pattern (bakes "" into the image, silently breaks all envs that skip --build-arg):
+      ARG NEXT_PUBLIC_API_URL
+      ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL   # ← NEVER DO THIS
+    Exception: if a var is genuinely needed at container RUNTIME (not just at build time),
+    declare it with ENV and a safe default (e.g. ENV PORT=8080), or inject it via env_file.`,
 	InputSchema: InputSchema{
 		Type: "object",
 		Properties: map[string]Property{
@@ -99,14 +126,32 @@ OPTIMIZATION REQUIREMENTS — every docker-compose file you generate MUST follow
 4. Restart policy: use restart: unless-stopped for all long-lived services.
 5. Health checks: add healthcheck blocks for every service, especially databases.
    Depend on health: use depends_on with condition: service_healthy so services start in order.
-6. env_file injection: ALWAYS read the env_file declared for the active environment in kaal.yaml
-   (e.g. environments.prod.env_file = ".env.prod") and add it to every app service:
+6. env_file injection: ALWAYS add env_file to EVERY app service — MANDATORY for all stacks,
+   all environments (dev, staging, prod). Read the env_file from kaal.yaml:
+   (environments.<env>.env_file) and inject it:
      env_file:
-       - .env.prod
-   Never hardcode secret values; rely entirely on the env_file + ${VAR} substitution.
-7. Vite/Node command alignment: if the stack is node/vite, the start command MUST include
-   --mode <env> so Vite reads the right .env file (e.g. "npx vite --host 0.0.0.0 --mode dev").
-   Without --mode, Vite defaults to .env.development and ignores .env.dev.
+       - .env.dev   # match the environment: .env.dev / .env.staging / .env.prod
+   WHY this is mandatory for every stack and every env:
+   Docker images often contain empty process env vars (e.g. from ARG/ENV patterns, base images,
+   or previous layers). Process env has the highest priority in every framework and runtime:
+   it overrides .env files (Vite, Next.js, CRA, SvelteKit, Nuxt), config files (Rails, Django,
+   Laravel), and SDK defaults (AWS SDK, GCP SDK read env first). If a var is "" in process env,
+   the framework uses that "" — not the value in the .env file on disk.
+   env_file in docker-compose sets the correct values at container startup, overriding whatever
+   the image has. This is the single reliable source of truth for runtime config.
+   This applies to: Node/Vite/Next.js/CRA/SvelteKit/Nuxt (VITE_*, NEXT_PUBLIC_*, REACT_APP_*,
+   PUBLIC_*, NUXT_PUBLIC_*), Go binaries (env-based config), Python (os.environ), Ruby, PHP, Rust.
+   Never hardcode secret values in the compose file; always rely on env_file.
+7. Framework-specific start commands: match the dev server command to the framework:
+   - Vite        → npx vite --host 0.0.0.0 --port <port> --mode <env>
+                   (--mode is required: without it Vite reads .env.development, not .env.dev)
+   - Next.js dev → node_modules/.bin/next dev -p <port>
+                   (reads .env.development or .env.local by default in dev mode)
+   - CRA dev     → node_modules/.bin/react-scripts start
+   - Angular dev → node_modules/.bin/ng serve --host 0.0.0.0 --port <port>
+   - Nuxt dev    → node_modules/.bin/nuxt dev --host 0.0.0.0 --port <port>
+   In ALL cases, env_file (rule 6) is still required — framework file-based loading is
+   a fallback; process env (set by env_file) is authoritative.
 8. Read-only app containers: where feasible add read_only: true + tmpfs for /tmp.
 9. No build in prod compose: production compose files should reference pre-built images
    (image: <registry>/<name>:<tag>) not build: context.

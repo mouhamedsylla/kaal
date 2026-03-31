@@ -16,6 +16,7 @@ import (
 	"github.com/mouhamedsylla/kaal/internal/config"
 	"github.com/mouhamedsylla/kaal/internal/env"
 	kaalSSH "github.com/mouhamedsylla/kaal/pkg/ssh"
+	"gopkg.in/yaml.v3"
 )
 
 // Target is the goal of a preflight run.
@@ -185,6 +186,70 @@ func Run(ctx context.Context, target Target, activeEnv string) (*Report, error) 
 				Status:      StatusOK,
 				Message:     composeFile,
 			})
+
+			// ── 6a. App services must have env_file ────────────────────────
+			// Without env_file, Docker image ENV vars (baked as "" when no
+			// --build-arg is passed) override .env.* files at runtime.
+			// This silently breaks all VITE_*, NEXT_PUBLIC_*, etc. vars.
+			if envCfg, ok := cfg.Environments[activeEnv]; ok && envCfg.EnvFile != "" {
+				if missing := composeServicesWithoutEnvFile(composeFile, envCfg.EnvFile); len(missing) > 0 {
+					r.add(Check{
+						Name:        "compose_env_file",
+						Description: "All app services declare env_file in compose",
+						Status:      StatusWarning,
+						Message: fmt.Sprintf(
+							"service(s) %s in %s have no env_file — runtime vars will be empty if the Dockerfile uses ARG/ENV pattern",
+							strings.Join(missing, ", "), composeFile,
+						),
+						FixType: FixAgent,
+						AgentTool: "kaal_generate_compose",
+						HumanInstruction: fmt.Sprintf(
+							"Add env_file: %s to each app service in %s.\n"+
+								"Without it, VITE_*/NEXT_PUBLIC_*/REACT_APP_* vars will be empty in the container.",
+							envCfg.EnvFile, composeFile,
+						),
+					})
+				} else {
+					r.add(Check{
+						Name:        "compose_env_file",
+						Description: "All app services declare env_file in compose",
+						Status:      StatusOK,
+						Message:     fmt.Sprintf("env_file: %s", envCfg.EnvFile),
+					})
+				}
+			}
+		}
+	}
+
+	// ── 6b. Build-args gap (push / deploy, node stack) ─────────────────────
+	// Detect compile-time vars (VITE_*, NEXT_PUBLIC_*, etc.) present in the
+	// env file but absent from registry.build_args. These will be silently
+	// empty in the built image — the most common silent failure for frontend apps.
+	if (target == TargetPush || target == TargetDeploy) && len(cfg.Registry.BuildArgs) > 0 {
+		if envCfg, ok := cfg.Environments[activeEnv]; ok && envCfg.EnvFile != "" {
+			if unlisted := buildArgsGap(cfg, envCfg.EnvFile); len(unlisted) > 0 {
+				r.add(Check{
+					Name:        "build_args_gap",
+					Description: "All compile-time vars are in registry.build_args",
+					Status:      StatusWarning,
+					Message: fmt.Sprintf(
+						"%d var(s) in %s look like compile-time vars but are not in kaal.yaml registry.build_args: %s — they will be empty in the built image",
+						len(unlisted), envCfg.EnvFile, strings.Join(unlisted, ", "),
+					),
+					FixType: FixHuman,
+					HumanInstruction: fmt.Sprintf(
+						"Add to kaal.yaml under registry.build_args:\n%s",
+						formatBuildArgsSuggestion(unlisted),
+					),
+				})
+			} else {
+				r.add(Check{
+					Name:        "build_args_gap",
+					Description: "All compile-time vars are in registry.build_args",
+					Status:      StatusOK,
+					Message:     "no unlisted compile-time vars detected",
+				})
+			}
 		}
 	}
 
@@ -239,27 +304,48 @@ func Run(ctx context.Context, target Target, activeEnv string) (*Report, error) 
 				Message:     fmt.Sprintf("%s (%s)", tgt.Host, targetName),
 			})
 
-			// 8. SSH key exists
+			// 8. SSH key — file or KAAL_SSH_KEY env var
 			keyPath := expandHome(tgt.Key)
 			if keyPath == "" {
 				keyPath = expandHome("~/.ssh/id_kaal")
 			}
-			if _, err := os.Stat(keyPath); os.IsNotExist(err) {
+			kaalSSHKeyEnv := os.Getenv("KAAL_SSH_KEY")
+			sshKeyOK := false
+			if kaalSSHKeyEnv != "" {
+				// Env var takes priority over file — valid for CI/CD pipelines.
+				sshKeyOK = true
 				r.add(Check{
-					Name:             "ssh_key",
-					Description:      "SSH key file exists",
-					Status:           StatusError,
-					Message:          fmt.Sprintf("%s not found", keyPath),
-					FixType:          FixHuman,
-					HumanInstruction: fmt.Sprintf("Generate a key and add it to your VPS:\n  ssh-keygen -t ed25519 -f %s\n  ssh-copy-id -i %s.pub %s@%s", keyPath, keyPath, tgt.User, tgt.Host),
+					Name:        "ssh_key",
+					Description: "SSH key available",
+					Status:      StatusOK,
+					Message:     "KAAL_SSH_KEY env var set (CI/CD mode)",
+				})
+			} else if _, err := os.Stat(keyPath); os.IsNotExist(err) {
+				r.add(Check{
+					Name:    "ssh_key",
+					Description: "SSH key file exists",
+					Status:  StatusError,
+					Message: fmt.Sprintf("%s not found", keyPath),
+					FixType: FixHuman,
+					HumanInstruction: fmt.Sprintf(
+						"Option A — generate and register a key:\n"+
+							"  ssh-keygen -t ed25519 -f %s\n"+
+							"  ssh-copy-id -i %s.pub %s@%s\n\n"+
+							"Option B — use env var (CI/CD):\n"+
+							"  export KAAL_SSH_KEY=\"$(cat %s)\"",
+						keyPath, keyPath, tgt.User, tgt.Host, keyPath,
+					),
 				})
 			} else {
+				sshKeyOK = true
 				r.add(Check{
 					Name:        "ssh_key",
 					Description: "SSH key file exists",
 					Status:      StatusOK,
 					Message:     keyPath,
 				})
+			}
+			if sshKeyOK {
 
 				// 9. VPS SSH connectivity (5s timeout)
 				vpsCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
@@ -578,3 +664,90 @@ func (r *Report) JSON() string {
 	b, _ := json.MarshalIndent(r, "", "  ")
 	return string(b)
 }
+
+// composeServicesWithoutEnvFile parses a compose file and returns the names of
+// app services (services with a build block) that don't declare env_file.
+func composeServicesWithoutEnvFile(composeFile, expectedEnvFile string) []string {
+	data, err := os.ReadFile(composeFile)
+	if err != nil {
+		return nil
+	}
+	var compose struct {
+		Services map[string]struct {
+			Build   any    `yaml:"build"`
+			EnvFile any    `yaml:"env_file"` // string or []string
+			Image   string `yaml:"image"`
+		} `yaml:"services"`
+	}
+	if err := yaml.Unmarshal(data, &compose); err != nil {
+		return nil
+	}
+	var missing []string
+	for name, svc := range compose.Services {
+		// Only check build-based services (app containers), not pre-built images.
+		if svc.Build == nil {
+			continue
+		}
+		hasEnvFile := false
+		switch v := svc.EnvFile.(type) {
+		case string:
+			hasEnvFile = v != ""
+		case []any:
+			hasEnvFile = len(v) > 0
+		}
+		if !hasEnvFile {
+			missing = append(missing, name)
+		}
+	}
+	return missing
+}
+
+// buildArgsGap returns compile-time var names found in envFile that are not
+// listed in cfg.Registry.BuildArgs. Only applies when build_args is explicitly
+// set (acts as a whitelist). Returns nil when build_args is empty (auto-detect mode).
+func buildArgsGap(cfg *config.Config, envFile string) []string {
+	if len(cfg.Registry.BuildArgs) == 0 {
+		return nil // auto-detect mode — no gap possible
+	}
+	data, err := os.ReadFile(envFile)
+	if err != nil {
+		return nil
+	}
+	declared := map[string]bool{}
+	for _, name := range cfg.Registry.BuildArgs {
+		declared[name] = true
+	}
+	compilePrefixes := []string{"VITE_", "NEXT_PUBLIC_", "REACT_APP_", "PUBLIC_", "NUXT_PUBLIC_", "NG_APP_"}
+	var unlisted []string
+	for _, line := range strings.Split(string(data), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		parts := strings.SplitN(line, "=", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		name := strings.TrimSpace(parts[0])
+		if declared[name] {
+			continue
+		}
+		for _, prefix := range compilePrefixes {
+			if strings.HasPrefix(name, prefix) {
+				unlisted = append(unlisted, name)
+				break
+			}
+		}
+	}
+	return unlisted
+}
+
+// formatBuildArgsSuggestion formats a list of var names as kaal.yaml build_args entries.
+func formatBuildArgsSuggestion(names []string) string {
+	lines := []string{"  registry:", "    build_args:"}
+	for _, name := range names {
+		lines = append(lines, fmt.Sprintf("      - %s", name))
+	}
+	return strings.Join(lines, "\n")
+}
+

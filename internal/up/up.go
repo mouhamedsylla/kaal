@@ -47,8 +47,23 @@ func Run(ctx context.Context, opts Options) error {
 		return missingFilesError(projCtx)
 	}
 
-	// Warn if env file is missing (non-blocking — compose can still start)
 	envCfg := cfg.Environments[activeEnv]
+
+	// Warn when running a remote-deploy environment locally.
+	// These environments use pre-built registry images (no build: section)
+	// that must be pulled from the registry — kaal push must have run first.
+	if envCfg.Target != "" {
+		ui.Warn(fmt.Sprintf(
+			"Environment %q is configured for remote deployment (target: %s)",
+			activeEnv, envCfg.Target,
+		))
+		ui.Dim("  Running it locally requires the image to already exist in the registry.")
+		ui.Dim(fmt.Sprintf("  If you haven't pushed yet: kaal push --env %s", activeEnv))
+		ui.Dim("  To develop locally, use the dev environment: kaal env use dev && kaal up")
+		fmt.Println()
+	}
+
+	// Warn if env file is missing (non-blocking — compose can still start)
 	if envCfg.EnvFile != "" {
 		if _, err := os.Stat(envCfg.EnvFile); os.IsNotExist(err) {
 			ui.Warn(fmt.Sprintf("%s not found — services may fail to start without required variables", envCfg.EnvFile))
@@ -62,7 +77,16 @@ func Run(ctx context.Context, opts Options) error {
 	}
 
 	if err := orch.Up(ctx, activeEnv, opts.Services); err != nil {
-		return fmt.Errorf("docker compose failed: %w", err)
+		// compose output was already streamed — give a short actionable hint
+		return fmt.Errorf(
+			"docker compose up failed for environment %q\n\n"+
+				"  Common causes:\n"+
+				"  • Image not found in registry → kaal push --env %s first\n"+
+				"  • Port already in use → check what's running on the configured ports\n"+
+				"  • Missing env variable → check %s\n"+
+				"  • Syntax error in compose file → ask your AI agent to fix it",
+			activeEnv, activeEnv, envCfg.EnvFile,
+		)
 	}
 
 	fmt.Println()
