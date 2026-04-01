@@ -44,9 +44,11 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&currentEnv, "env", "e", "", "target environment (dev, staging, prod)")
 	rootCmd.PersistentFlags().BoolVar(&jsonOutput, "json", false, "output in JSON format (for machine consumption)")
 
+	// setup is absorbed into preflight --fix (Phase 3) — hidden in the meantime.
+	setupCmd.Hidden = true
+
 	rootCmd.AddCommand(
 		initCmd,
-		contextCmd,
 		envCmd,
 		upCmd,
 		downCmd,
@@ -57,9 +59,8 @@ func init() {
 		statusCmd,
 		logsCmd,
 		secretsCmd,
-		historyCmd,
-		setupCmd,
 		preflightCmd,
+		setupCmd,
 		mcpCmd,
 		versionCmd,
 	)

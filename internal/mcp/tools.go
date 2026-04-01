@@ -23,9 +23,7 @@ func (s *Server) registerAll() {
 	s.Register(toolStatus, handleStatus)
 	s.Register(toolLogs, handleLogs)
 
-	// Config + secrets
-	s.Register(toolConfigGet, handleConfigGet)
-	s.Register(toolConfigSet, handleConfigSet)
+	// Secrets
 	s.Register(toolSecretsInject, handleSecretsInject)
 
 	// VPS setup
@@ -304,31 +302,6 @@ var toolLogs = Tool{
 			"lines":   {Type: "string", Description: "Number of lines to return (default 100)"},
 			"since":   {Type: "string", Description: "Return logs since this duration (e.g. 5m, 1h)"},
 		},
-	},
-}
-
-var toolConfigGet = Tool{
-	Name:        "pilot_config_get",
-	Description: "Read a value from pilot.yaml using dot-notation key",
-	InputSchema: InputSchema{
-		Type: "object",
-		Properties: map[string]Property{
-			"key": {Type: "string", Description: "Dot-notation key (e.g. project.name, registry.provider)"},
-		},
-		Required: []string{"key"},
-	},
-}
-
-var toolConfigSet = Tool{
-	Name:        "pilot_config_set",
-	Description: "Set a value in pilot.yaml using dot-notation key",
-	InputSchema: InputSchema{
-		Type: "object",
-		Properties: map[string]Property{
-			"key":   {Type: "string", Description: "Dot-notation key"},
-			"value": {Type: "string", Description: "New value"},
-		},
-		Required: []string{"key", "value"},
 	},
 }
 

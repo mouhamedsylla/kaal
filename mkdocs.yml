@@ -47,6 +47,7 @@ nav:
     - Serveur MCP: internals/mcp-server.md
     - Orchestrateurs: internals/orchestrators.md
     - Fournisseurs (Providers): internals/providers.md
+    - Modèle de résilience: resilience.md
   - Dépannage:
     - Variables vides en container: troubleshooting/env-vars-empty-in-container.md
 

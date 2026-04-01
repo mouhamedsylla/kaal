@@ -24,10 +24,6 @@ var handleSync HandlerFunc = handlers.HandleSync
 var handleStatus HandlerFunc = handlers.HandleStatus
 var handleLogs HandlerFunc = handlers.HandleLogs
 
-// Config — implemented
-var handleConfigGet HandlerFunc = handlers.HandleConfigGet
-var handleConfigSet HandlerFunc = handlers.HandleConfigSet
-
 // Secrets — implemented
 var handleSecretsInject HandlerFunc = handlers.HandleSecretsInject
 

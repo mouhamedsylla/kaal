@@ -147,51 +147,6 @@ done:
 	}, nil
 }
 
-// HandleConfigGet reads a dot-notation key from pilot.yaml.
-func HandleConfigGet(_ context.Context, params map[string]any) (any, error) {
-	key := strParam(params, "key")
-	if key == "" {
-		return nil, fmt.Errorf("key is required")
-	}
-
-	cfg, err := config.Load(".")
-	if err != nil {
-		return nil, err
-	}
-
-	value, err := configGet(cfg, key)
-	if err != nil {
-		return nil, err
-	}
-	return map[string]any{"key": key, "value": value}, nil
-}
-
-// HandleConfigSet sets a dot-notation key in pilot.yaml.
-func HandleConfigSet(_ context.Context, params map[string]any) (any, error) {
-	key := strParam(params, "key")
-	value := strParam(params, "value")
-	if key == "" {
-		return nil, fmt.Errorf("key is required")
-	}
-
-	cfg, err := config.Load(".")
-	if err != nil {
-		return nil, err
-	}
-
-	if err := configSet(cfg, key, value); err != nil {
-		return nil, err
-	}
-	if err := config.Save(cfg, "pilot.yaml"); err != nil {
-		return nil, err
-	}
-	return map[string]any{
-		"key":     key,
-		"value":   value,
-		"message": fmt.Sprintf("Set %s = %s in pilot.yaml", key, value),
-	}, nil
-}
-
 // HandleSecretsInject resolves and returns all secrets for an environment.
 func HandleSecretsInject(ctx context.Context, params map[string]any) (any, error) {
 	cfg, err := config.Load(".")
@@ -261,44 +216,4 @@ func statusesToMap(ss []providers.ServiceStatus) []map[string]any {
 	return out
 }
 
-// configGet navigates dot-notation keys into the config struct.
-func configGet(cfg *config.Config, key string) (string, error) {
-	switch key {
-	case "project.name":
-		return cfg.Project.Name, nil
-	case "project.stack":
-		return cfg.Project.Stack, nil
-	case "project.language_version":
-		return cfg.Project.LanguageVersion, nil
-	case "registry.provider":
-		return cfg.Registry.Provider, nil
-	case "registry.image":
-		return cfg.Registry.Image, nil
-	case "registry.url":
-		return cfg.Registry.URL, nil
-	default:
-		return "", fmt.Errorf("unknown key %q — supported: project.name, project.stack, project.language_version, registry.provider, registry.image, registry.url", key)
-	}
-}
-
-// configSet updates a dot-notation key in the config struct.
-func configSet(cfg *config.Config, key, value string) error {
-	switch key {
-	case "project.name":
-		cfg.Project.Name = value
-	case "project.stack":
-		cfg.Project.Stack = value
-	case "project.language_version":
-		cfg.Project.LanguageVersion = value
-	case "registry.provider":
-		cfg.Registry.Provider = value
-	case "registry.image":
-		cfg.Registry.Image = value
-	case "registry.url":
-		cfg.Registry.URL = value
-	default:
-		return fmt.Errorf("unknown key %q — supported: project.name, project.stack, project.language_version, registry.provider, registry.image, registry.url", key)
-	}
-	return nil
-}
 
