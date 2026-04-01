@@ -767,5 +767,88 @@ ou dans l'état `GUIDED_FAILURE`. Jamais dans un état indéterminé.
 
 ---
 
+## 11. Évolutions planifiées de la surface de commandes
+
+Ce modèle de résilience implique des ajouts et des retraits par rapport à l'état actuel de pilot.
+Rien n'est implémenté ici — c'est le plan de référence.
+
+### À ajouter
+
+#### `pilot validate` — analyse statique offline
+Vérifie la cohérence du projet sans aucune dépendance runtime (pas de Docker, pas de réseau).
+Peut tourner sur une machine fraîche, en CI, avant toute installation.
+Cible : Dockerfile antipatterns, `pilot.yaml` valide, `.env.*` cohérents, `.gitignore` correct.
+Différent de `pilot preflight` qui nécessite Docker et le réseau.
+
+#### `pilot env diff <env1> <env2>` — parité entre environnements
+Affiche les variables présentes dans un environnement et absentes de l'autre,
+les ports qui diffèrent, les services qui ne sont pas dans les deux compose files.
+Colmate le trou classique "ça marche en dev mais plante en prod pour une variable manquante".
+
+#### `pilot secrets check [--env <env>]` — valider sans exposer
+Vérifie que chaque secret référencé dans `pilot.yaml` existe et est non-vide
+dans le provider configuré. Aucune valeur affichée — juste existence + non-vide.
+S'intègre au preflight avant chaque deploy.
+
+#### `--dry-run` sur `pilot deploy` et `pilot push`
+Affiche le plan complet (étapes, compensation prévue, ce qui va changer)
+sans rien exécuter. Utile pour l'agent avant d'agir, et pour l'humain prudent avant prod.
+
+#### `pilot clean` — nettoyage ciblé du projet
+Supprime les images locales obsolètes, containers stopped, volumes orphelins
+appartenant à ce projet spécifiquement. Plus chirurgical que `docker system prune`
+qui touche tous les projets de la machine.
+
+#### `pilot env push [--env <env>]` — mettre à jour les vars sans redéployer
+Synchronise le fichier `.env.*` vers le VPS et redémarre les services affectés,
+sans rebuilder l'image. Comble le vide entre `pilot sync` (fichiers config)
+et `pilot deploy` (image complète) pour le cas "je veux juste changer LOG_LEVEL".
+
+```
+pilot sync      → fichiers statiques (nginx.conf, certs…)
+pilot env push  → variables d'environnement + restart des services
+pilot deploy    → nouvelle image + tout le reste
+```
+
+#### `pilot init --adopt` — adopter un projet existant
+Génère `pilot.yaml` depuis un projet qui a déjà un Dockerfile et un docker-compose,
+au lieu de créer de zéro. Réduit la friction pour les projets qui veulent rejoindre
+pilot sans tout refaire.
+
+---
+
+### À retirer
+
+#### `pilot_config_get` / `pilot_config_set` — outils MCP
+Permettre à un agent IA de lire et écrire `pilot.yaml` directement est trop risqué.
+Une correction silencieuse d'un champ peut en casser un autre.
+`pilot.yaml` reste sous contrôle humain — l'agent peut suggérer, l'humain applique.
+
+#### `pilot_generate_k8s` — outil MCP
+Le provider Kubernetes n'est pas encore implémenté. Exposer un outil MCP
+pour quelque chose qui ne fonctionne pas crée de fausses attentes.
+À réintroduire quand k8s sera réellement opérationnel.
+
+---
+
+### À fusionner / absorber
+
+#### `pilot setup` → dans `pilot preflight --fix`
+`pilot setup` n'ajoute l'utilisateur VPS au groupe docker. C'est un TYPE B :
+pilot peut le détecter lors du preflight et le corriger automatiquement.
+Pas besoin d'une commande de premier niveau pour ça.
+
+#### `pilot history` → dans `pilot status --history`
+`pilot history` est une vue temporelle de `state.json`. Ce n'est pas un concept
+distinct de `pilot status` — c'est la même chose avec un filtre temporel.
+`pilot status` pour l'état courant, `pilot status --history` pour le passé.
+
+#### `pilot context` → sous `pilot mcp context`
+`pilot context` n'a de sens que dans un contexte MCP. Exposée au même niveau
+que `pilot deploy` dans `--help`, elle crée de la confusion pour l'utilisateur humain.
+À ranger sous le namespace `pilot mcp` pour clarifier que c'est une commande agent.
+
+---
+
 *Ce document est la référence de conception pour l'implémentation du modèle de résilience de pilot.*
 *Aucun code ne doit être écrit avant validation de ce document.*
