@@ -9,7 +9,7 @@
 **pilot** est un CLI terminal-first, opinionated et IA-natif qui accompagne le développeur
 de l'initialisation d'un projet jusqu'au déploiement en production.
 
-Sa promesse centrale : **ce qui tourne en local tourne en production, sans modification.**
+Sa promesse centrale : **ce qui tourne en local tourne en production pour tout ce que pilot contrôle — les divergences hors périmètre sont rendues visibles avant le déploiement.**
 
 pilot cible en priorité les *vibe coders* — des développeurs qui codent avec ou sans agent IA,
 qui ne maîtrisent pas nécessairement les rouages du DevOps, et qui ont besoin qu'un outil
@@ -61,7 +61,21 @@ Ce principe gouverne trois dimensions :
 |---|---|---|
 | **Opérations** | Une commande simple | Un graphe d'étapes avec dépendances |
 | **Erreurs** | Un message clair + des étapes exactes | Une taxonomie structurée à 4 niveaux |
-| **pilot.yaml** | Seulement ce qui est vraiment nécessaire | Inférence automatique du reste |
+| **pilot.yaml** | Seulement ce qui est vraiment nécessaire | Inférence validée dans `pilot.lock` |
+
+### La promesse reformulée
+
+> **"Ce qui tourne en local tourne en production pour tout ce que pilot contrôle.**
+> **Les divergences hors périmètre sont rendues visibles avant le déploiement."**
+
+Docker ne résout pas tout. ARM vs x86, volumes locaux vs stockage distant, ressources
+disponibles, DNS interne vs externe — ces divergences existent et pilot ne peut pas
+toutes les effacer. Ce qu'il peut faire, c'est les rendre **prévisibles et visibles**
+plutôt que silencieuses.
+
+`pilot env diff dev prod` (voir section 11) est l'outil qui matérialise cette promesse :
+un rapport des divergences connues avant chaque déploiement, avec une distinction claire
+entre ce que pilot gère et ce qui reste sous la responsabilité du développeur.
 
 ---
 
@@ -138,44 +152,149 @@ La forme est toujours reconnaissable. Ce qui change c'est ce qui s'active.
 
 ---
 
-### 1.3 Ce que pilot infère automatiquement
+### 1.3 `pilot.lock` — l'inférence validée une fois pour toutes
 
-pilot analyse le projet et active les nœuds sans intervention manuelle.
-Mais l'inférence n'est pas magique — elle est **graduée selon le niveau de confiance** :
+L'inférence dynamique à chaque exécution est une bombe à retardement : un projet qui évolue
+silencieusement change le comportement de pilot sans que personne ne le voie. La solution n'est
+pas d'inférer mieux à chaque fois — c'est d'**inférer une fois, valider, verrouiller**.
 
-- **Confiance haute** (signal non-ambigu) → pilot agit et **annonce** ce qu'il fait (TYPE B).
-  L'utilisateur voit ce qui se passe, peut interrompre si besoin.
-- **Confiance basse** (signal ambigu ou multiple) → pilot **liste et demande** (TYPE C).
-  Il ne choisit jamais arbitrairement.
+#### Fonctionnement
 
-| Signal détecté | Confiance | Nœud activé | Ce que pilot fait |
-|---|---|---|---|
-| `prisma/schema.prisma` seul dans le projet | haute | [3] migrations | annonce + `npx prisma migrate deploy` |
-| `alembic.ini` seul dans le projet | haute | [3] migrations | annonce + `alembic upgrade head` |
-| `go-migrate` dans les dépendances | haute | [3] migrations | annonce + `migrate up` |
-| `flyway.conf` dans le projet | haute | [3] migrations | annonce + `flyway migrate` |
-| Plusieurs outils de migration détectés | basse | [3] migrations | demande lequel utiliser |
-| Service nginx avec bind-mount `.conf` | haute | [6] post-hook | annonce + `nginx -s reload` |
-| Services avec `depends_on` | haute | [5] deploy | ordre topologique respecté |
-| `healthcheck:` dans compose | haute | [7] healthcheck | attend le statut `healthy` |
+Au premier `pilot preflight`, pilot analyse le projet et produit un fichier `pilot.lock` :
 
-**Ce que l'utilisateur voit dans tous les cas :**
+```yaml
+# pilot.lock — généré automatiquement, à committer dans le repo
+# NE PAS MODIFIER MANUELLEMENT — relancer pilot preflight pour régénérer
+
+schema_version: 1
+generated_at: "2026-04-03T10:00:00Z"
+generated_from:
+  - prisma/schema.prisma
+  - docker-compose.prod.yml
+  - pilot.yaml
+
+execution_plan:
+  nodes_active: [preflight, migrations, push, deploy, healthcheck]
+
+  migrations:
+    tool: prisma
+    command: npx prisma migrate deploy
+    rollback_command: npx prisma migrate rollback
+    reversible: false                        # déclaré explicitement, pas de défaut
+    detected_from: prisma/schema.prisma
+
+  service_order: [db, redis, api, worker]    # résolu depuis depends_on
+  readiness_signals:
+    api:    { type: healthcheck, endpoint: "http://localhost:8080/health" }
+    worker: { type: healthcheck, endpoint: "http://localhost:9000/health" }
+    db:     { type: healthcheck, command: "pg_isready" }
+
+execution_provider: compose                  # docker-compose (v1 default)
 ```
-  → Migration détectée : prisma (prisma/schema.prisma)
-    Commande : npx prisma migrate deploy
-    Continuez avec Ctrl+C pour annuler...
+
+L'utilisateur **valide ce fichier une fois** — il reflète exactement ce que pilot va faire.
+Il est commité dans le repo. pilot s'y réfère pour toutes les exécutions suivantes.
+**Ce qui tourne en production, c'est ce que l'équipe a validé — pas ce que pilot a inféré ce matin.**
+
+#### Gestion de la fraîcheur
+
+`pilot.lock` devient **stale** quand les signaux qui l'ont produit changent :
+- nouveau fichier de migration détecté
+- `depends_on` modifié dans compose
+- `pilot.yaml` modifié
+- Dockerfile modifié (changement de stage de build)
+
+Quand pilot détecte un lock stale :
+```
+  ✗  pilot.lock est obsolète
+     Changements détectés depuis la dernière validation :
+       → prisma/schema.prisma modifié (nouvelle migration)
+
+  Relancez pilot preflight pour régénérer et valider le plan.
 ```
 
-L'inférence est transparente. Elle ne se cache pas. Si pilot se trompe,
-l'utilisateur le voit avant que quoi que ce soit soit exécuté.
+pilot **refuse de continuer** tant que le lock n'est pas à jour.
+L'agent ne peut pas ignorer cette erreur — elle est BLOCKING.
+
+#### Inférence graduée (pour la génération du lock)
+
+Lors de la génération du lock, l'inférence reste graduée :
+
+| Signal détecté | Confiance | Comportement |
+|---|---|---|
+| Un seul outil de migration détecté | haute | inscrit directement dans le lock |
+| Plusieurs outils détectés | basse | TYPE C : demande lequel retenir |
+| Service nginx avec bind-mount `.conf` | haute | post-hook nginx reload inscrit |
+| `depends_on` dans compose | haute | service_order calculé et inscrit |
+| Pas de `healthcheck` sur service critique | basse | warning + inscrit sans signal de readiness |
+
+Une fois le lock généré et validé, ces questions ne se reposent plus.
 
 ---
 
-### 1.4 Multi-services et dépendances
+### 1.4 L'interface du provider d'exécution
+
+pilot ne parle jamais à Docker directement dans son core. Il parle à une interface
+abstraite — le **provider d'exécution** — dont Docker/Compose est la première implémentation.
+
+#### Pourquoi cette abstraction dès le départ
+
+Si le core de pilot appelle des commandes Docker directement, ajouter Podman ou systemd
+plus tard nécessite une réécriture. L'interface doit exister en v1, même si une seule
+implémentation concrète existe. C'est la condition pour que pilot soit extensible
+sans dette technique accumulée.
+
+#### Le contrat du provider
+
+```go
+type ExecutionProvider interface {
+    // Build construit l'image depuis le contexte du projet.
+    Build(ctx context.Context, opts BuildOptions) error
+
+    // Push publie l'image vers le registry.
+    Push(ctx context.Context, opts PushOptions) error
+
+    // Deploy déploie les services sur la cible.
+    Deploy(ctx context.Context, opts DeployOptions) error
+
+    // Health vérifie que les services sont prêts (readiness, pas juste started).
+    Health(ctx context.Context, opts HealthOptions) (HealthStatus, error)
+
+    // Stop arrête les services proprement.
+    Stop(ctx context.Context, opts StopOptions) error
+
+    // Rollback restaure l'état précédent des services.
+    Rollback(ctx context.Context, opts RollbackOptions) error
+
+    // Logs retourne un flux de logs d'un service.
+    Logs(ctx context.Context, opts LogOptions) (<-chan string, error)
+}
+```
+
+#### Providers prévus
+
+| Provider | Cible | Statut |
+|---|---|---|
+| `compose` | Docker Compose local + VPS | **v1 — implémenté** |
+| `systemd` | Binaires natifs (Go, Rust) sur VPS sans Docker | futur |
+| `podman` | Environnements sans Docker daemon | futur |
+| `k8s` | Kubernetes | futur — après validation VPS |
+
+**Ce que ça change pour `pilot.yaml`** : rien pour l'utilisateur.
+Le provider est résolu depuis le type de target et le lock, pas exposé dans la config.
+
+**Ce que `pilot.lock` indique :**
+```yaml
+execution_provider: compose    # résolu automatiquement, peut être surchargé
+```
+
+---
+
+### 1.5 Multi-services et dépendances
 
 Quand un projet a plusieurs services, pilot résout l'ordre de déploiement
-depuis les déclarations `depends_on` du fichier compose. L'utilisateur
-n'a pas à gérer ça dans `pilot.yaml` : il le déclare déjà dans compose.
+depuis les déclarations `depends_on` du fichier compose, au moment de la génération
+du `pilot.lock`. L'utilisateur n'a pas à gérer ça dans `pilot.yaml` : il le déclare déjà dans compose.
 
 ```
 # docker-compose.prod.yml  ← pilot lit ça
@@ -233,7 +352,7 @@ de répondre à la question : *si ça échoue plus tard, que peut-on défaire ?*
 
 | Nœud | Compensation | Condition |
 |---|---|---|
-| [3] migrations | rollback via `rollback_command` | si `reversible: true` (défaut: true) |
+| [3] migrations | rollback via `rollback_command` | si `reversible: true` — déclaré explicitement dans pilot.lock |
 | [4] push | aucune (image publiée, inoffensif) | — |
 | [5] deploy | restaurer l'image précédente | image précédente connue dans state.json |
 | [6] post-hooks | dépend du hook | déclaré dans pilot.yaml si besoin |
@@ -250,15 +369,48 @@ de répondre à la question : *si ça échoue plus tard, que peut-on défaire ?*
 Ces effets sont listés dans le rapport final pour que l'utilisateur ou
 l'agent sache exactement ce qui ne peut pas être automatiquement défait.
 
-### 2.2 La règle des étapes irréversibles
+### 2.2 La règle des migrations irréversibles
+
+> **`reversible: false` est le défaut. `reversible: true` se déclare explicitement
+> avec une `rollback_command` testée.**
+
+Mettre `reversible: true` par défaut crée une fausse garantie : pilot promettrait un rollback
+que personne n'a testé. Le défaut sûr est `reversible: false`.
+
+```yaml
+# Dans pilot.lock — déclaration explicite requise pour activer le rollback
+migrations:
+  reversible: true
+  rollback_command: npx prisma migrate rollback   # obligatoire si reversible: true
+```
+
+**Comportement selon le contexte :**
+
+| Contexte | Migration `reversible: false` | Migration `reversible: true` |
+|---|---|---|
+| Environnement local (pas de target) | avertissement, continue | rollback disponible si échec |
+| Environnement remote (target défini) | **confirmation textuelle obligatoire** | rollback disponible si échec |
+
+**Confirmation textuelle pour migration irréversible en remote :**
+```
+  ⚠️  Migration irréversible sur vps-prod
+
+     La migration suivante va être exécutée :
+       20260403_drop_legacy_users_table (irréversible)
+       Commande : npx prisma migrate deploy
+
+     Cette opération ne peut pas être annulée automatiquement.
+
+     Pour confirmer, tapez : je confirme
+     > _
+```
+
+Pas de touche Entrée — l'utilisateur doit taper le texte. L'agent IA doit présenter
+cette confirmation à l'humain avant de continuer : c'est une décision humaine, pas automatique.
 
 > **pilot ne franchit jamais une étape irréversible sans avoir établi que les étapes
-> suivantes ont une forte probabilité de succès.**
-
-Si une migration est marquée `reversible: false` et que le preflight
-détecte un risque sur les étapes suivantes (image non testée, healthcheck
-absent, env vars manquantes) → pilot **bloque et demande confirmation** avant
-d'aller plus loin. C'est un choix TYPE C (voir section 3).
+> suivantes ont une forte probabilité de succès** (preflight propre, image testée,
+> healthcheck défini).
 
 ### 2.3 Exécution de la compensation
 
@@ -752,13 +904,17 @@ IDLE
 **Règle absolue** : pilot ne se termine que dans l'état `SUCCEEDED`
 ou dans l'état `GUIDED_FAILURE`. Jamais dans un état indéterminé.
 
+**`state.json` est la source de vérité unique dès la première écriture.**
+L'état n'est jamais gardé seulement en mémoire — si le terminal crash pendant
+un `AWAITING_CHOICE`, la reprise se fait depuis `state.json`, pas depuis rien.
+
 ---
 
 ## Récapitulatif des commandes liées à ce modèle
 
 | Commande | Rôle |
 |---|---|
-| `pilot preflight` | Exécute uniquement la phase [1] et sort le résultat |
+| `pilot preflight` | Vérifie les prérequis et génère / met à jour `pilot.lock` |
 | `pilot diagnose` | Snapshot exhaustif de l'état du système |
 | `pilot resume` | Reprend une opération suspendue (après un choix TYPE C) |
 | `pilot resume --answer <val>` | Répond à un pending_choice et reprend (pour l'agent) |
