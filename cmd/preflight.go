@@ -3,9 +3,12 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/mouhamedsylla/pilot/internal/app/preflight"
-	"github.com/mouhamedsylla/pilot/pkg/ui"
 	"github.com/spf13/cobra"
+
+	"github.com/mouhamedsylla/pilot/internal/app/preflight"
+	"github.com/mouhamedsylla/pilot/internal/config"
+	"github.com/mouhamedsylla/pilot/internal/env"
+	"github.com/mouhamedsylla/pilot/pkg/ui"
 )
 
 var preflightCmd = &cobra.Command{
@@ -31,7 +34,6 @@ func init() {
 
 func runPreflight(cmd *cobra.Command, _ []string) error {
 	targetStr, _ := cmd.Flags().GetString("target")
-	activeEnv := preflight.ActiveEnv(currentEnv)
 
 	target := preflight.Target(targetStr)
 	switch target {
@@ -40,12 +42,20 @@ func runPreflight(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("unknown target %q — use: up | push | deploy", targetStr)
 	}
 
-	// When --target deploy is used without an explicit --env, the active env may be
-	// a local environment (e.g. dev) with no deploy target. Auto-detect the first
-	// remote env so the user doesn't have to know to pass --env prod.
+	activeEnv := env.Active(currentEnv)
+
+	cfg, err := config.Load(".")
+	if err != nil {
+		ui.Fatal(err)
+	}
+
+	// Auto-detect remote env when --target deploy is used without --env.
 	if target == preflight.TargetDeploy && currentEnv == "" {
-		if detected := preflight.DetectRemoteEnv(activeEnv); detected != "" && detected != activeEnv {
-			ui.Dim(fmt.Sprintf("  note: env %q has no deploy target — using %q instead (pass --env to override)", activeEnv, detected))
+		if detected := firstRemoteEnv(cfg, activeEnv); detected != "" && detected != activeEnv {
+			ui.Dim(fmt.Sprintf(
+				"  note: env %q has no deploy target — using %q instead (pass --env to override)",
+				activeEnv, detected,
+			))
 			fmt.Println()
 			activeEnv = detected
 		}
@@ -54,17 +64,22 @@ func runPreflight(cmd *cobra.Command, _ []string) error {
 	ui.Info(fmt.Sprintf("Pre-flight checks — target: %s → env: %s", target, activeEnv))
 	fmt.Println()
 
-	report, err := preflight.Run(cmd.Context(), target, activeEnv)
+	uc := preflight.New(preflight.RealDockerChecker{}, preflight.RealSSHChecker{})
+	out, err := uc.Execute(cmd.Context(), preflight.Input{
+		Target: target,
+		Env:    activeEnv,
+		Config: cfg,
+	})
 	if err != nil {
 		return err
 	}
 
 	if jsonOutput {
-		fmt.Println(report.JSON())
+		fmt.Println(out.Report.JSON())
 		return nil
 	}
 
-	printPreflightReport(report)
+	printPreflightReport(out.Report)
 	return nil
 }
 
@@ -104,6 +119,28 @@ func printPreflightReport(r *preflight.Report) {
 		ui.Dim(fmt.Sprintf("  %d. %s", i+1, step))
 	}
 	fmt.Println()
+}
+
+// firstRemoteEnv returns the first env (other than skip) that has a deploy target.
+func firstRemoteEnv(cfg *config.Config, skip string) string {
+	for _, preferred := range []string{"prod", "production", "staging"} {
+		if envCfg, ok := cfg.Environments[preferred]; ok && preferred != skip {
+			if envCfg.Target != "" {
+				if t, ok := cfg.Targets[envCfg.Target]; ok && t.Host != "" {
+					return preferred
+				}
+			}
+		}
+	}
+	for name, envCfg := range cfg.Environments {
+		if name == skip || envCfg.Target == "" {
+			continue
+		}
+		if t, ok := cfg.Targets[envCfg.Target]; ok && t.Host != "" {
+			return name
+		}
+	}
+	return ""
 }
 
 func splitLines(s string) []string {

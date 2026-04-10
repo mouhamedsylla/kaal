@@ -6,6 +6,7 @@ import (
 
 	pilotenv "github.com/mouhamedsylla/pilot/internal/env"
 	"github.com/mouhamedsylla/pilot/internal/app/preflight"
+	"github.com/mouhamedsylla/pilot/internal/config"
 )
 
 // HandlePreflight runs pre-flight checks and returns a structured report
@@ -28,10 +29,20 @@ func HandlePreflight(ctx context.Context, params map[string]any) (any, error) {
 		activeEnv = pilotenv.Active("")
 	}
 
-	report, err := preflight.Run(ctx, target, activeEnv)
+	cfg, err := config.Load(".")
+	if err != nil {
+		return nil, fmt.Errorf("preflight: load config: %w", err)
+	}
+
+	uc := preflight.New(preflight.RealDockerChecker{}, preflight.RealSSHChecker{})
+	out, err := uc.Execute(ctx, preflight.Input{
+		Target: target,
+		Env:    activeEnv,
+		Config: cfg,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("preflight: %w", err)
 	}
 
-	return report, nil
+	return out.Report, nil
 }
