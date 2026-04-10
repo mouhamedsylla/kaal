@@ -1,8 +1,8 @@
 ## pilot — Makefile
 ## Usage: make <target>
 ##
-##   make build        Build the binary for the current platform (./kaal)
-##   make install      Build + install to $GOPATH/bin (makes 'kaal' available globally)
+##   make build        Build the binary for the current platform (./pilot)
+##   make install      Build + install to $GOPATH/bin (makes 'pilot' available globally)
 ##   make dev          Install without version stamp — fast iteration loop
 ##   make release      Tag + push a new version (usage: make release VERSION=v0.2.0)
 ##   make test         Run all tests
@@ -37,7 +37,7 @@ INSTALL_DIR := $(shell \
 
 .PHONY: build install dev release test lint clean version help
 
-## build: compile for the current platform → ./kaal
+## build: compile for the current platform → ./pilot
 build:
 	@echo "→ Building $(BINARY) $(VERSION)"
 	go build -ldflags "$(LDFLAGS)" -o $(BINARY) .
@@ -55,7 +55,7 @@ install: build
 dev:
 	@echo "→ Installing dev build (no version stamp)"
 	go install .
-	@echo "✓ Done — 'kaal version' will show 'dev'"
+	@echo "✓ Done — 'pilot version' will show 'dev'"
 
 ## release: tag a new version and push to GitHub
 ##   Usage: make release VERSION=v0.2.0

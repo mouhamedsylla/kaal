@@ -2,7 +2,7 @@
 
 **Auteur** : Mouhamed SYLLA (@mouhamedsylla)
 **Module Go** : `github.com/mouhamedsylla/pilot`
-**Go version** : 1.23
+**Go version** : 1.25.3
 
 ---
 

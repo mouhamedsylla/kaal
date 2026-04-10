@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	pilotctx "github.com/mouhamedsylla/pilot/internal/context"
+	pilotctx "github.com/mouhamedsylla/pilot/internal/mcp/context"
 	pilotenv "github.com/mouhamedsylla/pilot/internal/env"
 	"github.com/mouhamedsylla/pilot/internal/mcp"
 	"github.com/mouhamedsylla/pilot/pkg/ui"

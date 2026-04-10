@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/mouhamedsylla/pilot/internal/push"
+	"github.com/mouhamedsylla/pilot/internal/app/push"
 	"github.com/mouhamedsylla/pilot/pkg/ui"
 	"github.com/spf13/cobra"
 )

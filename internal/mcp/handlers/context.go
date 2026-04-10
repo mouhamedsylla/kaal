@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	pilotctx "github.com/mouhamedsylla/pilot/internal/context"
+	pilotctx "github.com/mouhamedsylla/pilot/internal/mcp/context"
 	"github.com/mouhamedsylla/pilot/internal/env"
 )
 

@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"github.com/mouhamedsylla/pilot/internal/config"
-	"github.com/mouhamedsylla/pilot/internal/runtime"
+	"github.com/mouhamedsylla/pilot/internal/app/runtime"
 	"github.com/mouhamedsylla/pilot/internal/scaffold"
 	"github.com/mouhamedsylla/pilot/pkg/ui"
 	"github.com/spf13/cobra"

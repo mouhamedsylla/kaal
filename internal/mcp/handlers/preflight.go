@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	pilotenv "github.com/mouhamedsylla/pilot/internal/env"
-	"github.com/mouhamedsylla/pilot/internal/preflight"
+	"github.com/mouhamedsylla/pilot/internal/app/preflight"
 )
 
 // HandlePreflight runs pre-flight checks and returns a structured report

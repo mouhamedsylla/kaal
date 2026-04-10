@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/mouhamedsylla/pilot/internal/preflight"
+	"github.com/mouhamedsylla/pilot/internal/app/preflight"
 	"github.com/mouhamedsylla/pilot/pkg/ui"
 	"github.com/spf13/cobra"
 )

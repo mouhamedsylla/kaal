@@ -6,9 +6,9 @@ import (
 
 	"github.com/mouhamedsylla/pilot/internal/config"
 	pilotenv "github.com/mouhamedsylla/pilot/internal/env"
-	"github.com/mouhamedsylla/pilot/internal/providers/vps"
-	"github.com/mouhamedsylla/pilot/internal/runtime"
-	"github.com/mouhamedsylla/pilot/internal/status"
+	"github.com/mouhamedsylla/pilot/internal/adapters/vps"
+	"github.com/mouhamedsylla/pilot/internal/app/runtime"
+	"github.com/mouhamedsylla/pilot/internal/app/status"
 	"github.com/mouhamedsylla/pilot/pkg/ui"
 	"github.com/spf13/cobra"
 )

@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/mouhamedsylla/pilot/internal/rollback"
+	"github.com/mouhamedsylla/pilot/internal/app/rollback"
 	"github.com/mouhamedsylla/pilot/pkg/ui"
 	"github.com/spf13/cobra"
 )

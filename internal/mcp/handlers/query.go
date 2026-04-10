@@ -11,7 +11,7 @@ import (
 	pilotenv "github.com/mouhamedsylla/pilot/internal/env"
 	"github.com/mouhamedsylla/pilot/internal/orchestrator"
 	"github.com/mouhamedsylla/pilot/internal/providers"
-	"github.com/mouhamedsylla/pilot/internal/runtime"
+	"github.com/mouhamedsylla/pilot/internal/app/runtime"
 )
 
 // HandleStatus returns the complete project state as structured JSON.

@@ -6,8 +6,8 @@ import (
 
 	"github.com/mouhamedsylla/pilot/internal/config"
 	pilotenv "github.com/mouhamedsylla/pilot/internal/env"
-	"github.com/mouhamedsylla/pilot/internal/runtime"
-	"github.com/mouhamedsylla/pilot/internal/secrets/local"
+	"github.com/mouhamedsylla/pilot/internal/app/runtime"
+	"github.com/mouhamedsylla/pilot/internal/adapters/secrets/local"
 	"github.com/mouhamedsylla/pilot/pkg/ui"
 	"github.com/spf13/cobra"
 )

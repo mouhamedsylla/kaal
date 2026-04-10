@@ -5,7 +5,7 @@ import (
 
 	"github.com/mouhamedsylla/pilot/internal/config"
 	"github.com/mouhamedsylla/pilot/internal/env"
-	"github.com/mouhamedsylla/pilot/internal/providers/vps"
+	"github.com/mouhamedsylla/pilot/internal/adapters/vps"
 	"github.com/mouhamedsylla/pilot/pkg/ui"
 	"github.com/spf13/cobra"
 )

@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mouhamedsylla/pilot/internal/deploy"
+	"github.com/mouhamedsylla/pilot/internal/app/deploy"
 	pilotenv "github.com/mouhamedsylla/pilot/internal/env"
-	"github.com/mouhamedsylla/pilot/internal/push"
-	"github.com/mouhamedsylla/pilot/internal/rollback"
-	pilotSync "github.com/mouhamedsylla/pilot/internal/sync"
-	"github.com/mouhamedsylla/pilot/internal/up"
+	"github.com/mouhamedsylla/pilot/internal/app/push"
+	"github.com/mouhamedsylla/pilot/internal/app/rollback"
+	pilotSync "github.com/mouhamedsylla/pilot/internal/app/sync"
+	"github.com/mouhamedsylla/pilot/internal/app/up"
 )
 
 // HandleEnvSwitch switches the active pilot environment.

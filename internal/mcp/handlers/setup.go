@@ -6,7 +6,7 @@ import (
 
 	"github.com/mouhamedsylla/pilot/internal/config"
 	"github.com/mouhamedsylla/pilot/internal/env"
-	"github.com/mouhamedsylla/pilot/internal/runtime"
+	"github.com/mouhamedsylla/pilot/internal/app/runtime"
 )
 
 // dockerSetup is a duck-typed interface satisfied by *vps.Provider.
