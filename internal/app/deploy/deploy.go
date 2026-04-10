@@ -1,4 +1,13 @@
-// Package deploy implements the pilot deploy command logic.
+// Package deploy implements the pilot deploy use case.
+//
+// DeployUseCase orchestrates the deployment skeleton:
+//
+//	sync → deploy → healthcheck → (rollback on failure)
+//
+// It has no I/O, no config loading, and no UI output.
+// All infrastructure concerns are handled by injected ports.
+// cmd/ and mcp/ are responsible for constructing the use case and
+// formatting the output.
 package deploy
 
 import (
@@ -6,307 +15,170 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
-	"github.com/mouhamedsylla/pilot/internal/config"
-	"github.com/mouhamedsylla/pilot/internal/env"
-	"github.com/mouhamedsylla/pilot/internal/gitutil"
-	"github.com/mouhamedsylla/pilot/internal/providers"
-	"github.com/mouhamedsylla/pilot/internal/app/runtime"
-	"github.com/mouhamedsylla/pilot/pkg/ui"
+	domain "github.com/mouhamedsylla/pilot/internal/domain"
+	"github.com/mouhamedsylla/pilot/internal/domain/state"
 )
 
-// Options controls pilot deploy behaviour.
-type Options struct {
-	Env        string // override active env
-	Tag        string // image tag; empty = git short SHA
-	Target     string // override target from pilot.yaml
-	Strategy   string // rolling | blue-green | canary
+// Input is the data required to run a deployment.
+type Input struct {
+	Env        string
+	Tag        string
+	SecretRefs map[string]string // from pilot.yaml secrets.refs; nil = no secrets
 	DryRun     bool
-	NoRollback bool // skip auto-rollback on healthcheck failure
 }
 
-// Run executes pilot deploy: sync files → pull image → compose up.
-func Run(ctx context.Context, opts Options) error {
-	cfg, err := config.Load(".")
+// Output is the result of a successful deployment.
+type Output struct {
+	Tag        string
+	Statuses   []domain.ServiceStatus
+	DryRunPlan *DryRunPlan // non-nil only when Input.DryRun is true
+}
+
+// DryRunPlan describes what would run without executing anything.
+type DryRunPlan struct {
+	Steps []string
+}
+
+// DeployUseCase orchestrates a remote deployment.
+type DeployUseCase struct {
+	provider domain.DeployProvider
+	secrets  domain.SecretManager // nil when no secrets are configured
+	stateDir string               // directory for .pilot/state.json
+}
+
+// New constructs a DeployUseCase. secrets may be nil.
+func New(provider domain.DeployProvider, secrets domain.SecretManager, stateDir string) *DeployUseCase {
+	return &DeployUseCase{
+		provider: provider,
+		secrets:  secrets,
+		stateDir: stateDir,
+	}
+}
+
+// Execute runs the deployment and returns the result.
+// On healthcheck or deploy failure it triggers automatic rollback before returning an error.
+func (uc *DeployUseCase) Execute(ctx context.Context, in Input) (Output, error) {
+	if in.DryRun {
+		return uc.dryRun(in), nil
+	}
+
+	s := state.New(in.Env)
+	s.MachineState = state.StateExecuting
+	_ = s.Write(uc.stateDir) // best-effort — don't abort on state write failure
+
+	// [1] Resolve secrets → write temp env file.
+	var envFiles []string
+	if len(in.SecretRefs) > 0 && uc.secrets != nil {
+		resolved, err := uc.secrets.Inject(ctx, in.Env, in.SecretRefs)
+		if err != nil {
+			return Output{}, uc.fail(s, fmt.Errorf("secrets: %w", err))
+		}
+		tmp, err := writeTempEnv(resolved)
+		if err != nil {
+			return Output{}, uc.fail(s, fmt.Errorf("secrets temp file: %w", err))
+		}
+		defer os.Remove(tmp)
+		envFiles = append(envFiles, tmp)
+	}
+
+	// [2] Sync compose + env files to remote.
+	if err := uc.provider.Sync(ctx, in.Env); err != nil {
+		return Output{}, uc.fail(s, fmt.Errorf("sync: %w", err))
+	}
+
+	// [3] Deploy — pull image + restart services.
+	if err := uc.provider.Deploy(ctx, in.Env, domain.DeployOptions{
+		Tag:      in.Tag,
+		EnvFiles: envFiles,
+	}); err != nil {
+		return Output{}, uc.rollbackAndFail(ctx, s, in, fmt.Errorf("deploy: %w", err))
+	}
+
+	// [4] Healthcheck.
+	statuses, err := uc.provider.Status(ctx, in.Env)
 	if err != nil {
-		return err
+		return Output{}, uc.rollbackAndFail(ctx, s, in, fmt.Errorf("healthcheck: %w", err))
+	}
+	if svc := firstUnhealthy(statuses); svc != "" {
+		return Output{}, uc.rollbackAndFail(ctx, s, in,
+			fmt.Errorf("service %q went unhealthy after deploy", svc))
 	}
 
-	activeEnv := env.Active(opts.Env)
+	// Success.
+	s.MachineState = state.StateSucceeded
+	_ = s.Write(uc.stateDir)
 
-	envCfg, ok := cfg.Environments[activeEnv]
-	if !ok {
-		return fmt.Errorf("environment %q not defined in pilot.yaml", activeEnv)
-	}
+	return Output{Tag: in.Tag, Statuses: statuses}, nil
+}
 
-	// Resolve target
-	targetName := opts.Target
-	if targetName == "" {
-		targetName = envCfg.Target
-	}
-	if targetName == "" {
-		return fmt.Errorf(
-			"no deploy target for environment %q\n  Add: environments.%s.target: <target-name>",
-			activeEnv, activeEnv,
-		)
-	}
-	target, ok := cfg.Targets[targetName]
-	if !ok {
-		return fmt.Errorf("target %q not defined in pilot.yaml", targetName)
-	}
+// ── compensation ─────────────────────────────────────────────────────────────
 
-	// Resolve tag
-	tag, err := resolveTag(opts.Tag)
-	if err != nil {
-		return err
-	}
-
-	// Verify the compose file exists locally before trying to copy it
-	composeFile := fmt.Sprintf("docker-compose.%s.yml", activeEnv)
-	if _, err := os.Stat(composeFile); os.IsNotExist(err) {
-		return fmt.Errorf(
-			"%s not found — generate it first with your AI agent or 'pilot context'",
-			composeFile,
-		)
-	}
-
-	if opts.Strategy != "" && opts.Strategy != "rolling" {
-		ui.Warn(fmt.Sprintf(
-			"Strategy %q is not yet implemented — falling back to rolling update\n"+
-				"  canary/blue-green require Traefik or Kubernetes; see docs/workflows/deploy-vps.md",
-			opts.Strategy,
+func (uc *DeployUseCase) rollbackAndFail(ctx context.Context, s *state.State, in Input, cause error) error {
+	restoredTag, rbErr := uc.provider.Rollback(ctx, in.Env, "")
+	if rbErr != nil {
+		return uc.fail(s, fmt.Errorf(
+			"%w — rollback also failed: %v\n\n"+
+				"  Manual recovery:\n"+
+				"    pilot rollback --env %s --version <previous-tag>",
+			cause, rbErr, in.Env,
 		))
 	}
-
-	if opts.DryRun {
-		return printDryRun(cfg, activeEnv, targetName, target, tag, composeFile)
-	}
-
-	ui.Info(fmt.Sprintf("Deploying %s to %s (%s:%s)", activeEnv, targetName, target.Type, target.Host))
-
-	provider, err := runtime.NewProvider(cfg, targetName)
-	if err != nil {
-		return err
-	}
-
-	// Resolve secrets and write to a temp env file for deployment.
-	var deployEnvFiles []string
-	if envCfg.Secrets != nil && len(envCfg.Secrets.Refs) > 0 {
-		ui.Info(fmt.Sprintf("Resolving secrets via %q", envCfg.Secrets.Provider))
-		sm, err := runtime.NewSecretManager(envCfg.Secrets.Provider)
-		if err != nil {
-			return fmt.Errorf("secrets: %w", err)
-		}
-		resolved, err := sm.Inject(ctx, activeEnv, envCfg.Secrets.Refs)
-		if err != nil {
-			return fmt.Errorf("secrets inject: %w", err)
-		}
-
-		// Write resolved secrets to a temp env file.
-		tmpFile, err := writeTempEnv(resolved)
-		if err != nil {
-			return fmt.Errorf("write resolved env: %w", err)
-		}
-		defer os.Remove(tmpFile)
-		deployEnvFiles = append(deployEnvFiles, tmpFile)
-		ui.Success(fmt.Sprintf("Resolved %d secret(s)", len(resolved)))
-	}
-
-	// Sync compose file (and env file if present) to the remote
-	ui.Info("Syncing files to remote")
-	if err := provider.Sync(ctx, activeEnv); err != nil {
-		return fmt.Errorf("sync: %w", err)
-	}
-
-	// Pull image + restart services
-	ui.Info(fmt.Sprintf("Pulling image and restarting services (tag: %s)", tag))
-	if err := provider.Deploy(ctx, activeEnv, providers.DeployOptions{
-		Tag:      tag,
-		Strategy: opts.Strategy,
-		EnvFiles: deployEnvFiles,
-	}); err != nil {
-		return fmt.Errorf("deploy: %w", err)
-	}
-
-	// ── Post-deploy: health check with optional auto-rollback ────────────
-	fmt.Println()
-	if opts.NoRollback {
-		// Quick status snapshot, no waiting.
-		statuses, _ := provider.Status(ctx, activeEnv)
-		ui.Success(fmt.Sprintf("Deployed %s:%s → %s (%s)", cfg.Registry.Image, tag, targetName, target.Host))
-		printStatuses(statuses)
-	} else {
-		failedSvc, err := waitForHealth(ctx, provider, activeEnv)
-		if err != nil {
-			// A service went unhealthy — auto-rollback.
-			ui.Warn(fmt.Sprintf("Service %q went unhealthy — rolling back automatically", failedSvc))
-			fmt.Println()
-			prevTag, rbErr := provider.Rollback(ctx, activeEnv, "")
-			if rbErr != nil {
-				return fmt.Errorf(
-					"deploy succeeded but service %q went unhealthy AND auto-rollback failed: %v\n\n"+
-						"  Manual recovery on VPS:\n"+
-						"    docker compose -f ~/pilot/docker-compose.%s.yml down\n"+
-						"    docker compose -f ~/pilot/docker-compose.%s.yml up -d\n\n"+
-						"  Or force a specific tag:\n"+
-						"    pilot rollback --env %s --version <previous-tag>",
-					failedSvc, rbErr, activeEnv, activeEnv, activeEnv,
-				)
-			}
-			return fmt.Errorf(
-				"deploy of %s went unhealthy — auto-rolled back to %s\n\n"+
-					"  Investigate:\n"+
-					"    pilot logs --env %s --follow\n"+
-					"    pilot status --env %s",
-				tag, prevTag, activeEnv, activeEnv,
-			)
-		}
-
-		statuses, _ := provider.Status(ctx, activeEnv)
-		fmt.Println()
-		ui.Success(fmt.Sprintf("Deployed %s:%s → %s (%s)", cfg.Registry.Image, tag, targetName, target.Host))
-		printStatuses(statuses)
-	}
-
-	ui.Dim(fmt.Sprintf("  pilot logs --env %s --follow", activeEnv))
-	ui.Dim(fmt.Sprintf("  pilot status --env %s", activeEnv))
-	ui.Dim(fmt.Sprintf("  pilot rollback --env %s   (si quelque chose cloche)", activeEnv))
-	fmt.Println()
-
-	return nil
+	return uc.fail(s, fmt.Errorf(
+		"%w — auto-rolled back to %s\n\n"+
+			"  Investigate:\n"+
+			"    pilot logs --env %s --follow",
+		cause, restoredTag, in.Env,
+	))
 }
 
-// waitForHealth polls service health after a deploy, up to 60 seconds.
-//
-// Returns ("", nil)        — all services healthy or running (no healthcheck)
-// Returns ("svc", error)   — service "svc" went unhealthy → caller should rollback
-// Returns ("", nil)        — timeout: services still starting, non-fatal warning
-func waitForHealth(ctx context.Context, provider providers.Provider, env string) (string, error) {
-	const (
-		pollInterval = 5 * time.Second
-		maxWait      = 60 * time.Second
-	)
-
-	ui.Info("Verifying service health")
-	deadline := time.Now().Add(maxWait)
-	elapsed := 0
-
-	for time.Now().Before(deadline) {
-		statuses, err := provider.Status(ctx, env)
-		if err != nil {
-			time.Sleep(pollInterval)
-			elapsed += int(pollInterval.Seconds())
-			continue
-		}
-
-		var report []string
-		unhealthySvc := ""
-		allOK := true
-
-		for _, s := range statuses {
-			label := s.State
-			if s.Health != "" {
-				label = s.Health
-			}
-			report = append(report, fmt.Sprintf("%s=%s", s.Name, label))
-
-			switch s.Health {
-			case "unhealthy":
-				unhealthySvc = s.Name
-				allOK = false
-			case "starting":
-				allOK = false
-			case "":
-				if s.State != "running" {
-					allOK = false
-				}
-			}
-		}
-
-		ui.Dim(fmt.Sprintf("  [%ds] %s", elapsed, strings.Join(report, "  ")))
-
-		if unhealthySvc != "" {
-			return unhealthySvc, fmt.Errorf("service %q went unhealthy", unhealthySvc)
-		}
-		if allOK && len(statuses) > 0 {
-			ui.Success("All services healthy")
-			return "", nil
-		}
-
-		time.Sleep(pollInterval)
-		elapsed += int(pollInterval.Seconds())
-	}
-
-	ui.Warn(fmt.Sprintf("Health check timed out after %ds — services may still be starting", int(maxWait.Seconds())))
-	ui.Dim(fmt.Sprintf("  Monitor with: pilot status --env %s", env))
-	return "", nil // non-fatal timeout
+func (uc *DeployUseCase) fail(s *state.State, err error) error {
+	s.MachineState = state.StateGuidedFailure
+	_ = s.Write(uc.stateDir)
+	return err
 }
 
-func printStatuses(statuses []providers.ServiceStatus) {
-	if len(statuses) == 0 {
-		return
+// ── dry-run ───────────────────────────────────────────────────────────────────
+
+func (uc *DeployUseCase) dryRun(in Input) Output {
+	steps := []string{
+		fmt.Sprintf("sync compose files → remote (env: %s)", in.Env),
+		fmt.Sprintf("docker pull <image>:%s", in.Tag),
+		"docker compose up -d --remove-orphans",
+		"healthcheck — wait for all services healthy",
 	}
+	if len(in.SecretRefs) > 0 {
+		steps = append([]string{
+			fmt.Sprintf("resolve %d secret(s) via provider", len(in.SecretRefs)),
+		}, steps...)
+	}
+	return Output{Tag: in.Tag, DryRunPlan: &DryRunPlan{Steps: steps}}
+}
+
+// ── helpers ───────────────────────────────────────────────────────────────────
+
+func firstUnhealthy(statuses []domain.ServiceStatus) string {
 	for _, s := range statuses {
-		health := s.Health
-		if health == "" {
-			health = s.State
+		if s.Health == "unhealthy" {
+			return s.Name
 		}
-		ui.Dim(fmt.Sprintf("  %-20s %s", s.Name, health))
 	}
-	fmt.Println()
+	return ""
 }
 
-// printDryRun shows what would happen without executing.
-func printDryRun(cfg *config.Config, activeEnv, targetName string, target config.Target, tag, composeFile string) error {
-	fmt.Println()
-	ui.Bold("Dry run — nothing will be executed")
-	fmt.Println()
-	ui.Dim(fmt.Sprintf("  Environment : %s", activeEnv))
-	ui.Dim(fmt.Sprintf("  Target      : %s (%s@%s:%d)", targetName, target.User, target.Host, targetPort(target)))
-	ui.Dim(fmt.Sprintf("  Image       : %s:%s", cfg.Registry.Image, tag))
-	ui.Dim(fmt.Sprintf("  Compose     : %s", composeFile))
-	fmt.Println()
-	ui.Dim("  Steps that would run:")
-	ui.Dim(fmt.Sprintf("    1. SCP %s → %s:~/pilot/", composeFile, target.Host))
-	ui.Dim(fmt.Sprintf("    2. docker pull %s:%s", cfg.Registry.Image, tag))
-	ui.Dim(fmt.Sprintf("    3. IMAGE_TAG=%s docker compose -f %s up -d --remove-orphans", tag, composeFile))
-	fmt.Println()
-	return nil
-}
-
-func targetPort(t config.Target) int {
-	if t.Port == 0 {
-		return 22
-	}
-	return t.Port
-}
-
-// resolveTag returns the explicit tag or the git short SHA of HEAD.
-func resolveTag(explicit string) (string, error) {
-	if explicit != "" {
-		return explicit, nil
-	}
-	return gitutil.ShortSHA()
-}
-
-// writeTempEnv writes resolved secrets to a temporary env file (0600).
-// Returns the file path; caller is responsible for removing it.
 func writeTempEnv(vars map[string]string) (string, error) {
 	f, err := os.CreateTemp("", "pilot-env-*.env")
 	if err != nil {
 		return "", err
 	}
 	defer f.Close()
-
 	var sb strings.Builder
 	for k, v := range vars {
 		if strings.ContainsAny(v, " \t\"'") {
-			sb.WriteString(fmt.Sprintf(`%s="%s"`, k, v))
+			sb.WriteString(fmt.Sprintf("%s=\"%s\"\n", k, v))
 		} else {
-			sb.WriteString(fmt.Sprintf("%s=%s", k, v))
+			sb.WriteString(fmt.Sprintf("%s=%s\n", k, v))
 		}
-		sb.WriteByte('\n')
 	}
 	if _, err := f.WriteString(sb.String()); err != nil {
 		os.Remove(f.Name())

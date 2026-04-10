@@ -4,29 +4,31 @@
 package runtime
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/mouhamedsylla/pilot/internal/config"
-	"github.com/mouhamedsylla/pilot/internal/orchestrator"
-	"github.com/mouhamedsylla/pilot/internal/adapters/compose"
-	"github.com/mouhamedsylla/pilot/internal/adapters/k8s"
-	"github.com/mouhamedsylla/pilot/internal/providers"
 	"github.com/mouhamedsylla/pilot/internal/adapters/aws"
 	"github.com/mouhamedsylla/pilot/internal/adapters/azure"
+	"github.com/mouhamedsylla/pilot/internal/adapters/compose"
 	"github.com/mouhamedsylla/pilot/internal/adapters/do"
 	"github.com/mouhamedsylla/pilot/internal/adapters/gcp"
-	"github.com/mouhamedsylla/pilot/internal/adapters/vps"
-	"github.com/mouhamedsylla/pilot/internal/registry"
+	"github.com/mouhamedsylla/pilot/internal/adapters/k8s"
 	"github.com/mouhamedsylla/pilot/internal/adapters/registry/acr"
 	"github.com/mouhamedsylla/pilot/internal/adapters/registry/custom"
 	"github.com/mouhamedsylla/pilot/internal/adapters/registry/dockerhub"
 	"github.com/mouhamedsylla/pilot/internal/adapters/registry/ecr"
 	"github.com/mouhamedsylla/pilot/internal/adapters/registry/gcr"
 	"github.com/mouhamedsylla/pilot/internal/adapters/registry/ghcr"
-	"github.com/mouhamedsylla/pilot/internal/secrets"
 	"github.com/mouhamedsylla/pilot/internal/adapters/secrets/aws_sm"
 	"github.com/mouhamedsylla/pilot/internal/adapters/secrets/gcp_sm"
 	"github.com/mouhamedsylla/pilot/internal/adapters/secrets/local"
+	"github.com/mouhamedsylla/pilot/internal/adapters/vps"
+	"github.com/mouhamedsylla/pilot/internal/config"
+	domain "github.com/mouhamedsylla/pilot/internal/domain"
+	"github.com/mouhamedsylla/pilot/internal/orchestrator"
+	"github.com/mouhamedsylla/pilot/internal/providers"
+	"github.com/mouhamedsylla/pilot/internal/registry"
+	"github.com/mouhamedsylla/pilot/internal/secrets"
 )
 
 // NewOrchestrator returns the correct Orchestrator for the given environment.
@@ -90,6 +92,47 @@ func NewRegistry(cfg *config.Config) (registry.Registry, error) {
 	default:
 		return nil, fmt.Errorf("unknown registry provider %q", r.Provider)
 	}
+}
+
+// NewDeployProvider wraps a Provider as a domain.DeployProvider.
+// This adapter bridges the old providers.Provider interface to domain ports
+// during the incremental migration to the hexagonal architecture.
+func NewDeployProvider(cfg *config.Config, targetName string) (domain.DeployProvider, error) {
+	p, err := NewProvider(cfg, targetName)
+	if err != nil {
+		return nil, err
+	}
+	return &deployProviderAdapter{inner: p}, nil
+}
+
+// deployProviderAdapter adapts providers.Provider → domain.DeployProvider.
+type deployProviderAdapter struct{ inner providers.Provider }
+
+func (a *deployProviderAdapter) Sync(ctx context.Context, env string) error {
+	return a.inner.Sync(ctx, env)
+}
+
+func (a *deployProviderAdapter) Deploy(ctx context.Context, env string, opts domain.DeployOptions) error {
+	return a.inner.Deploy(ctx, env, providers.DeployOptions{
+		Tag:      opts.Tag,
+		EnvFiles: opts.EnvFiles,
+	})
+}
+
+func (a *deployProviderAdapter) Rollback(ctx context.Context, env string, tag string) (string, error) {
+	return a.inner.Rollback(ctx, env, tag)
+}
+
+func (a *deployProviderAdapter) Status(ctx context.Context, env string) ([]domain.ServiceStatus, error) {
+	raw, err := a.inner.Status(ctx, env)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]domain.ServiceStatus, len(raw))
+	for i, s := range raw {
+		out[i] = domain.ServiceStatus{Name: s.Name, State: s.State, Health: s.Health}
+	}
+	return out, nil
 }
 
 // NewSecretManager returns the correct SecretManager for the given provider name.

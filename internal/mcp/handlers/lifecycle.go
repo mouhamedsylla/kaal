@@ -6,11 +6,14 @@ import (
 	"strings"
 
 	"github.com/mouhamedsylla/pilot/internal/app/deploy"
-	pilotenv "github.com/mouhamedsylla/pilot/internal/env"
 	"github.com/mouhamedsylla/pilot/internal/app/push"
 	"github.com/mouhamedsylla/pilot/internal/app/rollback"
+	"github.com/mouhamedsylla/pilot/internal/app/runtime"
 	pilotSync "github.com/mouhamedsylla/pilot/internal/app/sync"
 	"github.com/mouhamedsylla/pilot/internal/app/up"
+	"github.com/mouhamedsylla/pilot/internal/config"
+	domain "github.com/mouhamedsylla/pilot/internal/domain"
+	pilotenv "github.com/mouhamedsylla/pilot/internal/env"
 )
 
 // HandleEnvSwitch switches the active pilot environment.
@@ -95,26 +98,72 @@ func HandlePush(_ context.Context, params map[string]any) (any, error) {
 }
 
 // HandleDeploy deploys to a remote target.
-func HandleDeploy(_ context.Context, params map[string]any) (any, error) {
+func HandleDeploy(ctx context.Context, params map[string]any) (any, error) {
 	env := strParam(params, "env")
 	tag := strParam(params, "tag")
-	target := strParam(params, "target")
 	dryRun := strParam(params, "dry_run") == "true"
 
-	output, err := captureOutput(func() error {
-		return deploy.Run(context.Background(), deploy.Options{
-			Env:    env,
-			Tag:    tag,
-			Target: target,
-			DryRun: dryRun,
-		})
+	cfg, err := config.Load(".")
+	if err != nil {
+		return nil, fmt.Errorf("pilot deploy: load config: %w", err)
+	}
+
+	activeEnv := env
+	if activeEnv == "" {
+		activeEnv = pilotenv.Active("")
+	}
+
+	targetName := ""
+	if envCfg, ok := cfg.Environments[activeEnv]; ok {
+		targetName = envCfg.Target
+	}
+	if targetName == "" {
+		return nil, fmt.Errorf("pilot deploy: no target for environment %q", activeEnv)
+	}
+
+	provider, err := runtime.NewDeployProvider(cfg, targetName)
+	if err != nil {
+		return nil, fmt.Errorf("pilot deploy: provider: %w", err)
+	}
+
+	var secretRefs map[string]string
+	var secrets domain.SecretManager
+	if envCfg, ok := cfg.Environments[activeEnv]; ok && envCfg.Secrets != nil && len(envCfg.Secrets.Refs) > 0 {
+		secretRefs = envCfg.Secrets.Refs
+		secrets, err = runtime.NewSecretManager(envCfg.Secrets.Provider)
+		if err != nil {
+			return nil, fmt.Errorf("pilot deploy: secrets: %w", err)
+		}
+	}
+
+	uc := deploy.New(provider, secrets, ".pilot")
+	out, err := uc.Execute(ctx, deploy.Input{
+		Env:        activeEnv,
+		Tag:        tag,
+		SecretRefs: secretRefs,
+		DryRun:     dryRun,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("pilot deploy: %w\n%s", err, output)
+		return nil, fmt.Errorf("pilot deploy: %w", err)
+	}
+
+	if dryRun {
+		return map[string]any{
+			"dry_run": true,
+			"steps":   out.DryRunPlan.Steps,
+		}, nil
+	}
+
+	statuses := make([]map[string]string, 0, len(out.Statuses))
+	for _, s := range out.Statuses {
+		statuses = append(statuses, map[string]string{
+			"name": s.Name, "state": s.State, "health": s.Health,
+		})
 	}
 	return map[string]any{
-		"message": "Deployed successfully",
-		"output":  strings.TrimSpace(output),
+		"message":  "Deployed successfully",
+		"tag":      out.Tag,
+		"statuses": statuses,
 	}, nil
 }
 
