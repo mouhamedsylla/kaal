@@ -724,6 +724,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#pilot-env-diff" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pilot env diff
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#exemples" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1575,6 +1586,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#pilot-env-diff" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pilot env diff
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#exemples" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1643,59 +1665,76 @@
 <td><code>pilot env current</code></td>
 <td>Affiche l'environnement actuellement actif</td>
 </tr>
+<tr>
+<td><code>pilot env diff &lt;env1&gt; &lt;env2&gt;</code></td>
+<td>Compare deux environnements et signale les divergences</td>
+</tr>
 </tbody>
 </table>
 <h2 id="environnement-actif">Environnement actif</h2>
-<p>L'environnement actif est stocké dans le fichier <code>.pilot-current-env</code> à la racine du projet. Toutes les commandes pilot lisent ce fichier pour déterminer l'environnement à utiliser lorsque le flag <code>--env</code> n'est pas passé explicitement.</p>
-<div class="highlight"><pre><span></span><code># Contenu de .pilot-current-env
-prod
-</code></pre></div>
+<p>L'environnement actif est stocké dans <code>.pilot-current-env</code> à la racine du projet. Toutes les commandes pilot lisent ce fichier lorsque <code>--env</code> n'est pas passé explicitement.</p>
 <h3 id="pilot-current-env-et-gitignore"><code>.pilot-current-env</code> et <code>.gitignore</code></h3>
-<p>Ce fichier <strong>doit être ajouté à <code>.gitignore</code></strong>. Chaque développeur de l'équipe peut avoir un environnement actif différent (l'un en <code>dev</code>, un autre en <code>staging</code>) sans que cela n'affecte les autres.</p>
-<div class="highlight"><pre><span></span><code># .gitignore
-.pilot-current-env
+<p>Ce fichier <strong>doit être ajouté à <code>.gitignore</code></strong>. Chaque développeur peut avoir un environnement actif différent sans affecter les autres.</p>
+<div class="highlight"><pre><span></span><code>.pilot-current-env
 </code></pre></div>
-<h2 id="exemples">Exemples</h2>
-<div class="highlight"><pre><span></span><code><span class="c1"># Passer en environnement de développement</span>
-pilot<span class="w"> </span>env<span class="w"> </span>use<span class="w"> </span>dev
+<h2 id="pilot-env-diff"><code>pilot env diff</code></h2>
+<p>Compare les variables d'environnement, les ports et les services entre deux environnements.</p>
+<div class="highlight"><pre><span></span><code>pilot<span class="w"> </span>env<span class="w"> </span>diff<span class="w"> </span>dev<span class="w"> </span>prod
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>env diff  dev  ↔  prod
 
-<span class="c1"># Passer en environnement de production</span>
+  Variables
+  ──────────────────────────────────────────────────
+  SENTRY_DSN                              only in prod
+  DEBUG                                   only in dev
+  API_URL                                 empty in dev
+
+  Ports
+  ──────────────────────────────────────────────────
+  SERVICE               dev           prod
+  api                   8080          80
+  db                    5432          —
+
+  Services
+  ──────────────────────────────────────────────────
+  mailhog                               only in dev compose file
+
+  3 divergence(s) found
+</code></pre></div>
+<p>Utile avant un déploiement pour détecter les divergences "ça marche en dev, ça casse en prod" avant qu'elles ne surviennent.</p>
+<h2 id="exemples">Exemples</h2>
+<div class="highlight"><pre><span></span><code><span class="c1"># Passer en environnement de production</span>
 pilot<span class="w"> </span>env<span class="w"> </span>use<span class="w"> </span>prod
 
 <span class="c1"># Afficher l&#39;environnement actif</span>
 pilot<span class="w"> </span>env<span class="w"> </span>current
 <span class="c1"># → prod</span>
 
+<span class="c1"># Comparer dev et prod</span>
+pilot<span class="w"> </span>env<span class="w"> </span>diff<span class="w"> </span>dev<span class="w"> </span>prod
+
 <span class="c1"># Vérifier l&#39;état de prod sans changer l&#39;env actif</span>
 pilot<span class="w"> </span>status<span class="w"> </span>--env<span class="w"> </span>prod
 </code></pre></div>
 <h2 id="surcharge-avec-env">Surcharge avec <code>--env</code></h2>
-<p>Le flag <code>--env</code> permet d'utiliser un environnement spécifique pour une seule commande, sans modifier l'environnement actif stocké dans <code>.pilot-current-env</code> :</p>
+<p>Le flag <code>--env</code> permet d'utiliser un environnement spécifique pour une seule commande, sans modifier <code>.pilot-current-env</code> :</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># L&#39;env actif est &quot;dev&quot;</span>
-pilot<span class="w"> </span>env<span class="w"> </span>current
-<span class="c1"># → dev</span>
-
-<span class="c1"># Déploie en prod pour cette commande uniquement</span>
-pilot<span class="w"> </span>deploy<span class="w"> </span>--env<span class="w"> </span>prod
-
-<span class="c1"># L&#39;env actif est toujours &quot;dev&quot;</span>
-pilot<span class="w"> </span>env<span class="w"> </span>current
-<span class="c1"># → dev</span>
+pilot<span class="w"> </span>deploy<span class="w"> </span>--env<span class="w"> </span>prod<span class="w">   </span><span class="c1"># déploie en prod pour cette commande uniquement</span>
+pilot<span class="w"> </span>env<span class="w"> </span>current<span class="w">         </span><span class="c1"># → dev (inchangé)</span>
 </code></pre></div>
 <h2 id="environnements-disponibles">Environnements disponibles</h2>
-<p>Les environnements disponibles sont ceux déclarés dans la section <code>environments</code> de <code>pilot.yaml</code> :</p>
+<p>Les environnements valides sont ceux déclarés dans <code>environments</code> dans <code>pilot.yaml</code> :</p>
 <div class="highlight"><pre><span></span><code><span class="nt">environments</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">dev</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">compose_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker-compose.dev.yml</span>
+<span class="w">    </span><span class="nt">runtime</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compose</span>
 <span class="w">    </span><span class="nt">env_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.env.dev</span>
 <span class="w">  </span><span class="nt">staging</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">target</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">vps-staging</span>
-<span class="w">    </span><span class="nt">compose_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker-compose.staging.yml</span>
+<span class="w">    </span><span class="nt">env_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.env.staging</span>
 <span class="w">  </span><span class="nt">prod</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">target</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">vps-prod</span>
-<span class="w">    </span><span class="nt">compose_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker-compose.prod.yml</span>
+<span class="w">    </span><span class="nt">env_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.env.prod</span>
 </code></pre></div>
-<p>Ici, les environnements valides sont <code>dev</code>, <code>staging</code> et <code>prod</code>. pilot retourne une erreur si l'on tente d'utiliser un environnement non déclaré.</p>
 
 
 

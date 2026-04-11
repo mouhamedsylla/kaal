@@ -808,6 +808,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#ce-que-fait-preflight" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ce que fait preflight
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#les-13-verifications" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -836,18 +847,28 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#sortie" class="md-nav__link">
+  <a href="#generation-de-pilotlock" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Sortie
+        Génération de pilot.lock
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Sortie">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sortie-terminal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sortie terminal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#sortie-json-json" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -855,11 +876,6 @@
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -890,6 +906,17 @@
     <span class="md-ellipsis">
       
         Utilisation par les agents IA
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#voir-aussi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Voir aussi
       
     </span>
   </a>
@@ -1575,6 +1602,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#ce-que-fait-preflight" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ce que fait preflight
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#les-13-verifications" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1603,18 +1641,28 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#sortie" class="md-nav__link">
+  <a href="#generation-de-pilotlock" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Sortie
+        Génération de pilot.lock
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Sortie">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sortie-terminal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sortie terminal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#sortie-json-json" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1622,11 +1670,6 @@
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1663,6 +1706,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#voir-aussi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Voir aussi
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1681,7 +1735,7 @@
 
 
 <h1 id="pilot-preflight">pilot preflight</h1>
-<p>Vérifie tous les prérequis avant d'exécuter <code>pilot push</code> ou <code>pilot deploy</code>.</p>
+<p>Vérifie tous les prérequis avant <code>pilot push</code> ou <code>pilot deploy</code>, et <strong>génère <code>pilot.lock</code></strong>.</p>
 <div class="highlight"><pre><span></span><code>pilot preflight [flags]
 </code></pre></div>
 <h2 id="flags">Flags</h2>
@@ -1707,6 +1761,19 @@
 </tr>
 </tbody>
 </table>
+<h2 id="ce-que-fait-preflight">Ce que fait preflight</h2>
+<p><code>pilot preflight --target deploy</code> fait deux choses :</p>
+<ol>
+<li><strong>Vérifie</strong> tous les prérequis (Docker, SSH, registry, clés, fichiers...)</li>
+<li><strong>Génère <code>pilot.lock</code></strong> si tout passe — le fichier qui autorise le prochain <code>pilot deploy</code></li>
+</ol>
+<p><code>pilot.lock</code> doit être <strong>commité dans le dépôt</strong>. C'est le contrat signé : ce qui a été validé par l'équipe est ce qui s'exécute en production.</p>
+<div class="highlight"><pre><span></span><code>pilot<span class="w"> </span>preflight<span class="w"> </span>--target<span class="w"> </span>deploy<span class="w"> </span>--env<span class="w"> </span>prod
+git<span class="w"> </span>add<span class="w"> </span>pilot.lock
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;chore: update pilot.lock&quot;</span>
+</code></pre></div>
+<p>Si <code>pilot.lock</code> est absent ou périmé, <code>pilot deploy</code> refuse de continuer.</p>
+<hr />
 <h2 id="les-13-verifications">Les 13 vérifications</h2>
 <table>
 <thead>
@@ -1763,7 +1830,7 @@
 <tr>
 <td>8</td>
 <td><code>build_args_gap</code></td>
-<td>Toutes les variables compile-time du <code>.env</code> sont listées dans <code>registry.build_args</code></td>
+<td>Toutes les variables compile-time du <code>.env</code> sont dans <code>registry.build_args</code></td>
 <td>FixHuman</td>
 </tr>
 <tr>
@@ -1799,35 +1866,86 @@
 </tbody>
 </table>
 <h3 id="detail-des-verifications">Détail des vérifications</h3>
-<p><strong>1. pilot_yaml</strong> : Lit et parse <code>pilot.yaml</code>. Échoue si le fichier est absent ou contient une erreur YAML.
-Correction : exécuter <code>pilot init</code> pour créer le fichier, ou corriger la syntaxe manuellement.</p>
-<p><strong>2. registry_image</strong> : Vérifie que <code>registry.image</code> est défini et ne contient pas <code>your-image</code> ou une valeur vide.
-Correction : éditer <code>pilot.yaml</code> et renseigner l'image complète (ex: <code>ghcr.io/mouhamedsylla/mon-projet</code>).</p>
-<p><strong>3. dockerfile</strong> : Vérifie l'existence de <code>Dockerfile</code> à la racine.
-Correction : l'agent MCP peut le générer via <code>pilot_generate_dockerfile</code>.</p>
-<p><strong>4. docker_daemon</strong> : Tente une connexion au socket Docker local.
-Correction : démarrer Docker Desktop ou le démon Docker.</p>
-<p><strong>5. registry_creds</strong> : Vérifie la présence des variables d'environnement selon le provider :
-- <code>dockerhub</code> → <code>DOCKER_USERNAME</code> + <code>DOCKER_PASSWORD</code>
-- <code>ghcr</code> → <code>GITHUB_TOKEN</code> + <code>GITHUB_ACTOR</code></p>
-<p>Correction : exporter les variables dans le shell avant d'exécuter <code>pilot push</code>.</p>
-<p><strong>6. compose_file</strong> : Vérifie que <code>docker-compose.&lt;env&gt;.yml</code> existe pour l'environnement actif.
-Correction : l'agent MCP peut le générer via <code>pilot_generate_compose</code>.</p>
-<p><strong>7. compose_env_file</strong> <em>(avertissement)</em> : Vérifie que tous les services applicatifs déclarent <code>env_file</code> dans le compose. Sans cette directive, les variables <code>VITE_*</code>, <code>NEXT_PUBLIC_*</code> et autres variables runtime seront vides au démarrage du conteneur.
-Correction : l'agent MCP peut ajouter la directive <code>env_file</code> aux services concernés.</p>
-<p><strong>8. build_args_gap</strong> <em>(avertissement)</em> : Compare les variables du fichier <code>.env</code> avec la section <code>registry.build_args</code> dans <code>pilot.yaml</code>. Si une variable compile-time est présente dans <code>.env</code> mais absente de <code>build_args</code>, elle sera silencieusement vide dans l'image construite.
-Correction : ajouter les variables manquantes dans <code>registry.build_args</code> de <code>pilot.yaml</code>.</p>
-<p><strong>9. target_host</strong> : Vérifie qu'une section <code>targets</code> est configurée dans <code>pilot.yaml</code> pour l'environnement courant.
-Correction : ajouter la section <code>targets</code> dans <code>pilot.yaml</code> avec <code>host</code>, <code>user</code>, <code>key</code>.</p>
-<p><strong>10. ssh_key</strong> : Vérifie que le fichier de clé SSH référencé dans <code>pilot.yaml</code> existe, ou que la variable <code>PILOT_SSH_KEY</code> est exportée avec le contenu de la clé.
-Correction : générer une clé avec <code>ssh-keygen</code> ou exporter <code>PILOT_SSH_KEY</code>.</p>
-<p><strong>11. vps_connectivity</strong> : Ouvre une connexion SSH réelle au VPS.
-Correction : vérifier le <code>host</code>, le <code>port</code>, la clé SSH, et que le serveur SSH du VPS est accessible.</p>
-<p><strong>12. vps_docker_group</strong> : Se connecte en SSH et vérifie que l'utilisateur deploy appartient au groupe <code>docker</code>.
-Correction : exécuter <code>pilot setup --env &lt;env&gt;</code> : l'agent MCP peut déclencher cette action.</p>
-<p><strong>13. vps_env_file</strong> : Se connecte en SSH et vérifie que <code>~/pilot/.env.&lt;env&gt;</code> existe sur le VPS.
-Correction : exécuter <code>pilot sync --env &lt;env&gt;</code> : l'agent MCP peut déclencher <code>pilot_sync</code>.</p>
-<h2 id="sortie">Sortie</h2>
+<p><strong>1. pilot_yaml</strong> : Lit et parse <code>pilot.yaml</code>. Échoue si le fichier est absent ou contient une erreur YAML.</p>
+<p><strong>2. registry_image</strong> : Vérifie que <code>registry.image</code> est défini et ne contient pas <code>your-image</code> ou une valeur vide.</p>
+<p><strong>3. dockerfile</strong> : Vérifie l'existence de <code>Dockerfile</code>. L'agent MCP peut le générer via <code>pilot_generate_dockerfile</code>.</p>
+<p><strong>4. docker_daemon</strong> : Tente une connexion au socket Docker local.</p>
+<p><strong>5. registry_creds</strong> : Vérifie la présence des variables d'env selon le provider (<code>GITHUB_TOKEN</code>+<code>GITHUB_ACTOR</code> pour ghcr, <code>DOCKER_USERNAME</code>+<code>DOCKER_PASSWORD</code> pour dockerhub...).</p>
+<p><strong>6. compose_file</strong> : Vérifie que <code>docker-compose.&lt;env&gt;.yml</code> existe pour l'environnement actif.</p>
+<p><strong>7. compose_env_file</strong> <em>(avertissement)</em> : Vérifie que tous les services applicatifs déclarent <code>env_file</code> dans le compose. Sans cette directive, les variables <code>VITE_*</code>, <code>NEXT_PUBLIC_*</code> seront vides au démarrage.</p>
+<p><strong>8. build_args_gap</strong> <em>(avertissement)</em> : Compare les variables du fichier <code>.env</code> avec <code>registry.build_args</code> dans <code>pilot.yaml</code>. Si une variable compile-time est présente dans <code>.env</code> mais absente de <code>build_args</code>, elle sera silencieusement vide dans l'image.</p>
+<p><strong>9. target_host</strong> : Vérifie qu'une section <code>targets</code> est configurée pour l'environnement.</p>
+<p><strong>10. ssh_key</strong> : Vérifie que le fichier de clé SSH référencé dans <code>pilot.yaml</code> existe, ou que <code>PILOT_SSH_KEY</code> est exporté.</p>
+<p><strong>11. vps_connectivity</strong> : Ouvre une connexion SSH réelle au VPS.</p>
+<p><strong>12. vps_docker_group</strong> : Vérifie que l'utilisateur deploy appartient au groupe <code>docker</code>. Correction : <code>pilot setup --env &lt;env&gt;</code>.</p>
+<p><strong>13. vps_env_file</strong> : Vérifie que <code>~/pilot/.env.&lt;env&gt;</code> existe sur le VPS. Correction : <code>pilot sync --env &lt;env&gt;</code>.</p>
+<hr />
+<h2 id="generation-de-pilotlock">Génération de <code>pilot.lock</code></h2>
+<p>Quand <code>--target deploy</code> et que toutes les vérifications passent (ou n'ont que des avertissements), preflight génère <code>pilot.lock</code> :</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># pilot.lock — generated automatically, commit this file.</span>
+<span class="nt">schema_version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="nt">generated_at</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2026-04-11T14:00:00Z</span>
+<span class="nt">generated_from</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pilot.yaml</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker-compose.prod.yml</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prisma/schema.prisma</span>
+<span class="nt">project_hash</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;abc123...&quot;</span>
+
+<span class="nt">execution_plan</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">nodes_active</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">preflight</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">migrations</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">deploy</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">post_hooks</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">healthcheck</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">migrations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">tool</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prisma</span>
+<span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">npx prisma migrate deploy</span>
+<span class="w">    </span><span class="nt">rollback_command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">npx prisma migrate rollback</span>
+<span class="w">    </span><span class="nt">reversible</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">detected_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prisma/schema.prisma</span>
+<span class="nt">execution_provider</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compose</span>
+</code></pre></div>
+<p><strong>Ce que pilot.lock encode :</strong>
+- Les fichiers sources qui ont été validés (avec leur hash SHA-256)
+- Les étapes actives du pipeline de déploiement
+- La configuration de migrations auto-détectée (outil, commande, rollback, réversibilité)
+- Le provider d'exécution (compose, k8s...)</p>
+<p><strong>Auto-détection des migrations :</strong></p>
+<table>
+<thead>
+<tr>
+<th>Fichier détecté</th>
+<th>Outil</th>
+<th>Commande</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>prisma/schema.prisma</code></td>
+<td>prisma</td>
+<td><code>npx prisma migrate deploy</code></td>
+</tr>
+<tr>
+<td><code>alembic.ini</code></td>
+<td>alembic</td>
+<td><code>alembic upgrade head</code></td>
+</tr>
+<tr>
+<td><code>flyway.conf</code></td>
+<td>flyway</td>
+<td><code>flyway migrate</code></td>
+</tr>
+<tr>
+<td><code>db/migrations/</code></td>
+<td>goose</td>
+<td><code>goose up</code></td>
+</tr>
+<tr>
+<td><code>migrations/</code></td>
+<td>goose</td>
+<td><code>goose -dir migrations up</code></td>
+</tr>
+</tbody>
+</table>
+<p>La détection auto ne définit pas <code>rollback_command</code> ni <code>reversible: true</code> — déclare-les explicitement dans <code>pilot.yaml</code> si tu veux le rollback de migration automatique.</p>
+<hr />
+<h2 id="sortie-terminal">Sortie terminal</h2>
 <div class="highlight"><pre><span></span><code>→ Running preflight checks for deploy (env: prod)
 
   ✓  pilot_yaml            pilot.yaml valide
@@ -1847,36 +1965,32 @@ Correction : exécuter <code>pilot sync --env &lt;env&gt;</code> : l'agent MCP p
 2 avertissements, 1 bloquant
 → Exécuter : pilot sync --env prod
 </code></pre></div>
-<h3 id="sortie-json-json">Sortie JSON (<code>--json</code>)</h3>
+<p>Quand tout passe :</p>
+<div class="highlight"><pre><span></span><code>✓ All checks passed — pilot.lock generated
+→ Commit pilot.lock to your repository
+</code></pre></div>
+<hr />
+<h2 id="sortie-json-json">Sortie JSON (<code>--json</code>)</h2>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prod&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;target&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;deploy&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;checks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">    </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pilot_yaml&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ok&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pilot.yaml valide&quot;</span>
-<span class="w">    </span><span class="p">},</span>
-<span class="w">    </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;compose_env_file&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;warning&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Service \&quot;app\&quot; ne déclare pas env_file&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;fix_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;FixAgent&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;fix_action&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;add_env_file_directive&quot;</span>
-<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pilot_yaml&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ok&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pilot.yaml valide&quot;</span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
 <span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;vps_env_file&quot;</span><span class="p">,</span>
 <span class="w">      </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;error&quot;</span><span class="p">,</span>
 <span class="w">      </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;~/pilot/.env.prod introuvable&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;fix_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;FixAgent&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;fix_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;agent&quot;</span><span class="p">,</span>
 <span class="w">      </span><span class="nt">&quot;fix_action&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pilot_sync&quot;</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">],</span>
 <span class="w">  </span><span class="nt">&quot;blockers&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;warnings&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;ok&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+<span class="w">  </span><span class="nt">&quot;ok&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;lock_generated&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
 <span class="p">}</span>
 </code></pre></div>
+<hr />
 <h2 id="codes-de-sortie">Codes de sortie</h2>
 <table>
 <thead>
@@ -1888,21 +2002,23 @@ Correction : exécuter <code>pilot sync --env &lt;env&gt;</code> : l'agent MCP p
 <tbody>
 <tr>
 <td><code>0</code></td>
-<td>Toutes les vérifications passent (ou seulement des avertissements)</td>
+<td>Toutes les vérifications passent (ou seulement des avertissements) — <code>pilot.lock</code> généré</td>
 </tr>
 <tr>
 <td><code>1</code></td>
-<td>Au moins un bloquant détecté</td>
+<td>Au moins un bloquant détecté — <code>pilot.lock</code> non généré</td>
 </tr>
 </tbody>
 </table>
+<hr />
 <h2 id="quand-lexecuter">Quand l'exécuter</h2>
 <ul>
 <li>Avant le premier <code>pilot push</code> sur un nouveau projet</li>
 <li>Avant le premier <code>pilot deploy</code> vers un nouveau VPS</li>
-<li>En cas d'erreur inexpliquée lors du push ou du déploiement</li>
-<li>En routine CI/CD comme étape de validation initiale</li>
+<li>Après avoir modifié <code>pilot.yaml</code>, le compose file ou le schéma de migration</li>
+<li>En CI comme première étape de validation (le résultat est déjà commité normalement)</li>
 </ul>
+<hr />
 <h2 id="utilisation-par-les-agents-ia">Utilisation par les agents IA</h2>
 <p>Le champ <code>fix_type</code> dans la sortie JSON indique à l'agent ce qu'il peut corriger seul :</p>
 <table>
@@ -1914,16 +2030,22 @@ Correction : exécuter <code>pilot sync --env &lt;env&gt;</code> : l'agent MCP p
 </thead>
 <tbody>
 <tr>
-<td><code>FixAgent</code></td>
+<td><code>agent</code></td>
 <td>L'agent peut corriger via un outil MCP (<code>pilot_generate_dockerfile</code>, <code>pilot_sync</code>, <code>pilot_setup</code>…)</td>
 </tr>
 <tr>
-<td><code>FixHuman</code></td>
-<td>L'action requiert une intervention humaine (exporter une variable, éditer un fichier de config, démarrer Docker)</td>
+<td><code>human</code></td>
+<td>L'action requiert une intervention humaine (exporter une variable, démarrer Docker, SSH, firewall...)</td>
 </tr>
 </tbody>
 </table>
-<p>Un agent IA bien conçu exécute <code>pilot_preflight</code> en premier, traite automatiquement tous les <code>FixAgent</code>, puis demande à l'humain de résoudre les <code>FixHuman</code> avant de continuer.</p>
+<p>Un agent bien conçu exécute <code>pilot_preflight</code> en premier, traite tous les <code>agent</code>, puis demande à l'humain de résoudre les <code>human</code> avant de continuer.</p>
+<h2 id="voir-aussi">Voir aussi</h2>
+<ul>
+<li><a href="../plan/"><code>pilot plan</code></a> : afficher le plan issu de <code>pilot.lock</code> sans déployer</li>
+<li><a href="../deploy/"><code>pilot deploy</code></a> : exécuter le plan validé</li>
+<li><a href="../../architecture/#pilotlock">Architecture — pilot.lock</a></li>
+</ul>
 
 
 

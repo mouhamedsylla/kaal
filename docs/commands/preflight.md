@@ -1,6 +1,6 @@
 # pilot preflight
 
-Vérifie tous les prérequis avant d'exécuter `pilot push` ou `pilot deploy`.
+Vérifie tous les prérequis avant `pilot push` ou `pilot deploy`, et **génère `pilot.lock`**.
 
 ```
 pilot preflight [flags]
@@ -14,6 +14,25 @@ pilot preflight [flags]
 | `--env`, `-e` | Environnement à vérifier (défaut : env actif) |
 | `--json` | Sortie JSON structurée |
 
+## Ce que fait preflight
+
+`pilot preflight --target deploy` fait deux choses :
+
+1. **Vérifie** tous les prérequis (Docker, SSH, registry, clés, fichiers...)
+2. **Génère `pilot.lock`** si tout passe — le fichier qui autorise le prochain `pilot deploy`
+
+`pilot.lock` doit être **commité dans le dépôt**. C'est le contrat signé : ce qui a été validé par l'équipe est ce qui s'exécute en production.
+
+```bash
+pilot preflight --target deploy --env prod
+git add pilot.lock
+git commit -m "chore: update pilot.lock"
+```
+
+Si `pilot.lock` est absent ou périmé, `pilot deploy` refuse de continuer.
+
+---
+
 ## Les 13 vérifications
 
 | # | Nom | Ce qui est vérifié | Type de correction |
@@ -25,7 +44,7 @@ pilot preflight [flags]
 | 5 | `registry_creds` | Les variables d'authentification registry sont exportées | FixHuman |
 | 6 | `compose_file` | `docker-compose.<env>.yml` existe | FixAgent |
 | 7 | `compose_env_file` | Tous les services applicatifs déclarent `env_file` dans le compose | FixAgent |
-| 8 | `build_args_gap` | Toutes les variables compile-time du `.env` sont listées dans `registry.build_args` | FixHuman |
+| 8 | `build_args_gap` | Toutes les variables compile-time du `.env` sont dans `registry.build_args` | FixHuman |
 | 9 | `target_host` | La cible de déploiement est configurée dans `pilot.yaml` | FixHuman |
 | 10 | `ssh_key` | La clé SSH est disponible (fichier ou variable `PILOT_SSH_KEY`) | FixHuman |
 | 11 | `vps_connectivity` | La connexion SSH au VPS aboutit | FixHuman |
@@ -35,48 +54,79 @@ pilot preflight [flags]
 ### Détail des vérifications
 
 **1. pilot_yaml** : Lit et parse `pilot.yaml`. Échoue si le fichier est absent ou contient une erreur YAML.
-Correction : exécuter `pilot init` pour créer le fichier, ou corriger la syntaxe manuellement.
 
 **2. registry_image** : Vérifie que `registry.image` est défini et ne contient pas `your-image` ou une valeur vide.
-Correction : éditer `pilot.yaml` et renseigner l'image complète (ex: `ghcr.io/mouhamedsylla/mon-projet`).
 
-**3. dockerfile** : Vérifie l'existence de `Dockerfile` à la racine.
-Correction : l'agent MCP peut le générer via `pilot_generate_dockerfile`.
+**3. dockerfile** : Vérifie l'existence de `Dockerfile`. L'agent MCP peut le générer via `pilot_generate_dockerfile`.
 
 **4. docker_daemon** : Tente une connexion au socket Docker local.
-Correction : démarrer Docker Desktop ou le démon Docker.
 
-**5. registry_creds** : Vérifie la présence des variables d'environnement selon le provider :
-- `dockerhub` → `DOCKER_USERNAME` + `DOCKER_PASSWORD`
-- `ghcr` → `GITHUB_TOKEN` + `GITHUB_ACTOR`
-
-Correction : exporter les variables dans le shell avant d'exécuter `pilot push`.
+**5. registry_creds** : Vérifie la présence des variables d'env selon le provider (`GITHUB_TOKEN`+`GITHUB_ACTOR` pour ghcr, `DOCKER_USERNAME`+`DOCKER_PASSWORD` pour dockerhub...).
 
 **6. compose_file** : Vérifie que `docker-compose.<env>.yml` existe pour l'environnement actif.
-Correction : l'agent MCP peut le générer via `pilot_generate_compose`.
 
-**7. compose_env_file** *(avertissement)* : Vérifie que tous les services applicatifs déclarent `env_file` dans le compose. Sans cette directive, les variables `VITE_*`, `NEXT_PUBLIC_*` et autres variables runtime seront vides au démarrage du conteneur.
-Correction : l'agent MCP peut ajouter la directive `env_file` aux services concernés.
+**7. compose_env_file** *(avertissement)* : Vérifie que tous les services applicatifs déclarent `env_file` dans le compose. Sans cette directive, les variables `VITE_*`, `NEXT_PUBLIC_*` seront vides au démarrage.
 
-**8. build_args_gap** *(avertissement)* : Compare les variables du fichier `.env` avec la section `registry.build_args` dans `pilot.yaml`. Si une variable compile-time est présente dans `.env` mais absente de `build_args`, elle sera silencieusement vide dans l'image construite.
-Correction : ajouter les variables manquantes dans `registry.build_args` de `pilot.yaml`.
+**8. build_args_gap** *(avertissement)* : Compare les variables du fichier `.env` avec `registry.build_args` dans `pilot.yaml`. Si une variable compile-time est présente dans `.env` mais absente de `build_args`, elle sera silencieusement vide dans l'image.
 
-**9. target_host** : Vérifie qu'une section `targets` est configurée dans `pilot.yaml` pour l'environnement courant.
-Correction : ajouter la section `targets` dans `pilot.yaml` avec `host`, `user`, `key`.
+**9. target_host** : Vérifie qu'une section `targets` est configurée pour l'environnement.
 
-**10. ssh_key** : Vérifie que le fichier de clé SSH référencé dans `pilot.yaml` existe, ou que la variable `PILOT_SSH_KEY` est exportée avec le contenu de la clé.
-Correction : générer une clé avec `ssh-keygen` ou exporter `PILOT_SSH_KEY`.
+**10. ssh_key** : Vérifie que le fichier de clé SSH référencé dans `pilot.yaml` existe, ou que `PILOT_SSH_KEY` est exporté.
 
 **11. vps_connectivity** : Ouvre une connexion SSH réelle au VPS.
-Correction : vérifier le `host`, le `port`, la clé SSH, et que le serveur SSH du VPS est accessible.
 
-**12. vps_docker_group** : Se connecte en SSH et vérifie que l'utilisateur deploy appartient au groupe `docker`.
-Correction : exécuter `pilot setup --env <env>` : l'agent MCP peut déclencher cette action.
+**12. vps_docker_group** : Vérifie que l'utilisateur deploy appartient au groupe `docker`. Correction : `pilot setup --env <env>`.
 
-**13. vps_env_file** : Se connecte en SSH et vérifie que `~/pilot/.env.<env>` existe sur le VPS.
-Correction : exécuter `pilot sync --env <env>` : l'agent MCP peut déclencher `pilot_sync`.
+**13. vps_env_file** : Vérifie que `~/pilot/.env.<env>` existe sur le VPS. Correction : `pilot sync --env <env>`.
 
-## Sortie
+---
+
+## Génération de `pilot.lock`
+
+Quand `--target deploy` et que toutes les vérifications passent (ou n'ont que des avertissements), preflight génère `pilot.lock` :
+
+```yaml
+# pilot.lock — generated automatically, commit this file.
+schema_version: 1
+generated_at: 2026-04-11T14:00:00Z
+generated_from:
+  - pilot.yaml
+  - docker-compose.prod.yml
+  - prisma/schema.prisma
+project_hash: "abc123..."
+
+execution_plan:
+  nodes_active: [preflight, migrations, deploy, post_hooks, healthcheck]
+  migrations:
+    tool: prisma
+    command: npx prisma migrate deploy
+    rollback_command: npx prisma migrate rollback
+    reversible: true
+    detected_from: prisma/schema.prisma
+execution_provider: compose
+```
+
+**Ce que pilot.lock encode :**
+- Les fichiers sources qui ont été validés (avec leur hash SHA-256)
+- Les étapes actives du pipeline de déploiement
+- La configuration de migrations auto-détectée (outil, commande, rollback, réversibilité)
+- Le provider d'exécution (compose, k8s...)
+
+**Auto-détection des migrations :**
+
+| Fichier détecté | Outil | Commande |
+|-----------------|-------|----------|
+| `prisma/schema.prisma` | prisma | `npx prisma migrate deploy` |
+| `alembic.ini` | alembic | `alembic upgrade head` |
+| `flyway.conf` | flyway | `flyway migrate` |
+| `db/migrations/` | goose | `goose up` |
+| `migrations/` | goose | `goose -dir migrations up` |
+
+La détection auto ne définit pas `rollback_command` ni `reversible: true` — déclare-les explicitement dans `pilot.yaml` si tu veux le rollback de migration automatique.
+
+---
+
+## Sortie terminal
 
 ```
 → Running preflight checks for deploy (env: prod)
@@ -99,52 +149,57 @@ Correction : exécuter `pilot sync --env <env>` : l'agent MCP peut déclencher `
 → Exécuter : pilot sync --env prod
 ```
 
-### Sortie JSON (`--json`)
+Quand tout passe :
+
+```
+✓ All checks passed — pilot.lock generated
+→ Commit pilot.lock to your repository
+```
+
+---
+
+## Sortie JSON (`--json`)
 
 ```json
 {
   "env": "prod",
   "target": "deploy",
   "checks": [
-    {
-      "name": "pilot_yaml",
-      "status": "ok",
-      "message": "pilot.yaml valide"
-    },
-    {
-      "name": "compose_env_file",
-      "status": "warning",
-      "message": "Service \"app\" ne déclare pas env_file",
-      "fix_type": "FixAgent",
-      "fix_action": "add_env_file_directive"
-    },
+    {"name": "pilot_yaml", "status": "ok", "message": "pilot.yaml valide"},
     {
       "name": "vps_env_file",
       "status": "error",
       "message": "~/pilot/.env.prod introuvable",
-      "fix_type": "FixAgent",
+      "fix_type": "agent",
       "fix_action": "pilot_sync"
     }
   ],
   "blockers": 1,
   "warnings": 2,
-  "ok": false
+  "ok": false,
+  "lock_generated": false
 }
 ```
+
+---
 
 ## Codes de sortie
 
 | Code | Signification |
 |------|---------------|
-| `0` | Toutes les vérifications passent (ou seulement des avertissements) |
-| `1` | Au moins un bloquant détecté |
+| `0` | Toutes les vérifications passent (ou seulement des avertissements) — `pilot.lock` généré |
+| `1` | Au moins un bloquant détecté — `pilot.lock` non généré |
+
+---
 
 ## Quand l'exécuter
 
 - Avant le premier `pilot push` sur un nouveau projet
 - Avant le premier `pilot deploy` vers un nouveau VPS
-- En cas d'erreur inexpliquée lors du push ou du déploiement
-- En routine CI/CD comme étape de validation initiale
+- Après avoir modifié `pilot.yaml`, le compose file ou le schéma de migration
+- En CI comme première étape de validation (le résultat est déjà commité normalement)
+
+---
 
 ## Utilisation par les agents IA
 
@@ -152,7 +207,13 @@ Le champ `fix_type` dans la sortie JSON indique à l'agent ce qu'il peut corrige
 
 | Valeur | Signification |
 |--------|---------------|
-| `FixAgent` | L'agent peut corriger via un outil MCP (`pilot_generate_dockerfile`, `pilot_sync`, `pilot_setup`…) |
-| `FixHuman` | L'action requiert une intervention humaine (exporter une variable, éditer un fichier de config, démarrer Docker) |
+| `agent` | L'agent peut corriger via un outil MCP (`pilot_generate_dockerfile`, `pilot_sync`, `pilot_setup`…) |
+| `human` | L'action requiert une intervention humaine (exporter une variable, démarrer Docker, SSH, firewall...) |
 
-Un agent IA bien conçu exécute `pilot_preflight` en premier, traite automatiquement tous les `FixAgent`, puis demande à l'humain de résoudre les `FixHuman` avant de continuer.
+Un agent bien conçu exécute `pilot_preflight` en premier, traite tous les `agent`, puis demande à l'humain de résoudre les `human` avant de continuer.
+
+## Voir aussi
+
+- [`pilot plan`](plan.md) : afficher le plan issu de `pilot.lock` sans déployer
+- [`pilot deploy`](deploy.md) : exécuter le plan validé
+- [Architecture — pilot.lock](../architecture.md#pilotlock)

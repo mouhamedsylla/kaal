@@ -668,10 +668,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#comportement-vps" class="md-nav__link">
+  <a href="#pipeline-de-deploiement-8-etapes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Comportement (VPS)
+        Pipeline de déploiement (8 étapes)
       
     </span>
   </a>
@@ -679,10 +679,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#le-repertoire-de-travail-distant" class="md-nav__link">
+  <a href="#prerequis-pilotlock" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Le répertoire de travail distant
+        Prérequis : pilot.lock
       
     </span>
   </a>
@@ -690,10 +690,43 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#sync-automatique-des-fichiers-de-config" class="md-nav__link">
+  <a href="#lifo-compensation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Sync automatique des fichiers de config
+        LIFO compensation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#typec-choix-requis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TypeC — choix requis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repertoire-de-travail-distant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Répertoire de travail distant
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sync-automatique" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sync automatique
       
     </span>
   </a>
@@ -1574,10 +1607,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#comportement-vps" class="md-nav__link">
+  <a href="#pipeline-de-deploiement-8-etapes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Comportement (VPS)
+        Pipeline de déploiement (8 étapes)
       
     </span>
   </a>
@@ -1585,10 +1618,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#le-repertoire-de-travail-distant" class="md-nav__link">
+  <a href="#prerequis-pilotlock" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Le répertoire de travail distant
+        Prérequis : pilot.lock
       
     </span>
   </a>
@@ -1596,10 +1629,43 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#sync-automatique-des-fichiers-de-config" class="md-nav__link">
+  <a href="#lifo-compensation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Sync automatique des fichiers de config
+        LIFO compensation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#typec-choix-requis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TypeC — choix requis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repertoire-de-travail-distant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Répertoire de travail distant
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sync-automatique" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sync automatique
       
     </span>
   </a>
@@ -1705,97 +1771,105 @@
 </tr>
 <tr>
 <td><code>--dry-run</code></td>
-<td>Affiche ce qui serait fait sans exécuter</td>
+<td>Affiche le plan complet sans exécuter</td>
 </tr>
 <tr>
 <td><code>--no-rollback</code></td>
-<td>Désactive le rollback automatique en cas de service <code>unhealthy</code> : utile pour déboguer un déploiement en échec</td>
+<td>Désactive le rollback automatique en cas de service <code>unhealthy</code></td>
 </tr>
 </tbody>
 </table>
-<h2 id="comportement-vps">Comportement (VPS)</h2>
-<ol>
-<li>Résout l'environnement et le target (<code>environments.&lt;env&gt;.target</code> dans <code>pilot.yaml</code>)</li>
-<li>Connexion SSH au VPS (<code>targets.&lt;name&gt;.host</code>, <code>.user</code>, <code>.key</code>)</li>
-<li><strong>Sync automatique</strong> : copie vers <code>~/pilot/</code> sur le VPS :</li>
-<li><code>docker-compose.&lt;env&gt;.yml</code></li>
-<li>Fichier env déclaré dans <code>environments.&lt;env&gt;.env_file</code></li>
-<li>Tous les fichiers référencés en bind-mount dans le compose (ex: <code>./nginx/prod.conf</code>)</li>
-<li><code>docker pull &lt;image&gt;:&lt;tag&gt;</code> sur le VPS</li>
-<li><code>IMAGE_TAG=&lt;tag&gt; docker compose -f ~/pilot/docker-compose.&lt;env&gt;.yml up -d --remove-orphans</code></li>
-<li>Sauvegarde le tag dans <code>~/.pilot/&lt;project&gt;/current-tag</code> pour le rollback</li>
-</ol>
-<div class="highlight"><pre><span></span><code>→ Deploying prod to vps-prod (vps:1.2.3.4)
-→ Syncing files to remote
-→ Pulling image and restarting services (tag: abc1234)
-✓ Deployed my-api:abc1234 → vps-prod (1.2.3.4)
+<h2 id="pipeline-de-deploiement-8-etapes">Pipeline de déploiement (8 étapes)</h2>
+<p><code>pilot deploy</code> exécute un pipeline structuré. Chaque étape ne s'active que si elle est pertinente pour le projet (déclaré dans <code>pilot.lock</code>).</p>
+<div class="highlight"><pre><span></span><code>[1] lock check      valide que pilot.lock n&#39;est pas périmé
+[2] secrets         résout les refs → fichier env temporaire
+[3] sync            pousse compose + fichiers de config vers le remote
+[4] pre_hooks       exécute les commandes pre-deploy via SSH       (si déclarés)
+[5] migrations      applique les changements de schéma             (si détectés)
+[6] deploy          docker pull + docker compose up
+[7] post_hooks      exécute les commandes post-deploy via SSH      (si déclarés)
+[8] healthcheck     attend que tous les services soient healthy
 </code></pre></div>
-<h2 id="le-repertoire-de-travail-distant">Le répertoire de travail distant</h2>
-<p>Tous les fichiers vivent dans <code>~/pilot/</code> sur le VPS. pilot exécute toujours docker compose avec le chemin complet :</p>
-<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>~/pilot/docker-compose.prod.yml<span class="w"> </span>up<span class="w"> </span>-d
+<div class="highlight"><pre><span></span><code>→ [pilot deploy --env prod]
+✓  lock check     pilot.lock OK (hash: abc123)
+✓  secrets        3 refs resolved → .pilot/env.tmp
+✓  sync           4 files → ~/pilot/
+✓  pre_hooks      echo &#39;starting deploy&#39;
+✓  migrations     npx prisma migrate deploy (reversible)
+✓  deploy         my-api:a1b2c3d pulled, services restarted
+✓  post_hooks     curl -X POST $WEBHOOK_URL
+✓  healthcheck    api healthy · db healthy · proxy healthy
 </code></pre></div>
-<p>Jamais de commandes dans le home directory racine. Jamais de chemins relatifs.</p>
-<h2 id="sync-automatique-des-fichiers-de-config">Sync automatique des fichiers de config</h2>
-<p><code>pilot deploy</code> inclut un <code>pilot sync</code> implicite avant chaque déploiement. Pour pousser des fichiers de config sans redéployer :</p>
+<h2 id="prerequis-pilotlock">Prérequis : pilot.lock</h2>
+<p><code>pilot deploy</code> refuse de continuer si <code>pilot.lock</code> est périmé ou absent.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Générer ou régénérer pilot.lock</span>
+pilot<span class="w"> </span>preflight<span class="w"> </span>--target<span class="w"> </span>deploy<span class="w"> </span>--env<span class="w"> </span>prod
+
+<span class="c1"># Puis déployer</span>
+pilot<span class="w"> </span>deploy<span class="w"> </span>--env<span class="w"> </span>prod
+</code></pre></div>
+<p><code>pilot.lock</code> doit être <strong>commité dans le repo</strong>. Si un des fichiers sources (pilot.yaml, compose, schéma) change, le lock devient périmé et pilot arrête avec une instruction claire.</p>
+<h2 id="lifo-compensation">LIFO compensation</h2>
+<p>En cas d'échec à partir de l'étape 4, pilot exécute automatiquement les compensations en ordre inverse :</p>
+<div class="highlight"><pre><span></span><code>échec à l&#39;étape [6] deploy
+  → compensation : restaure le tag d&#39;image précédent (toujours)
+  → compensation : rollback migration (si reversible: true + rollback_command défini)
+
+échec à l&#39;étape [5] migrations
+  → compensation : rollback migration (si reversible: true)
+  (deploy n&#39;a pas encore démarré, pas d&#39;image à restaurer)
+</code></pre></div>
+<h2 id="typec-choix-requis">TypeC — choix requis</h2>
+<p>Certaines erreurs suspendent le déploiement et présentent des options :</p>
+<div class="highlight"><pre><span></span><code>✗  user &quot;deploy&quot; n&#39;est pas dans le groupe docker sur 1.2.3.4
+
+   Actions possibles :
+   → [0] pilot setup --env prod   (automatique)
+     [1] ssh deploy@1.2.3.4 &#39;sudo usermod -aG docker deploy&#39;   (manuel)
+
+   Après avoir pris une action : pilot resume
+</code></pre></div>
+<p><code>pilot resume --answer 0</code> reprend depuis le début sans relancer le déploiement complet depuis zéro.</p>
+<h2 id="repertoire-de-travail-distant">Répertoire de travail distant</h2>
+<p>Tous les fichiers vivent dans <code>~/pilot/</code> sur le VPS. Docker compose est toujours appelé avec un chemin complet :</p>
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>~/pilot/docker-compose.prod.yml<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>--remove-orphans
+</code></pre></div>
+<h2 id="sync-automatique">Sync automatique</h2>
+<p><code>pilot deploy</code> inclut un <code>pilot sync</code> implicite (étape 3) avant chaque déploiement. Pour synchroniser les fichiers de config sans redéployer :</p>
 <div class="highlight"><pre><span></span><code>pilot<span class="w"> </span>sync<span class="w"> </span>--env<span class="w"> </span>prod
 </code></pre></div>
-<p>Pour les bind-mounts nginx, pilot lit le compose file, détecte les sources locales (ex: <code>./nginx/prod.conf</code>) et les copie sur le VPS en préservant la structure de répertoires :</p>
-<div class="highlight"><pre><span></span><code>local: ./nginx/prod.conf
-remote: ~/pilot/nginx/prod.conf
-</code></pre></div>
-<p>Docker compose trouve le fichier exactement là où il l'attend.</p>
+<p>Pour les bind-mounts nginx, pilot lit le compose file, détecte les sources locales (ex: <code>./nginx/prod.conf</code>) et les copie sur le VPS en préservant la structure de répertoires.</p>
 <h2 id="exemples">Exemples</h2>
-<div class="highlight"><pre><span></span><code><span class="c1"># Déployer l&#39;env actif avec le SHA Git courant</span>
+<div class="highlight"><pre><span></span><code><span class="c1"># Déployer l&#39;env actif</span>
 pilot<span class="w"> </span>deploy
 
 <span class="c1"># Déployer prod avec un tag explicite</span>
 pilot<span class="w"> </span>deploy<span class="w"> </span>--env<span class="w"> </span>prod<span class="w"> </span>--tag<span class="w"> </span>v1.2.0
 
-<span class="c1"># Voir ce qui serait fait sans déployer</span>
-pilot<span class="w"> </span>deploy<span class="w"> </span>--env<span class="w"> </span>prod<span class="w"> </span>--tag<span class="w"> </span>v1.2.0<span class="w"> </span>--dry-run
+<span class="c1"># Afficher le plan sans exécuter</span>
+pilot<span class="w"> </span>deploy<span class="w"> </span>--env<span class="w"> </span>prod<span class="w"> </span>--dry-run
+
+<span class="c1"># Voir d&#39;abord le plan structuré</span>
+pilot<span class="w"> </span>plan<span class="w"> </span>--env<span class="w"> </span>prod
 
 <span class="c1"># Déployer sur un target spécifique</span>
 pilot<span class="w"> </span>deploy<span class="w"> </span>--env<span class="w"> </span>prod<span class="w"> </span>--target<span class="w"> </span>vps-backup<span class="w"> </span>--tag<span class="w"> </span>v1.2.0
 </code></pre></div>
 <h2 id="rollback-automatique">Rollback automatique</h2>
-<p><code>pilot deploy</code> vérifie automatiquement la santé des containers après chaque déploiement. Le processus est le suivant :</p>
+<p>Après l'étape [6], pilot surveille la santé des containers :</p>
 <ul>
-<li>Après le <code>docker compose up -d</code>, pilot interroge l'état des services toutes les <strong>5 secondes</strong> pendant au maximum <strong>60 secondes</strong></li>
-<li>Si un service passe en état <code>unhealthy</code>, pilot déclenche automatiquement un rollback vers la version précédente (lue depuis <code>~/.pilot/&lt;project&gt;/prev-tag</code>)</li>
-<li>Le rollback utilise le même mécanisme que <code>pilot rollback</code> : aucun état supplémentaire n'est requis</li>
+<li>Interroge toutes les <strong>5 secondes</strong> pendant <strong>60 secondes</strong></li>
+<li>Si un service est <code>unhealthy</code>, déclenche automatiquement un rollback vers le tag précédent</li>
 </ul>
-<div class="highlight"><pre><span></span><code>→ Deploying prod to vps-prod (vps:1.2.3.4)
-→ Pulling image and restarting services (tag: abc1234)
-→ Waiting for services to be healthy...
-✗ Service &quot;app&quot; is unhealthy : triggering automatic rollback
+<div class="highlight"><pre><span></span><code>→ Waiting for services to be healthy...
+✗ Service &quot;api&quot; is unhealthy — triggering automatic rollback
 → Rolling back to v1.1.0
-✓ Rollback complete : vps-prod is running v1.1.0
+✓ Rollback complete — vps-prod is running v1.1.0
 </code></pre></div>
-<p>Pour <strong>désactiver le rollback automatique</strong> : par exemple pour inspecter les logs du container défaillant : utiliser le flag <code>--no-rollback</code> :</p>
-<div class="highlight"><pre><span></span><code>pilot<span class="w"> </span>deploy<span class="w"> </span>--env<span class="w"> </span>prod<span class="w"> </span>--tag<span class="w"> </span>v1.2.0<span class="w"> </span>--no-rollback
-<span class="c1"># → Le container reste en place même s&#39;il est unhealthy</span>
-<span class="c1"># → pilot status + pilot logs pour diagnostiquer</span>
-</code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Flag</th>
-<th>Comportement</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><em>(par défaut)</em></td>
-<td>Rollback automatique si un service est <code>unhealthy</code> sous 60s</td>
-</tr>
-<tr>
-<td><code>--no-rollback</code></td>
-<td>Pas de rollback : le déploiement échoué reste en place pour débogage</td>
-</tr>
-</tbody>
-</table>
+<p><code>--no-rollback</code> désactive ce comportement pour permettre d'inspecter les logs du container défaillant.</p>
 <h2 id="prerequis">Prérequis</h2>
 <ul>
+<li><code>pilot preflight --target deploy</code> doit avoir été exécuté et <code>pilot.lock</code> commité</li>
 <li>Le target doit être défini dans <code>pilot.yaml</code></li>
 <li>L'environnement doit référencer ce target (<code>environments.prod.target: vps-prod</code>)</li>
 <li>La clé SSH doit être accessible (<code>targets.vps-prod.key: ~/.ssh/id_pilot</code>)</li>
@@ -1803,24 +1877,29 @@ pilot<span class="w"> </span>deploy<span class="w"> </span>--env<span class="w">
 <li><code>docker-compose.&lt;env&gt;.yml</code> doit exister localement</li>
 </ul>
 <h2 id="workflow-recommande-avant-le-premier-deploiement">Workflow recommandé avant le premier déploiement</h2>
-<div class="highlight"><pre><span></span><code><span class="c1"># Vérifier que tout est prêt</span>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Vérifier les prérequis + générer pilot.lock</span>
 pilot<span class="w"> </span>preflight<span class="w"> </span>--target<span class="w"> </span>deploy<span class="w"> </span>--env<span class="w"> </span>prod
 
-<span class="c1"># Si le user deploy n&#39;est pas dans le groupe docker</span>
+<span class="c1"># 2. Si le user n&#39;est pas dans le groupe docker</span>
 pilot<span class="w"> </span>setup<span class="w"> </span>--env<span class="w"> </span>prod
 
-<span class="c1"># Build + push</span>
+<span class="c1"># 3. Build + push</span>
 pilot<span class="w"> </span>push<span class="w"> </span>--env<span class="w"> </span>prod
 
-<span class="c1"># Déployer</span>
+<span class="c1"># 4. Voir le plan</span>
+pilot<span class="w"> </span>plan<span class="w"> </span>--env<span class="w"> </span>prod
+
+<span class="c1"># 5. Déployer</span>
 pilot<span class="w"> </span>deploy<span class="w"> </span>--env<span class="w"> </span>prod
 </code></pre></div>
 <h2 id="voir-aussi">Voir aussi</h2>
 <ul>
-<li><a href="../../workflows/deploy-vps/"><code>pilot preflight</code></a> : vérifier les prérequis avant de déployer</li>
+<li><a href="../preflight/"><code>pilot preflight</code></a> : vérifier les prérequis et générer pilot.lock</li>
+<li><a href="../../architecture/"><code>pilot plan</code></a> : afficher le plan d'exécution sans déployer</li>
 <li><a href="../push/"><code>pilot push</code></a> : construire et pousser l'image avant le deploy</li>
-<li><a href="../../workflows/deploy-vps/#sync-manuel"><code>pilot sync</code></a> : synchroniser les fichiers sans redéployer</li>
-<li><a href="../../workflows/deploy-vps/#rollback"><code>pilot rollback</code></a> : revenir à la version précédente</li>
+<li><a href="../sync/"><code>pilot sync</code></a> : synchroniser les fichiers sans redéployer</li>
+<li><a href="../rollback/"><code>pilot rollback</code></a> : revenir à la version précédente</li>
+<li><a href="../resume/"><code>pilot resume</code></a> : reprendre après une suspension TypeC</li>
 <li><a href="../../workflows/deploy-vps/">Workflow VPS complet</a></li>
 </ul>
 

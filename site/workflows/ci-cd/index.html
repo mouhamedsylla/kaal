@@ -1088,6 +1088,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Principe">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pilotlock-et-ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pilot.lock et CI
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1655,6 +1672,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Principe">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pilotlock-et-ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pilot.lock et CI
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1851,12 +1885,19 @@
 <p>pilot ne remplace pas GitHub Actions, GitLab CI, ou CircleCI. Il fournit les <strong>primitives</strong> que le CI orchestre.</p>
 <div class="highlight"><pre><span></span><code>CI Runner
   │
-  ├─► pilot push --tag $SHA --env prod   # Build + push l&#39;image (avec vars compile-time)
-  ├─► pilot deploy --env staging         # Déploie sur staging
+  ├─► pilot preflight --target deploy   # Vérifie que pilot.lock est à jour
+  ├─► pilot push --tag $SHA --env prod  # Build + push l&#39;image (avec vars compile-time)
+  ├─► pilot deploy --env staging        # Déploie sur staging
   │   [tests d&#39;intégration...]
-  └─► pilot deploy --env prod            # Déploie en prod
+  └─► pilot deploy --env prod           # Déploie en prod
 </code></pre></div>
 <p>Les mêmes commandes que tu utilises en local fonctionnent en CI. Pas de script séparé, pas de traduction.</p>
+<h3 id="pilotlock-et-ci"><code>pilot.lock</code> et CI</h3>
+<p><code>pilot.lock</code> doit être <strong>commité dans le dépôt</strong> — c'est un prérequis de <code>pilot deploy</code>.</p>
+<p>En pratique :
+- Tu génères <code>pilot.lock</code> localement avec <code>pilot preflight --target deploy</code>
+- Tu le commites dans le dépôt
+- Le CI l'utilise tel quel : si les sources ont changé depuis sa génération, <code>pilot deploy</code> refuse et te demande de relancer <code>pilot preflight</code></p>
 <hr />
 <h2 id="github-actions">GitHub Actions</h2>
 <h3 id="workflow-complet-test-push-deploy">Workflow complet : test → push → deploy</h3>
@@ -1878,6 +1919,10 @@
 <span class="w">          </span><span class="no">curl -sSL https://github.com/mouhamedsylla/pilot/releases/latest/download/pilot-linux-amd64 -o pilot</span>
 <span class="w">          </span><span class="no">chmod +x pilot</span>
 <span class="w">          </span><span class="no">sudo mv pilot /usr/local/bin/</span>
+
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Check pilot.lock is fresh</span>
+<span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pilot preflight --target deploy --env prod --json</span>
+<span class="w">        </span><span class="c1"># Échoue si pilot.lock est périmé → force à régénérer en local</span>
 
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Push image</span>
 <span class="w">        </span><span class="nt">env</span><span class="p">:</span>
@@ -1936,6 +1981,7 @@
 <h2 id="gitlab-ci">GitLab CI</h2>
 <div class="highlight"><pre><span></span><code><span class="c1"># .gitlab-ci.yml</span>
 <span class="nt">stages</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">validate</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">build</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">deploy-staging</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test</span>
@@ -1943,6 +1989,13 @@
 
 <span class="nt">variables</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">TAG</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$CI_COMMIT_SHORT_SHA</span>
+
+<span class="nt">validate-lock</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">stage</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">validate</span>
+<span class="w">  </span><span class="nt">script</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pilot preflight --target deploy --env prod --json</span>
+<span class="w">  </span><span class="nt">only</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">main</span>
 
 <span class="nt">build</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">stage</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">build</span>
@@ -2032,7 +2085,6 @@
 </table>
 <p>pilot écrit la clé dans un fichier temporaire, l'utilise pour SSH, puis la supprime.</p>
 <h3 id="pour-les-vars-compile-time-vite-nextjs-cra">Pour les vars compile-time (Vite, Next.js, CRA)</h3>
-<p>Si ton projet est stack <code>node</code> avec des variables <code>VITE_*</code> ou <code>NEXT_PUBLIC_*</code>, configure-les dans les secrets CI et expose-les dans un <code>.env.prod</code> ou directement comme variables d'environnement CI :</p>
 <div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Push image</span>
 <span class="w">  </span><span class="nt">env</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">GITHUB_TOKEN</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.GITHUB_TOKEN }}</span>
@@ -2041,7 +2093,6 @@
 <span class="w">    </span><span class="nt">VITE_APP_ENV</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">production</span>
 <span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pilot push --tag ${{ github.sha }} --env prod</span>
 </code></pre></div>
-<p>pilot détecte automatiquement les <code>VITE_*</code> dans l'env file et les injecte en <code>--build-arg</code>.</p>
 <hr />
 <h2 id="ce-que-le-ci-fait-vs-ce-que-pilot-fait">Ce que le CI fait vs ce que pilot fait</h2>
 <table>
@@ -2069,6 +2120,11 @@
 <td></td>
 </tr>
 <tr>
+<td>Vérifier pilot.lock</td>
+<td></td>
+<td>✓ (<code>pilot preflight</code>)</td>
+</tr>
+<tr>
 <td>Construire l'image Docker</td>
 <td></td>
 <td>✓ (<code>pilot push</code>)</td>
@@ -2094,14 +2150,19 @@
 <td>✓ (<code>pilot deploy</code>)</td>
 </tr>
 <tr>
+<td>Exécuter migrations + hooks</td>
+<td></td>
+<td>✓ (pipeline 8 étapes)</td>
+</tr>
+<tr>
 <td>Rollback si échec</td>
 <td></td>
 <td>✓ (<code>pilot rollback</code>)</td>
 </tr>
 <tr>
 <td>Vérifier la santé post-deploy</td>
-<td>(peut déléguer à pilot)</td>
-<td>✓ (<code>pilot status</code>)</td>
+<td></td>
+<td>✓ (<code>pilot deploy</code> étape 8)</td>
 </tr>
 <tr>
 <td>Notifications Slack/email</td>
@@ -2129,20 +2190,18 @@
 </code></pre></div>
 <hr />
 <h2 id="bonnes-pratiques">Bonnes pratiques</h2>
-<p><strong>Tags immuables</strong> : utilise toujours <code>--tag $SHA</code> (SHA Git), jamais <code>latest</code>. <code>latest</code> est mutable et rend le rollback ambigu.</p>
+<p><strong>Tags immuables</strong> : utilise toujours <code>--tag $SHA</code> (SHA Git), jamais <code>latest</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Bien</span>
 pilot<span class="w"> </span>push<span class="w"> </span>--tag<span class="w"> </span><span class="si">${</span><span class="p">{ github.sha </span><span class="si">}</span><span class="o">}</span><span class="w"> </span>--env<span class="w"> </span>prod
 pilot<span class="w"> </span>deploy<span class="w"> </span>--env<span class="w"> </span>prod<span class="w"> </span>--tag<span class="w"> </span><span class="si">${</span><span class="p">{ github.sha </span><span class="si">}</span><span class="o">}</span>
-
-<span class="c1"># Éviter</span>
-pilot<span class="w"> </span>push<span class="w">  </span><span class="c1"># tag par défaut = SHA courant, ok mais moins explicite en CI</span>
 </code></pre></div>
-<p><strong><code>--env</code> sur pilot push</strong> : toujours préciser l'env en CI pour que pilot lise le bon fichier <code>.env.&lt;env&gt;</code> et injecte les bonnes variables compile-time.</p>
+<p><strong><code>pilot.lock</code> commité</strong> : régénère <code>pilot.lock</code> localement après chaque changement de <code>pilot.yaml</code>, compose file ou schéma de migration. Le CI ne doit pas générer le lock — il vérifie que celui commité est à jour.</p>
+<p><strong><code>--env</code> sur pilot push</strong> : toujours préciser l'env en CI pour que pilot lise le bon <code>.env.&lt;env&gt;</code> et injecte les bonnes variables compile-time.</p>
 <p><strong>Rollback automatique</strong> : configure toujours un step de rollback sur <code>if: failure()</code>.</p>
 <p><strong>Staging avant prod</strong> : ne déploie jamais directement en prod sans passer par staging.</p>
-<p><strong><code>pilot status</code> après deploy</strong> : vérifie que tous les services sont <code>healthy</code> avant de continuer le pipeline.</p>
+<p><strong><code>pilot status</code> après deploy</strong> :</p>
 <div class="highlight"><pre><span></span><code>pilot<span class="w"> </span>deploy<span class="w"> </span>--env<span class="w"> </span>prod<span class="w"> </span>--tag<span class="w"> </span><span class="nv">$SHA</span>
-pilot<span class="w"> </span>status<span class="w"> </span>--env<span class="w"> </span>prod<span class="w"> </span>--json<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">&#39;.services[] | select(.status != &quot;running&quot;)&#39;</span>
+pilot<span class="w"> </span>status<span class="w"> </span>--env<span class="w"> </span>prod<span class="w"> </span>--json<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">&#39;.services[] | select(.health != &quot;healthy&quot;)&#39;</span>
 </code></pre></div>
 
 

@@ -1630,30 +1630,34 @@
 <h3 id="comprendre-pilot">Comprendre pilot</h3>
 <ul>
 <li><a href="concepts/">Concepts &amp; Philosophie</a> : Pourquoi pilot existe, le modèle mental, la valeur ajoutée</li>
-<li><a href="architecture/">Architecture du code</a> : Packages, interfaces, patterns Go</li>
+<li><a href="architecture/">Architecture du code</a> : Packages, interfaces, hexagonal architecture, pipeline de déploiement</li>
+<li><a href="resilience/">Modèle de résilience</a> : Taxonomie TypeA/B/C/D, machine à états, pilot.lock</li>
 <li><a href="pilot-yaml/">pilot.yaml : Référence complète</a> : Schéma, champs, exemples</li>
 </ul>
 <h3 id="commandes">Commandes</h3>
 <ul>
 <li><a href="commands/up-down/">pilot up / down</a> : Démarrer / arrêter l'environnement local</li>
+<li><a href="commands/env/">pilot env</a> : Gérer les environnements (use, current, diff)</li>
 <li><a href="commands/context/">pilot context</a> : Exporter le contexte pour un agent AI</li>
 <li><a href="commands/push/">pilot push</a> : Build + push de l'image Docker (auto-inject VITE_*, platform detection)</li>
-<li><a href="commands/deploy/">pilot deploy</a> : Déployer sur une cible distante (sync automatique, rollback auto)</li>
+<li><a href="commands/preflight/">pilot preflight</a> : Vérifier les prérequis + générer pilot.lock</li>
+<li><a href="commands/plan/">pilot plan</a> : Afficher le plan d'exécution sans déployer</li>
+<li><a href="commands/deploy/">pilot deploy</a> : Déployer sur une cible distante (pipeline 8 étapes, hooks, migrations, LIFO compensation)</li>
 <li><a href="commands/sync/">pilot sync</a> : Synchroniser les fichiers de config vers le VPS sans redéployer</li>
 <li><a href="commands/rollback/">pilot rollback</a> : Revenir à la version précédente</li>
+<li><a href="commands/resume/">pilot resume</a> : Reprendre une opération suspendue (TypeC)</li>
+<li><a href="commands/diagnose/">pilot diagnose</a> : Snapshot complet du système (Docker, SSH, ports, git)</li>
 <li><a href="commands/status/">pilot status</a> : État complet du projet et des services</li>
 <li><a href="commands/logs/">pilot logs</a> : Consulter les logs d'un service</li>
-<li><a href="commands/env/">pilot env</a> : Gérer les environnements (switch, liste)</li>
 <li><a href="commands/setup/">pilot setup</a> : Préparer un VPS pour le déploiement</li>
 <li><a href="commands/history/">pilot history</a> : Historique des déploiements</li>
 <li><a href="commands/mcp/">pilot mcp</a> : Démarrer le serveur MCP (JSON-RPC 2.0 stdio)</li>
-<li><a href="commands/preflight/">pilot preflight</a> : Vérifier tous les prérequis avant de déployer</li>
 </ul>
 <h3 id="workflows-complets">Workflows complets</h3>
 <ul>
 <li><a href="workflows/local-dev/">Développement local</a> : De <code>pilot init</code> à <code>pilot up</code></li>
 <li><a href="workflows/ai-agent/">Intégration Agent AI</a> : Générer l'infra et déployer avec Claude/Cursor</li>
-<li><a href="workflows/deploy-vps/">Déploiement VPS</a> : Preflight, push, deploy, rollback</li>
+<li><a href="workflows/deploy-vps/">Déploiement VPS</a> : Preflight, push, plan, deploy, rollback</li>
 <li><a href="workflows/ci-cd/">CI/CD</a> : pilot dans GitHub Actions / GitLab CI</li>
 </ul>
 <h3 id="troubleshooting">Troubleshooting</h3>
@@ -1662,9 +1666,9 @@
 </ul>
 <h3 id="internals-pour-contribuer">Internals (pour contribuer)</h3>
 <ul>
-<li><a href="internals/context-engine/">Moteur de contexte</a> : Comment <code>internal/context</code> collecte les informations</li>
-<li><a href="internals/orchestrators/">Orchestrateurs</a> : compose, k3d, k8s</li>
-<li><a href="internals/providers/">Providers</a> : VPS/SSH (interface, Sync, CopyFileTo, bind-mounts)</li>
+<li><a href="internals/context-engine/">Moteur de contexte</a> : Comment <code>internal/mcp/context</code> collecte les informations</li>
+<li><a href="internals/orchestrators/">ExecutionProvider</a> : compose, k8s — runtime local</li>
+<li><a href="internals/providers/">DeployProvider</a> : VPS/SSH (interface, Sync, hooks, migrations, erreurs TypeC/D)</li>
 <li><a href="internals/mcp-server/">Serveur MCP</a> : Protocole JSON-RPC 2.0, outils implémentés</li>
 </ul>
 

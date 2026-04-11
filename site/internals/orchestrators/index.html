@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#internals-orchestrateurs" class="md-skip">
+        <a href="#internals-execution-locale-executionprovider" class="md-skip">
           Skip to content
         </a>
       
@@ -1313,21 +1313,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#k3d-kubernetes-local-stub" class="md-nav__link">
+  <a href="#k8s-kubernetes-stub" class="md-nav__link">
     <span class="md-ellipsis">
       
-        k3d : Kubernetes local (stub)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#lima-vms-legeres-stub" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        lima : VMs légères (stub)
+        k8s : Kubernetes (stub)
       
     </span>
   </a>
@@ -1581,21 +1570,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#k3d-kubernetes-local-stub" class="md-nav__link">
+  <a href="#k8s-kubernetes-stub" class="md-nav__link">
     <span class="md-ellipsis">
       
-        k3d : Kubernetes local (stub)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#lima-vms-legeres-stub" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        lima : VMs légères (stub)
+        k8s : Kubernetes (stub)
       
     </span>
   </a>
@@ -1646,97 +1624,88 @@
 
 
 
-<h1 id="internals-orchestrateurs">Internals : Orchestrateurs</h1>
-<p>Les orchestrateurs sont responsables de démarrer, arrêter et surveiller les services <strong>localement</strong>.</p>
+<h1 id="internals-execution-locale-executionprovider">Internals : Exécution locale (ExecutionProvider)</h1>
+<p>Les <code>ExecutionProvider</code> gèrent le démarrage, l'arrêt et la surveillance des services <strong>localement</strong> (docker compose, k8s...).</p>
 <hr />
 <h2 id="interface">Interface</h2>
-<div class="highlight"><pre><span></span><code><span class="c1">// internal/orchestrator/orchestrator.go</span>
-<span class="kd">type</span><span class="w"> </span><span class="nx">Orchestrator</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span>
+<p>Définie dans <code>internal/domain/ports.go</code> — les adapters l'implémentent, le domain ne connaît rien d'eux.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// internal/domain/ports.go</span>
+<span class="kd">type</span><span class="w"> </span><span class="nx">ExecutionProvider</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nx">Up</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">services</span><span class="w"> </span><span class="p">[]</span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
 <span class="w">    </span><span class="nx">Down</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
-<span class="w">    </span><span class="nx">Logs</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">service</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="nx">LogOptions</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">&lt;-</span><span class="kd">chan</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
-<span class="w">    </span><span class="nx">Status</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span><span class="w"> </span><span class="p">([]</span><span class="nx">ServiceStatus</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">Status</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">([]</span><span class="nx">ServiceStatus</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">Logs</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">service</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="nx">LogOptions</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">&lt;-</span><span class="kd">chan</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre></div>
 <hr />
 <h2 id="implementations">Implémentations</h2>
 <h3 id="compose-docker-compose-implemente"><code>compose</code> : Docker Compose (implémenté)</h3>
-<p>Fichier : <code>internal/orchestrator/compose/compose.go</code></p>
-<p>Convention de nommage des fichiers : <code>docker-compose.&lt;env&gt;.yml</code></p>
+<p>Fichier : <code>internal/adapters/compose/compose.go</code></p>
+<p>Convention de nommage : <code>docker-compose.&lt;env&gt;.yml</code></p>
 <div class="highlight"><pre><span></span><code><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><span class="nx">Compose</span><span class="p">)</span><span class="w"> </span><span class="nx">Up</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">services</span><span class="w"> </span><span class="p">[]</span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nx">args</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="s">&quot;compose&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;-f&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">composeFileForEnv</span><span class="p">(</span><span class="nx">env</span><span class="p">),</span><span class="w"> </span><span class="s">&quot;up&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;-d&quot;</span><span class="p">}</span>
 <span class="w">    </span><span class="nx">args</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">append</span><span class="p">(</span><span class="nx">args</span><span class="p">,</span><span class="w"> </span><span class="nx">services</span><span class="o">...</span><span class="p">)</span>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">exec</span><span class="p">.</span><span class="nx">CommandContext</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;docker&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">args</span><span class="o">...</span><span class="p">).</span><span class="nx">Run</span><span class="p">()</span>
 <span class="p">}</span>
 </code></pre></div>
+<p><code>Status()</code> parse la sortie de <code>docker compose ps --json</code> via <code>internal/adapters/compose/parser.go</code>.</p>
 <p>Prérequis : <code>docker</code> CLI installé avec le plugin <code>compose</code>.</p>
-<h3 id="k3d-kubernetes-local-stub"><code>k3d</code> : Kubernetes local (stub)</h3>
-<p>Fichier : <code>internal/orchestrator/k8s/k8s.go</code></p>
-<p>k3d crée un cluster Kubernetes local dans Docker. Idéal pour tester en conditions réelles de prod quand la prod tourne sur k8s.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># pilot.yaml</span>
-<span class="nt">environments</span><span class="p">:</span>
+<h3 id="k8s-kubernetes-stub"><code>k8s</code> : Kubernetes (stub)</h3>
+<p>Fichier : <code>internal/adapters/k8s/k8s.go</code></p>
+<p>Activé en déclarant <code>runtime: k3d</code> ou <code>runtime: lima</code> dans <code>pilot.yaml</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="nt">environments</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">test</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">runtime</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">k3d</span>
 </code></pre></div>
 <p>Roadmap :
 - Créer/supprimer un cluster k3d au <code>Up</code>/<code>Down</code>
-- Générer les manifests Kubernetes depuis <code>pilot.yaml</code> (ou déléguer à l'agent)
+- Générer les manifests Kubernetes depuis <code>pilot.yaml</code>
 - Exposer les services localement via port-forward</p>
-<h3 id="lima-vms-legeres-stub"><code>lima</code> : VMs légères (stub)</h3>
-<p>Lima crée des VMs Linux légères sur macOS. Permet de simuler une vraie VM locale.</p>
-<div class="highlight"><pre><span></span><code><span class="nt">environments</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">dev-vm</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">runtime</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lima</span>
-</code></pre></div>
-<p>Roadmap :
-- Créer une VM Lima avec la config définie dans <code>pilot.yaml</code>
-- Injecter Docker dans la VM
-- Copier et démarrer les services dans la VM</p>
 <hr />
 <h2 id="factory">Factory</h2>
-<div class="highlight"><pre><span></span><code><span class="c1">// internal/runtime/runtime.go</span>
-<span class="kd">func</span><span class="w"> </span><span class="nx">NewOrchestrator</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><span class="nx">config</span><span class="p">.</span><span class="nx">Config</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">orchestrator</span><span class="p">.</span><span class="nx">Orchestrator</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<div class="highlight"><pre><span></span><code><span class="c1">// internal/app/runtime/runtime.go</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">NewExecutionProvider</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><span class="nx">config</span><span class="p">.</span><span class="nx">Config</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">domain</span><span class="p">.</span><span class="nx">ExecutionProvider</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nx">envCfg</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">cfg</span><span class="p">.</span><span class="nx">Environments</span><span class="p">[</span><span class="nx">env</span><span class="p">]</span>
 <span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="nx">envCfg</span><span class="p">.</span><span class="nx">Runtime</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="nx">config</span><span class="p">.</span><span class="nx">RuntimeCompose</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">compose</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="nx">cfg</span><span class="p">),</span><span class="w"> </span><span class="kc">nil</span>
-<span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="nx">config</span><span class="p">.</span><span class="nx">RuntimeK3d</span><span class="p">:</span>
-<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">k8s</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="nx">cfg</span><span class="p">),</span><span class="w"> </span><span class="kc">nil</span>
-<span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="nx">config</span><span class="p">.</span><span class="nx">RuntimeLima</span><span class="p">:</span>
-<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="kc">nil</span><span class="p">,</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;lima: not yet implemented&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">compose</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="nx">cfg</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="p">),</span><span class="w"> </span><span class="kc">nil</span>
+<span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="nx">config</span><span class="p">.</span><span class="nx">RuntimeK3d</span><span class="p">,</span><span class="w"> </span><span class="nx">config</span><span class="p">.</span><span class="nx">RuntimeLima</span><span class="p">:</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">k8s</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="nx">cfg</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="p">),</span><span class="w"> </span><span class="kc">nil</span>
 <span class="w">    </span><span class="k">default</span><span class="p">:</span>
 <span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="kc">nil</span><span class="p">,</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;unknown runtime %q&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">envCfg</span><span class="p">.</span><span class="nx">Runtime</span><span class="p">)</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
+<p>Les commandes <code>cmd/up.go</code>, <code>cmd/status.go</code>, <code>cmd/logs.go</code> appellent <code>runtime.NewExecutionProvider()</code> — jamais l'adapter directement.</p>
 <hr />
 <h2 id="ajouter-un-nouveau-runtime">Ajouter un nouveau runtime</h2>
 <ol>
-<li>Créer <code>internal/orchestrator/&lt;runtime&gt;/</code> avec un fichier <code>&lt;runtime&gt;.go</code></li>
-<li>Implémenter l'interface <code>Orchestrator</code></li>
+<li>Créer <code>internal/adapters/&lt;runtime&gt;/&lt;runtime&gt;.go</code></li>
+<li>Implémenter <code>domain.ExecutionProvider</code> (4 méthodes)</li>
 <li>Ajouter une constante dans <code>internal/config/types.go</code> : <code>RuntimeXxx = "xxx"</code></li>
-<li>Ajouter le cas dans le switch de <code>internal/runtime/runtime.go</code></li>
+<li>Ajouter le cas dans <code>runtime.NewExecutionProvider()</code></li>
 </ol>
 <p>Exemple minimal :</p>
-<div class="highlight"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">myvms</span>
+<div class="highlight"><pre><span></span><code><span class="c1">// internal/adapters/podman/podman.go</span>
+<span class="kn">package</span><span class="w"> </span><span class="nx">podman</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="p">(</span>
 <span class="w">    </span><span class="s">&quot;context&quot;</span>
 <span class="w">    </span><span class="s">&quot;fmt&quot;</span>
+<span class="w">    </span><span class="nx">domain</span><span class="w"> </span><span class="s">&quot;github.com/mouhamedsylla/pilot/internal/domain&quot;</span>
 <span class="w">    </span><span class="s">&quot;github.com/mouhamedsylla/pilot/internal/config&quot;</span>
-<span class="w">    </span><span class="s">&quot;github.com/mouhamedsylla/pilot/internal/orchestrator&quot;</span>
 <span class="p">)</span>
 
-<span class="kd">type</span><span class="w"> </span><span class="nx">MyVMs</span><span class="w"> </span><span class="kd">struct</span><span class="p">{</span><span class="w"> </span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><span class="nx">config</span><span class="p">.</span><span class="nx">Config</span><span class="w"> </span><span class="p">}</span>
+<span class="kd">type</span><span class="w"> </span><span class="nx">Podman</span><span class="w"> </span><span class="kd">struct</span><span class="p">{</span><span class="w"> </span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><span class="nx">config</span><span class="p">.</span><span class="nx">Config</span><span class="p">;</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="p">}</span>
 
-<span class="kd">func</span><span class="w"> </span><span class="nx">New</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><span class="nx">config</span><span class="p">.</span><span class="nx">Config</span><span class="p">)</span><span class="w"> </span><span class="nx">orchestrator</span><span class="p">.</span><span class="nx">Orchestrator</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">MyVMs</span><span class="p">{</span><span class="nx">cfg</span><span class="p">:</span><span class="w"> </span><span class="nx">cfg</span><span class="p">}</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">New</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><span class="nx">config</span><span class="p">.</span><span class="nx">Config</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="nx">domain</span><span class="p">.</span><span class="nx">ExecutionProvider</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">Podman</span><span class="p">{</span><span class="nx">cfg</span><span class="p">:</span><span class="w"> </span><span class="nx">cfg</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="p">:</span><span class="w"> </span><span class="nx">env</span><span class="p">}</span>
 <span class="p">}</span>
 
-<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">m</span><span class="w"> </span><span class="o">*</span><span class="nx">MyVMs</span><span class="p">)</span><span class="w"> </span><span class="nx">Up</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">services</span><span class="w"> </span><span class="p">[]</span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;myvms: not yet implemented&quot;</span><span class="p">)</span>
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">p</span><span class="w"> </span><span class="o">*</span><span class="nx">Podman</span><span class="p">)</span><span class="w"> </span><span class="nx">Up</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">services</span><span class="w"> </span><span class="p">[]</span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;podman: not yet implemented&quot;</span><span class="p">)</span>
 <span class="p">}</span>
-<span class="c1">// ... Down, Logs, Status</span>
+<span class="c1">// ... Down, Status, Logs</span>
 </code></pre></div>
 
 

@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#architecture-du-code" class="md-skip">
+        <a href="#pilot-architecture" class="md-skip">
           Skip to content
         </a>
       
@@ -486,10 +486,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#vue-densemble" class="md-nav__link">
+  <a href="#table-of-contents" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Vue d'ensemble
+        Table of contents
       
     </span>
   </a>
@@ -497,22 +497,99 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#principe-fondamental-linterface-comme-contrat" class="md-nav__link">
+  <a href="#design-philosophy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Principe fondamental : l'interface comme contrat
+        Design philosophy
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Principe fondamental : l&#39;interface comme contrat">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#directory-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Directory layout
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependency-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependency rule
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#domain-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Domain layer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Domain layer">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#pourquoi-ce-pattern" class="md-nav__link">
+  <a href="#ports-interfaces" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Pourquoi ce pattern ?
+        Ports (interfaces)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-taxonomy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error taxonomy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#state-machine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State machine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pilotlock" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pilot.lock
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#execution-plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Execution plan
       
     </span>
   </a>
@@ -525,66 +602,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#le-probleme-des-imports-circulaires-et-sa-solution" class="md-nav__link">
+  <a href="#adapters-layer" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Le problème des imports circulaires : et sa solution
+        Adapters layer
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#flux-de-donnees-pilot-up" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Flux de données : pilot up
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#flux-de-donnees-pilot-deploy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Flux de données : pilot deploy
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#flux-de-donnees-mcp-agent-workflow" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Flux de données : MCP agent workflow
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#packages-detailles" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Packages détaillés
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Packages détaillés">
+    <nav class="md-nav" aria-label="Adapters layer">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#internalconfig" class="md-nav__link">
+  <a href="#execution-providers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        internal/config
+        Execution providers
       
     </span>
   </a>
@@ -592,10 +625,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#internalcontext" class="md-nav__link">
+  <a href="#deploy-providers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        internal/context
+        Deploy providers
       
     </span>
   </a>
@@ -603,10 +636,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#internalorchestrator" class="md-nav__link">
+  <a href="#registry-providers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        internal/orchestrator
+        Registry providers
       
     </span>
   </a>
@@ -614,43 +647,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#internalproviders" class="md-nav__link">
+  <a href="#secret-managers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        internal/providers
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#internalregistry" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        internal/registry
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#internalmcp" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        internal/mcp
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#pkgui" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        pkg/ui
+        Secret managers
       
     </span>
   </a>
@@ -663,13 +663,158 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#conventions-de-code" class="md-nav__link">
+  <a href="#app-layer-use-cases" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Conventions de code
+        App layer (use cases)
       
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runtime-wiring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime wiring
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Runtime wiring">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-hookmigration-bridge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The hook/migration bridge
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-deploy-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The deploy pipeline
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The deploy pipeline">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lifo-compensation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LIFO compensation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dry-run-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dry-run mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#typec-suspension-resume-cycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TypeC suspension / resume cycle
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mcp-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MCP server
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MCP server">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tool-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool registry
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code conventions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Code conventions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-new-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a new provider
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-new-mcp-tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a new MCP tool
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1652,10 +1797,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#vue-densemble" class="md-nav__link">
+  <a href="#table-of-contents" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Vue d'ensemble
+        Table of contents
       
     </span>
   </a>
@@ -1663,22 +1808,99 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#principe-fondamental-linterface-comme-contrat" class="md-nav__link">
+  <a href="#design-philosophy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Principe fondamental : l'interface comme contrat
+        Design philosophy
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Principe fondamental : l&#39;interface comme contrat">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#directory-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Directory layout
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependency-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependency rule
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#domain-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Domain layer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Domain layer">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#pourquoi-ce-pattern" class="md-nav__link">
+  <a href="#ports-interfaces" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Pourquoi ce pattern ?
+        Ports (interfaces)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-taxonomy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error taxonomy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#state-machine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        State machine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pilotlock" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pilot.lock
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#execution-plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Execution plan
       
     </span>
   </a>
@@ -1691,66 +1913,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#le-probleme-des-imports-circulaires-et-sa-solution" class="md-nav__link">
+  <a href="#adapters-layer" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Le problème des imports circulaires : et sa solution
+        Adapters layer
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#flux-de-donnees-pilot-up" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Flux de données : pilot up
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#flux-de-donnees-pilot-deploy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Flux de données : pilot deploy
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#flux-de-donnees-mcp-agent-workflow" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Flux de données : MCP agent workflow
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#packages-detailles" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Packages détaillés
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Packages détaillés">
+    <nav class="md-nav" aria-label="Adapters layer">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#internalconfig" class="md-nav__link">
+  <a href="#execution-providers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        internal/config
+        Execution providers
       
     </span>
   </a>
@@ -1758,10 +1936,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#internalcontext" class="md-nav__link">
+  <a href="#deploy-providers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        internal/context
+        Deploy providers
       
     </span>
   </a>
@@ -1769,10 +1947,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#internalorchestrator" class="md-nav__link">
+  <a href="#registry-providers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        internal/orchestrator
+        Registry providers
       
     </span>
   </a>
@@ -1780,43 +1958,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#internalproviders" class="md-nav__link">
+  <a href="#secret-managers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        internal/providers
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#internalregistry" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        internal/registry
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#internalmcp" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        internal/mcp
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#pkgui" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        pkg/ui
+        Secret managers
       
     </span>
   </a>
@@ -1829,13 +1974,158 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#conventions-de-code" class="md-nav__link">
+  <a href="#app-layer-use-cases" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Conventions de code
+        App layer (use cases)
       
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runtime-wiring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime wiring
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Runtime wiring">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-hookmigration-bridge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The hook/migration bridge
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-deploy-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The deploy pipeline
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The deploy pipeline">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lifo-compensation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LIFO compensation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dry-run-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dry-run mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#typec-suspension-resume-cycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TypeC suspension / resume cycle
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mcp-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MCP server
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MCP server">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tool-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool registry
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code conventions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Code conventions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-new-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a new provider
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-new-mcp-tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a new MCP tool
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1856,244 +2146,951 @@
 
 
 
-<h1 id="architecture-du-code">Architecture du code</h1>
-<h2 id="vue-densemble">Vue d'ensemble</h2>
-<div class="highlight"><pre><span></span><code>pilot/
-├── main.go                   # Entrée : appelle cmd.Execute()
-├── cmd/                      # Commandes Cobra (1 fichier = 1 commande)
-├── internal/                 # Logique métier (non exportée)
-│   ├── config/               # Parse et valide pilot.yaml
-│   ├── context/              # Collecte le contexte projet pour les agents AI
-│   ├── env/                  # Gestion de l&#39;environnement actif
-│   ├── scaffold/             # pilot init : wizard TUI + génération pilot.yaml
-│   ├── up/                   # Logique pilot up / pilot down
-│   ├── composer/             # Génération docker-compose (utilisé par le MCP)
-│   ├── orchestrator/         # Interface + implémentations (compose, k8s)
-│   ├── providers/            # Interface + implémentations (vps, aws, gcp...)
-│   ├── registry/             # Interface + implémentations (ghcr, dockerhub...)
-│   ├── secrets/              # Interface + implémentations (local, aws_sm, gcp_sm)
-│   ├── runtime/              # Factory package : instancie les bonnes implémentations
-│   └── mcp/                  # Serveur MCP JSON-RPC 2.0 stdio
-└── pkg/                      # Packages réutilisables (exportés)
-    ├── ui/                   # Spinner, couleurs, output JSON
-    └── ssh/                  # Client SSH
-</code></pre></div>
+<h1 id="pilot-architecture">pilot — Architecture</h1>
+<blockquote>
+<p>This document is the authoritative technical reference for pilot's internals.
+If you are contributing, this is where to start. If you are debugging something deep,
+this is where to look. It covers every layer, every contract, and every invariant.</p>
+</blockquote>
 <hr />
-<h2 id="principe-fondamental-linterface-comme-contrat">Principe fondamental : l'interface comme contrat</h2>
-<p>Chaque couche extensible est définie par une <strong>interface Go</strong> dans son package racine. Toutes les implémentations respectent ce contrat. Les stubs retournent <code>fmt.Errorf("xxx: not yet implemented")</code>.</p>
-<div class="highlight"><pre><span></span><code>interface          implémentations
-──────────         ───────────────────────────────────────
-Orchestrator   →   compose/ | k3d/ | k8s/
-Provider       →   vps/ | aws/ | gcp/ | azure/ | do/
-Registry       →   ghcr/ | dockerhub/ | custom/ | ecr/ | gcr/ | acr/
-SecretManager  →   local/ | aws_sm/ | gcp_sm/
-</code></pre></div>
-<h3 id="pourquoi-ce-pattern">Pourquoi ce pattern ?</h3>
+<h2 id="table-of-contents">Table of contents</h2>
 <ol>
-<li><strong>Extensibilité</strong> : ajouter un nouveau provider = implémenter l'interface, pas modifier le code existant.</li>
-<li><strong>Testabilité</strong> : on peut mocker n'importe quelle interface.</li>
-<li><strong>Stubs propres</strong> : les fonctionnalités non encore implémentées retournent une erreur explicite plutôt qu'un <code>nil</code> silencieux.</li>
+<li><a href="#design-philosophy">Design philosophy</a></li>
+<li><a href="#directory-layout">Directory layout</a></li>
+<li><a href="#dependency-rule">Dependency rule</a></li>
+<li><a href="#domain-layer">Domain layer</a></li>
+<li><a href="#ports-interfaces">Ports (interfaces)</a></li>
+<li><a href="#error-taxonomy">Error taxonomy</a></li>
+<li><a href="#state-machine">State machine</a></li>
+<li><a href="#pilotlock">pilot.lock</a></li>
+<li><a href="#execution-plan">Execution plan</a></li>
+<li><a href="#adapters-layer">Adapters layer</a></li>
+<li><a href="#app-layer-use-cases">App layer (use cases)</a></li>
+<li><a href="#runtime-wiring">Runtime wiring</a></li>
+<li><a href="#the-deploy-pipeline">The deploy pipeline</a></li>
+<li><a href="#typec-suspension--resume-cycle">TypeC suspension / resume cycle</a></li>
+<li><a href="#mcp-server">MCP server</a></li>
+<li><a href="#code-conventions">Code conventions</a></li>
 </ol>
 <hr />
-<h2 id="le-probleme-des-imports-circulaires-et-sa-solution">Le problème des imports circulaires : et sa solution</h2>
-<p>En Go, si <code>orchestrator</code> importe <code>orchestrator/compose</code> ET <code>orchestrator/compose</code> importe <code>orchestrator</code>, c'est une dépendance cyclique → erreur de compilation.</p>
-<p><strong>Solution : <code>internal/runtime</code></strong></p>
-<div class="highlight"><pre><span></span><code>                 ┌─────────────────────────────────┐
-                 │         internal/runtime         │
-                 │  (seul package qui importe tout) │
-                 └──────┬──────────────┬────────────┘
-                        │              │
-               ┌────────▼──────┐  ┌───▼────────────────┐
-               │  orchestrator │  │  orchestrator/compose│
-               │  (interface)  │  │  (implémentation)    │
-               └───────────────┘  └─────────────────────┘
-</code></pre></div>
-<p><code>internal/runtime/runtime.go</code> contient les factories :
-<div class="highlight"><pre><span></span><code><span class="kd">func</span><span class="w"> </span><span class="nx">NewOrchestrator</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><span class="nx">config</span><span class="p">.</span><span class="nx">Config</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">orchestrator</span><span class="p">.</span><span class="nx">Orchestrator</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
-<span class="kd">func</span><span class="w"> </span><span class="nx">NewProvider</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><span class="nx">config</span><span class="p">.</span><span class="nx">Config</span><span class="p">,</span><span class="w"> </span><span class="nx">targetName</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">providers</span><span class="p">.</span><span class="nx">Provider</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
-<span class="kd">func</span><span class="w"> </span><span class="nx">NewRegistry</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><span class="nx">config</span><span class="p">.</span><span class="nx">Config</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">registry</span><span class="p">.</span><span class="nx">Registry</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
-<span class="kd">func</span><span class="w"> </span><span class="nx">NewSecretManager</span><span class="p">(</span><span class="nx">provider</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">secrets</span><span class="p">.</span><span class="nx">SecretManager</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
-</code></pre></div></p>
-<p>Les commandes (<code>cmd/</code>) importent <code>internal/runtime</code> → <code>runtime</code> importe les interfaces + les implémentations → pas de cycle.</p>
+<h2 id="design-philosophy">Design philosophy</h2>
+<p>pilot uses <strong>hexagonal architecture</strong> (also called ports &amp; adapters). The idea is simple:
+business logic lives in the center, I/O details live at the edges, and the center
+never depends on the edges.</p>
+<p>In practice this means:</p>
+<ul>
+<li><strong><code>domain/</code></strong> defines what the application needs from the outside world (interfaces,
+  types, error taxonomy, state machine). It imports nothing from the rest of the codebase.</li>
+<li><strong><code>adapters/</code></strong> implements those interfaces (Docker Compose, SSH/VPS, GHCR, ...).
+  They import <code>domain/</code> but <code>domain/</code> never imports them.</li>
+<li><strong><code>app/</code></strong> contains the use cases (deploy, preflight, push, ...). They depend on
+  <code>domain/</code> interfaces — never on concrete adapters. This makes every use case unit-testable
+  with plain Go mocks, no Docker, no SSH required.</li>
+<li><strong><code>cmd/</code></strong> and <strong><code>mcp/handlers/</code></strong> wire everything together via <code>app/runtime</code>.</li>
+</ul>
+<p>The reward: adding a new cloud provider is <code>adapters/azure2/</code> + two lines in <code>runtime.go</code>.
+The deploy use case never changes.</p>
 <hr />
-<h2 id="flux-de-donnees-pilot-up">Flux de données : <code>pilot up</code></h2>
-<div class="highlight"><pre><span></span><code>cmd/up.go
-  └─► up.Run(ctx, opts)
-        ├─► config.Load(&quot;.&quot;)          // Parse pilot.yaml
-        ├─► env.Active(opts.Env)      // Résout l&#39;env actif (.pilot-current-env)
-        ├─► pilotctx.Collect(env)      // Collecte le contexte projet complet
-        │
-        ├─► [fichiers manquants ?]
-        │     └─► missingFilesError() // Affiche le prompt agent, STOP
-        │
-        └─► runtime.NewOrchestrator() // Instancie compose/ ou k3d/
-              └─► orch.Up(ctx, env, services)
-                    └─► docker compose up -d
-</code></pre></div>
-<h2 id="flux-de-donnees-pilot-deploy">Flux de données : <code>pilot deploy</code></h2>
-<div class="highlight"><pre><span></span><code>cmd/deploy.go
-  └─► deploy.Run(ctx, opts)
-        ├─► config.Load(&quot;.&quot;)
-        ├─► env.Active(opts.Env)
-        ├─► runtime.NewProvider(cfg, targetName)  // Instancie vps/ ou aws/
-        │
-        ├─► registry.NewRegistry(cfg)
-        │     └─► registry.Pull(tag)              // S&#39;assure que l&#39;image existe
-        │
-        └─► provider.Deploy(ctx, opts)
-              ├─► SSH sur le VPS
-              ├─► Copie docker-compose.prod.yml
-              ├─► docker compose pull
-              └─► docker compose up -d
-</code></pre></div>
-<h2 id="flux-de-donnees-mcp-agent-workflow">Flux de données : MCP agent workflow</h2>
-<div class="highlight"><pre><span></span><code>Agent AI (Claude / Cursor)
-  │
-  ├─► tools/call: pilot_context
-  │     └─► handlers.HandleContext()
-  │           └─► pilotctx.Collect()
-  │                 └─► {pilot_yaml, file_tree, stack, missing_files, agent_prompt}
-  │
-  ├─► [Agent génère le contenu]
-  │
-  ├─► tools/call: pilot_generate_dockerfile
-  │     └─► handlers.HandleGenerateDockerfile()
-  │           └─► os.WriteFile(&quot;Dockerfile&quot;, content)
-  │
-  ├─► tools/call: pilot_generate_compose
-  │     └─► handlers.HandleGenerateCompose()
-  │           └─► os.WriteFile(&quot;docker-compose.dev.yml&quot;, content)
-  │
-  └─► tools/call: pilot_up
-        └─► up.Run(ctx, opts)
-              └─► docker compose up -d
+<h2 id="directory-layout">Directory layout</h2>
+<div class="highlight"><pre><span></span><code>pilot/
+├── main.go                         # Entry point: calls cmd.Execute()
+├── cmd/                            # Cobra commands — one file per command
+│   ├── root.go                     # Global flags, error rendering (TypeC/TypeD)
+│   ├── deploy.go                   # pilot deploy
+│   ├── preflight.go                # pilot preflight
+│   ├── push.go                     # pilot push
+│   ├── up.go / down.go             # pilot up / down
+│   ├── sync.go                     # pilot sync
+│   ├── rollback.go                 # pilot rollback
+│   ├── plan.go                     # pilot plan
+│   ├── diagnose.go                 # pilot diagnose
+│   ├── resume.go                   # pilot resume
+│   ├── status.go                   # pilot status
+│   ├── logs.go                     # pilot logs
+│   ├── env.go                      # pilot env use/current/diff
+│   ├── secrets.go                  # pilot secrets list/get/set/inject
+│   └── init.go                     # pilot init (TUI wizard)
+│
+├── internal/
+│   ├── domain/                     # The core — imports nothing internal
+│   │   ├── ports.go                # All domain interfaces (4 ports)
+│   │   ├── errors/                 # TypeA/B/C/D error taxonomy
+│   │   ├── state/                  # State machine + .pilot/state.json
+│   │   ├── lock/                   # pilot.lock read/write + staleness check
+│   │   └── plan/                   # Step names (StepPreflight, StepDeploy, ...)
+│   │
+│   ├── adapters/                   # Port implementations — import domain/, nothing else
+│   │   ├── compose/                # ExecutionProvider → Docker Compose
+│   │   ├── k8s/                    # ExecutionProvider → Kubernetes (stub)
+│   │   ├── vps/                    # DeployProvider + HookRunner + MigrationRunner → SSH
+│   │   ├── aws/                    # DeployProvider → AWS (stub)
+│   │   ├── azure/                  # DeployProvider → Azure (stub)
+│   │   ├── gcp/                    # DeployProvider → GCP (stub)
+│   │   ├── do/                     # DeployProvider → DigitalOcean (stub)
+│   │   ├── registry/
+│   │   │   ├── imgbuild/           # Shared docker build/buildx logic
+│   │   │   ├── ghcr/               # RegistryProvider → GitHub Container Registry
+│   │   │   ├── dockerhub/          # RegistryProvider → Docker Hub
+│   │   │   ├── custom/             # RegistryProvider → any registry with basic auth
+│   │   │   ├── ecr/                # RegistryProvider → AWS ECR (stub)
+│   │   │   ├── gcr/                # RegistryProvider → Google GCR (stub)
+│   │   │   └── acr/                # RegistryProvider → Azure ACR (stub)
+│   │   └── secrets/
+│   │       ├── local/              # SecretManager → .env files
+│   │       ├── aws_sm/             # SecretManager → AWS Secrets Manager (stub)
+│   │       └── gcp_sm/             # SecretManager → GCP Secret Manager (stub)
+│   │
+│   ├── app/                        # Use cases — depend on domain/ interfaces only
+│   │   ├── runtime/                # Factory: reads pilot.yaml, builds concrete ports
+│   │   ├── deploy/                 # DeployUseCase — 7-step pipeline
+│   │   ├── preflight/              # PreflightUseCase + lock generation
+│   │   ├── push/                   # PushUseCase
+│   │   ├── up/                     # UpUseCase
+│   │   ├── sync/                   # SyncUseCase
+│   │   ├── rollback/               # RollbackUseCase
+│   │   ├── status/                 # StatusUseCase
+│   │   ├── logs/                   # LogsUseCase
+│   │   ├── resume/                 # TypeC resume cycle
+│   │   ├── envdiff/                # env diff use case
+│   │   ├── diagnose/               # System snapshot use case
+│   │   └── planview/               # Render execution plan from pilot.lock
+│   │
+│   ├── config/                     # Parse + validate pilot.yaml
+│   ├── env/                        # Active environment (.pilot-current-env)
+│   ├── scaffold/                   # pilot init TUI wizard + project generation
+│   ├── gitutil/                    # Git helpers (branch, status, log)
+│   ├── version/                    # Build-time version injection
+│   └── mcp/                        # MCP JSON-RPC 2.0 stdio server
+│       ├── server.go               # Read loop + dispatch
+│       ├── tools.go                # Tool schema definitions
+│       ├── handlers.go             # Wiring
+│       └── handlers/               # One handler per tool
+│
+└── pkg/                            # Exported utilities (no internal imports)
+    ├── ui/                         # Terminal output (colors, spinner, JSON)
+    └── ssh/                        # SSH client (golang.org/x/crypto/ssh)
 </code></pre></div>
 <hr />
-<h2 id="packages-detailles">Packages détaillés</h2>
-<h3 id="internalconfig"><code>internal/config</code></h3>
-<p>Responsabilité : lire, parser, valider <code>pilot.yaml</code>.</p>
-<div class="highlight"><pre><span></span><code>config/
-├── types.go     # Structs Go miroir du schéma YAML
-├── loader.go    # Load(dir) : remonte les répertoires pour trouver pilot.yaml
-└── validator.go # Validation des contraintes métier
+<h2 id="dependency-rule">Dependency rule</h2>
+<p>The dependency graph has one invariant: <strong>arrows always point inward</strong>.</p>
+<div class="highlight"><pre><span></span><code>cmd/ ──────────────────────────────────────────────┐
+mcp/handlers/ ────────────────────────────────────►│
+                                                    │
+                                            app/runtime/
+                                                    │
+                              ┌─────────────────────┤
+                              ▼                     ▼
+                         app/deploy/           adapters/vps/
+                         app/preflight/        adapters/compose/
+                         app/push/             adapters/ghcr/
+                         ...                   ...
+                              │                     │
+                              └──────────┬──────────┘
+                                         ▼
+                                     domain/
+                                  ports.go
+                                  errors/
+                                  state/
+                                  lock/
+                                  plan/
 </code></pre></div>
-<p><code>config.Load(".")</code> remonte jusqu'à la racine pour trouver <code>pilot.yaml</code> : tu peux lancer <code>pilot up</code> depuis n'importe quel sous-dossier du projet.</p>
-<h3 id="internalcontext"><code>internal/context</code></h3>
-<p>Responsabilité : assembler une photo complète du projet à un instant T pour les agents AI.</p>
-<div class="highlight"><pre><span></span><code><span class="kd">type</span><span class="w"> </span><span class="nx">ProjectContext</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nx">PilotYAML</span><span class="w">             </span><span class="kt">string</span><span class="w">        </span><span class="c1">// Contenu brut de pilot.yaml</span>
-<span class="w">    </span><span class="nx">Stack</span><span class="p">,</span><span class="w"> </span><span class="nx">LanguageVersion</span><span class="w"> </span><span class="kt">string</span><span class="w">      </span><span class="c1">// Détectés ou déclarés</span>
-<span class="w">    </span><span class="nx">FileTree</span><span class="w">             </span><span class="kt">string</span><span class="w">        </span><span class="c1">// Arbre de fichiers (3 niveaux)</span>
-<span class="w">    </span><span class="nx">KeyFiles</span><span class="w">             </span><span class="p">[]</span><span class="kt">string</span><span class="w">      </span><span class="c1">// go.mod, package.json, etc.</span>
-<span class="w">    </span><span class="nx">ExistingDockerfiles</span><span class="w">  </span><span class="p">[]</span><span class="kt">string</span>
-<span class="w">    </span><span class="nx">ExistingComposeFiles</span><span class="w"> </span><span class="p">[]</span><span class="kt">string</span>
-<span class="w">    </span><span class="nx">MissingDockerfile</span><span class="w">    </span><span class="kt">bool</span>
-<span class="w">    </span><span class="nx">MissingCompose</span><span class="w">       </span><span class="kt">bool</span>
-<span class="w">    </span><span class="nx">ActiveEnv</span><span class="w">            </span><span class="kt">string</span>
-<span class="w">    </span><span class="nx">Config</span><span class="w">               </span><span class="o">*</span><span class="nx">config</span><span class="p">.</span><span class="nx">Config</span>
-<span class="p">}</span>
-</code></pre></div>
-<p><code>AgentPrompt()</code> génère un document Markdown structuré que n'importe quel LLM peut comprendre.</p>
-<h3 id="internalorchestrator"><code>internal/orchestrator</code></h3>
-<p>Interface :
-<div class="highlight"><pre><span></span><code><span class="kd">type</span><span class="w"> </span><span class="nx">Orchestrator</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span>
+<p><code>domain/</code> is the innermost ring. It knows nothing about Docker, SSH, or files.
+Everything else knows about <code>domain/</code> and implements (or uses) its interfaces.</p>
+<p>The only package allowed to import both adapters and use cases is <code>app/runtime</code>.
+<code>cmd/</code> and <code>mcp/handlers/</code> import <code>app/runtime</code> — never adapters directly.</p>
+<hr />
+<h2 id="domain-layer">Domain layer</h2>
+<h3 id="ports-interfaces">Ports (interfaces)</h3>
+<p>All four contracts live in <code>internal/domain/ports.go</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// ExecutionProvider — local runtime (Docker Compose, Podman, k3d, ...)</span>
+<span class="kd">type</span><span class="w"> </span><span class="nx">ExecutionProvider</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nx">Up</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">services</span><span class="w"> </span><span class="p">[]</span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
 <span class="w">    </span><span class="nx">Down</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
-<span class="w">    </span><span class="nx">Logs</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">service</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="nx">LogOptions</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">&lt;-</span><span class="kd">chan</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
-<span class="w">    </span><span class="nx">Status</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span><span class="w"> </span><span class="p">([]</span><span class="nx">ServiceStatus</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">Status</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">([]</span><span class="nx">ServiceStatus</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">Logs</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">service</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="nx">LogOptions</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">&lt;-</span><span class="kd">chan</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
 <span class="p">}</span>
-</code></pre></div></p>
-<p>Implémentations :
-- <code>compose/</code> : Docker Compose (implémenté)
-- <code>k8s/</code> : Kubernetes (stub)</p>
-<p>Convention de nommage des fichiers : <code>docker-compose.&lt;env&gt;.yml</code></p>
-<h3 id="internalproviders"><code>internal/providers</code></h3>
-<p>Interface :
-<div class="highlight"><pre><span></span><code><span class="kd">type</span><span class="w"> </span><span class="nx">Provider</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nx">Deploy</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="nx">DeployOptions</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
-<span class="w">    </span><span class="nx">Sync</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">files</span><span class="w"> </span><span class="p">[]</span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
-<span class="w">    </span><span class="nx">Status</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span><span class="w"> </span><span class="p">([]</span><span class="nx">ServiceStatus</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
-<span class="w">    </span><span class="nx">Rollback</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">version</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
+
+<span class="c1">// DeployProvider — remote target (VPS, AWS, ...)</span>
+<span class="kd">type</span><span class="w"> </span><span class="nx">DeployProvider</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Sync</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
+<span class="w">    </span><span class="nx">Deploy</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="nx">DeployOptions</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
+<span class="w">    </span><span class="nx">Rollback</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">toTag</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">restoredTag</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">Status</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">([]</span><span class="nx">ServiceStatus</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">Logs</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">service</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="nx">LogOptions</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">&lt;-</span><span class="kd">chan</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
 <span class="p">}</span>
-</code></pre></div></p>
-<p>Implémentations :
-- <code>vps/</code> : SSH + docker-compose (implémenté)
-- <code>aws/</code>, <code>gcp/</code>, <code>azure/</code>, <code>do/</code> : stubs</p>
-<h3 id="internalregistry"><code>internal/registry</code></h3>
-<p>Interface :
-<div class="highlight"><pre><span></span><code><span class="kd">type</span><span class="w"> </span><span class="nx">Registry</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span>
+
+<span class="c1">// RegistryProvider — image build + push</span>
+<span class="kd">type</span><span class="w"> </span><span class="nx">RegistryProvider</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nx">Login</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
-<span class="w">    </span><span class="nx">Build</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">tag</span><span class="p">,</span><span class="w"> </span><span class="nx">dockerfile</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
+<span class="w">    </span><span class="nx">Build</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="nx">BuildOptions</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
 <span class="w">    </span><span class="nx">Push</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">tag</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
-<span class="w">    </span><span class="nx">Pull</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">tag</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
 <span class="p">}</span>
-</code></pre></div></p>
-<p>Implémentations :
-- <code>ghcr/</code> : GitHub Container Registry (implémenté)
-- <code>dockerhub/</code> : Docker Hub (implémenté)
-- <code>custom/</code> : Registry custom avec auth (implémenté)
-- <code>ecr/</code>, <code>gcr/</code>, <code>acr/</code> : stubs</p>
-<h3 id="internalmcp"><code>internal/mcp</code></h3>
-<p>Serveur JSON-RPC 2.0 sur stdin/stdout. Pas de port réseau, pas de processus séparé.</p>
-<div class="highlight"><pre><span></span><code>mcp/
-├── server.go      # Boucle de lecture + dispatch JSON-RPC
-├── tools.go       # Définitions des outils (Tool, InputSchema, Property)
-├── handlers.go    # Wiring des handlers
-└── handlers/
-    ├── stub.go    # Stub pour outils non implémentés
-    └── context.go # HandleContext, HandleGenerateDockerfile, HandleGenerateCompose
+
+<span class="c1">// SecretManager — secret resolution</span>
+<span class="kd">type</span><span class="w"> </span><span class="nx">SecretManager</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Inject</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">refs</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// HookRunner — pre/post-deploy hooks (remote SSH for VPS)</span>
+<span class="kd">type</span><span class="w"> </span><span class="nx">HookRunner</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">RunHooks</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">commands</span><span class="w"> </span><span class="p">[]</span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
+<span class="p">}</span>
+
+<span class="c1">// MigrationRunner — schema changes with optional rollback</span>
+<span class="kd">type</span><span class="w"> </span><span class="nx">MigrationRunner</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">RunMigrations</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">cfg</span><span class="w"> </span><span class="nx">MigrationConfig</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
+<span class="w">    </span><span class="nx">RollbackMigrations</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">cfg</span><span class="w"> </span><span class="nx">MigrationConfig</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
+<span class="p">}</span>
 </code></pre></div>
-<h3 id="pkgui"><code>pkg/ui</code></h3>
-<p>Toutes les sorties utilisateur passent par ce package : jamais de <code>fmt.Println</code> direct dans <code>internal/</code>.</p>
-<div class="highlight"><pre><span></span><code><span class="nx">ui</span><span class="p">.</span><span class="nx">Success</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">)</span><span class="w">  </span><span class="c1">// vert</span>
-<span class="nx">ui</span><span class="p">.</span><span class="nx">Error</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">)</span><span class="w">    </span><span class="c1">// rouge</span>
-<span class="nx">ui</span><span class="p">.</span><span class="nx">Warn</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">)</span><span class="w">     </span><span class="c1">// jaune</span>
-<span class="nx">ui</span><span class="p">.</span><span class="nx">Info</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">)</span><span class="w">     </span><span class="c1">// bleu</span>
-<span class="nx">ui</span><span class="p">.</span><span class="nx">Dim</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">)</span><span class="w">      </span><span class="c1">// grisé</span>
-<span class="nx">ui</span><span class="p">.</span><span class="nx">Bold</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">)</span><span class="w">     </span><span class="c1">// gras</span>
-<span class="nx">ui</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span><span class="w">          </span><span class="c1">// affiche l&#39;erreur + os.Exit(1)</span>
-<span class="nx">ui</span><span class="p">.</span><span class="nx">JSON</span><span class="p">(</span><span class="nx">v</span><span class="p">)</span><span class="w">             </span><span class="c1">// sérialise en JSON (pour --json)</span>
-</code></pre></div>
-<hr />
-<h2 id="conventions-de-code">Conventions de code</h2>
+<p>Note that <code>HookRunner</code> and <code>MigrationRunner</code> are not mandatory ports: the deploy use
+case injects them as optional <code>nil</code>-able fields. Steps that require them are silently
+skipped when the runner is nil. For VPS targets, <code>app/runtime</code> provides adapters that
+bridge the concrete <code>*vps.Provider</code> to these interfaces.</p>
+<h3 id="error-taxonomy">Error taxonomy</h3>
+<p><code>internal/domain/errors/</code> defines the four-type taxonomy. Every pilot failure is one
+of these four types — the type determines <strong>who acts</strong> and <strong>how</strong>, not just what broke.</p>
 <table>
 <thead>
 <tr>
-<th>Convention</th>
-<th>Règle</th>
+<th>Type</th>
+<th>Situation</th>
+<th>Actor</th>
+<th>Mechanism</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Pas de <code>panic</code></td>
-<td>Toujours retourner une <code>error</code></td>
+<td><strong>TypeA</strong></td>
+<td>Deterministic, low-risk (e.g. missing <code>.pilot/</code> dir)</td>
+<td>pilot, silently</td>
+<td>auto-fix, log, continue</td>
 </tr>
 <tr>
-<td>Context</td>
-<td>Toutes les fonctions I/O acceptent <code>context.Context</code> en premier argument</td>
+<td><strong>TypeB</strong></td>
+<td>Deterministic, impactful (e.g. stale lock auto-regenerated)</td>
+<td>pilot, announced</td>
+<td>auto-fix, print what it did, <code>--dry-run</code> safe</td>
 </tr>
 <tr>
-<td>Stubs</td>
-<td><code>fmt.Errorf("xxx: not yet implemented")</code>, jamais <code>nil</code> silencieux</td>
+<td><strong>TypeC</strong></td>
+<td>Choice required, options known (e.g. user not in docker group)</td>
+<td>human or agent</td>
+<td>pilot suspends, presents numbered options, waits</td>
 </tr>
 <tr>
-<td>Factories</td>
-<td><code>New(cfg, ...)</code> dans leur package</td>
-</tr>
-<tr>
-<td>Output</td>
-<td>Tout passe par <code>pkg/ui</code></td>
-</tr>
-<tr>
-<td>JSON output</td>
-<td>Respecter <code>--json</code> avec <code>ui.JSON()</code></td>
-</tr>
-<tr>
-<td>Git</td>
-<td>Feature branches (<code>feat/xxx</code>, <code>docs/xxx</code>), merge <code>--no-ff</code> dans <code>main</code></td>
+<td><strong>TypeD</strong></td>
+<td>Choice required, options unknown (e.g. SSH key rejected)</td>
+<td>human only</td>
+<td>pilot stops with step-by-step instructions</td>
 </tr>
 </tbody>
 </table>
+<p>The <code>PilotError</code> struct:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">type</span><span class="w"> </span><span class="nx">PilotError</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Type</span><span class="w">         </span><span class="nx">ErrorType</span><span class="w">  </span><span class="c1">// TypeA | TypeB | TypeC | TypeD</span>
+<span class="w">    </span><span class="nx">Code</span><span class="w">         </span><span class="kt">string</span><span class="w">     </span><span class="c1">// e.g. &quot;PILOT-SSH-001&quot;</span>
+<span class="w">    </span><span class="nx">Message</span><span class="w">      </span><span class="kt">string</span>
+<span class="w">    </span><span class="nx">Exit</span><span class="w">         </span><span class="kt">int</span><span class="w">        </span><span class="c1">// os.Exit code (use ExitXxx constants)</span>
+<span class="w">    </span><span class="nx">Cause</span><span class="w">        </span><span class="kt">error</span><span class="w">      </span><span class="c1">// wrapped cause for errors.Is / errors.As chain</span>
+
+<span class="w">    </span><span class="c1">// TypeC only</span>
+<span class="w">    </span><span class="nx">Options</span><span class="w">     </span><span class="p">[]</span><span class="kt">string</span><span class="w">   </span><span class="c1">// numbered choices</span>
+<span class="w">    </span><span class="nx">Recommended</span><span class="w"> </span><span class="kt">string</span><span class="w">     </span><span class="c1">// recommended option</span>
+
+<span class="w">    </span><span class="c1">// TypeD only</span>
+<span class="w">    </span><span class="nx">Instructions</span><span class="w"> </span><span class="kt">string</span><span class="w">    </span><span class="c1">// exact steps for the human</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Error codes follow the pattern <code>PILOT-&lt;DOMAIN&gt;-&lt;NNN&gt;</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Type</th>
+<th>Trigger</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PILOT-CFG-001</code></td>
+<td>D</td>
+<td><code>pilot.yaml</code> not found</td>
+</tr>
+<tr>
+<td><code>PILOT-CFG-002</code></td>
+<td>D</td>
+<td><code>pilot.yaml</code> invalid YAML</td>
+</tr>
+<tr>
+<td><code>PILOT-CFG-003</code></td>
+<td>D</td>
+<td><code>pilot.yaml</code> validation failure</td>
+</tr>
+<tr>
+<td><code>PILOT-SSH-001</code></td>
+<td>D</td>
+<td>SSH connection refused / timeout</td>
+</tr>
+<tr>
+<td><code>PILOT-DEPLOY-002</code></td>
+<td>D</td>
+<td><code>docker pull</code> failure on remote</td>
+</tr>
+<tr>
+<td><code>PILOT-DEPLOY-003</code></td>
+<td>C</td>
+<td>user not in <code>docker</code> group on VPS</td>
+</tr>
+<tr>
+<td><code>PILOT-DEPLOY-004</code></td>
+<td>D</td>
+<td><code>docker compose up</code> failure on remote</td>
+</tr>
+<tr>
+<td><code>PILOT-DEPLOY-005</code></td>
+<td>D</td>
+<td>image rollback failure</td>
+</tr>
+<tr>
+<td><code>PILOT-DEPLOY-006</code></td>
+<td>D</td>
+<td>migration rollback failure</td>
+</tr>
+</tbody>
+</table>
+<p>Exit codes (stable across releases, safe in CI):</p>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="nx">ExitOK</span><span class="w">       </span><span class="p">=</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">    </span><span class="nx">ExitGeneral</span><span class="w">  </span><span class="p">=</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">    </span><span class="nx">ExitConfig</span><span class="w">   </span><span class="p">=</span><span class="w"> </span><span class="mi">2</span>
+<span class="w">    </span><span class="nx">ExitDeploy</span><span class="w">   </span><span class="p">=</span><span class="w"> </span><span class="mi">3</span>
+<span class="w">    </span><span class="nx">ExitSecrets</span><span class="w">  </span><span class="p">=</span><span class="w"> </span><span class="mi">4</span>
+<span class="w">    </span><span class="nx">ExitSSH</span><span class="w">      </span><span class="p">=</span><span class="w"> </span><span class="mi">5</span>
+<span class="w">    </span><span class="nx">ExitRegistry</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">6</span>
+<span class="w">    </span><span class="nx">ExitNotFound</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">7</span>
+<span class="p">)</span>
+</code></pre></div>
+<p><code>cmd/root.go</code> uses <code>errors.As</code> to detect <code>*PilotError</code> and renders TypeC and TypeD
+distinctively. TypeC additionally calls <code>resume.SaveSuspension()</code> to write
+<code>.pilot/suspended.json</code> so <code>pilot resume</code> can restart the operation.</p>
+<h3 id="state-machine">State machine</h3>
+<p><code>internal/domain/state/</code> implements the state machine and persists it to <code>.pilot/state.json</code>.</p>
+<div class="highlight"><pre><span></span><code>StateIdle
+  │
+  ▼  (EventStart)
+StatePreflighting ─── EventTypeAB ──► StateRecovering
+  │                                       │
+  │   EventTypeC ──► StateAwaitingChoice ◄┤ EventTypeC
+  │                       │               │
+  │   EventOK             │ EventResume   │ EventResume
+  ▼                       └──────────────►┘
+StateExecuting ── EventTypeAB ──► StateRecovering
+  │
+  ├─ EventTypeC ──► StateAwaitingChoice
+  │
+  ├─ EventTypeD ──► StateGuidedFailure  (terminal)
+  │
+  └─ EventOK    ──► StateSucceeded      (terminal)
+</code></pre></div>
+<p><strong>Invariant:</strong> every operation ends in <code>StateSucceeded</code> or <code>StateGuidedFailure</code>.
+pilot never leaves a project in an ambiguous state.</p>
+<p><code>state.State</code> is the full JSON structure persisted at <code>.pilot/state.json</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">type</span><span class="w"> </span><span class="nx">State</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">SchemaVersion</span><span class="w">         </span><span class="kt">int</span>
+<span class="w">    </span><span class="nx">ActiveEnv</span><span class="w">             </span><span class="kt">string</span>
+<span class="w">    </span><span class="nx">MachineState</span><span class="w">          </span><span class="nx">MachineState</span>
+<span class="w">    </span><span class="nx">LastOperation</span><span class="w">         </span><span class="o">*</span><span class="nx">OperationRecord</span>
+<span class="w">    </span><span class="nx">LastSuccessPerCommand</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="nx">time</span><span class="p">.</span><span class="nx">Time</span>
+<span class="w">    </span><span class="nx">PendingChoice</span><span class="w">         </span><span class="o">*</span><span class="nx">PendingChoice</span><span class="w">    </span><span class="c1">// non-nil when TypeC suspended</span>
+<span class="w">    </span><span class="nx">Deployed</span><span class="w">              </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="nx">DeployRecord</span><span class="w">  </span><span class="c1">// keyed by env</span>
+<span class="w">    </span><span class="nx">KnownContainers</span><span class="w">       </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">][]</span><span class="kt">string</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><code>state.json</code> is written atomically (write temp → rename). <code>.pilot/</code> is in <code>.gitignore</code>.</p>
+<h3 id="pilotlock">pilot.lock</h3>
+<p><code>internal/domain/lock/</code> manages <code>pilot.lock</code> — the validated, committed snapshot of
+what the next deploy will do.</p>
+<p><strong>Lifecycle:</strong></p>
+<div class="highlight"><pre><span></span><code>pilot preflight --target deploy
+    │
+    ├─ reads: pilot.yaml, docker-compose.prod.yml, prisma/schema.prisma, ...
+    ├─ computes SHA-256 of those files (GeneratedFrom)
+    └─ writes: pilot.lock  ← commit this
+
+pilot deploy
+    │
+    ├─ reads pilot.lock
+    ├─ re-computes SHA-256 of GeneratedFrom files
+    ├─ compares → stale? → STOP, run preflight again
+    └─ executes the plan
+</code></pre></div>
+<p><code>pilot.lock</code> in YAML:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># pilot.lock — generated automatically, commit this file.</span>
+<span class="nt">schema_version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="nt">generated_at</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2026-04-11T14:00:00Z</span>
+<span class="nt">generated_from</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pilot.yaml</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker-compose.prod.yml</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prisma/schema.prisma</span>
+<span class="nt">project_hash</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;sha256:abc123...&quot;</span>
+
+<span class="nt">execution_plan</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">nodes_active</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">preflight</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">migrations</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">deploy</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">healthcheck</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">migrations</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">tool</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prisma</span>
+<span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">npx prisma migrate deploy</span>
+<span class="w">    </span><span class="nt">rollback_command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">npx prisma migrate rollback</span>
+<span class="w">    </span><span class="nt">reversible</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">detected_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prisma/schema.prisma</span>
+<span class="w">  </span><span class="nt">service_order</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">db</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">cache</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">api</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">proxy</span><span class="p p-Indicator">]</span>
+<span class="nt">execution_provider</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compose</span>
+</code></pre></div>
+<p><code>lock.IsStale(currentHash)</code> compares <code>ProjectHash</code> to a fresh SHA-256. If any source
+file changed since preflight was run, the lock is stale and deploy refuses to continue.</p>
+<h3 id="execution-plan">Execution plan</h3>
+<p><code>internal/domain/plan/</code> defines the step names as typed constants:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="nx">StepPreflight</span><span class="w">    </span><span class="nx">StepName</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;preflight&quot;</span>
+<span class="w">    </span><span class="nx">StepPreHooks</span><span class="w">     </span><span class="nx">StepName</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;pre_hooks&quot;</span>
+<span class="w">    </span><span class="nx">StepMigrations</span><span class="w">   </span><span class="nx">StepName</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;migrations&quot;</span>
+<span class="w">    </span><span class="nx">StepDeploy</span><span class="w">       </span><span class="nx">StepName</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;deploy&quot;</span>
+<span class="w">    </span><span class="nx">StepPostHooks</span><span class="w">    </span><span class="nx">StepName</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;post_hooks&quot;</span>
+<span class="w">    </span><span class="nx">StepHealthcheck</span><span class="w">  </span><span class="nx">StepName</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;healthcheck&quot;</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>The <code>pilot.lock</code> stores which steps are active as <code>nodes_active</code>. The deploy use case
+and <code>planview</code> use case both iterate over this set against the fixed skeleton to build
+their step list.</p>
+<hr />
+<h2 id="adapters-layer">Adapters layer</h2>
+<p>All adapters live in <code>internal/adapters/</code>. Each implements one or more domain interfaces.
+Stubs return <code>fmt.Errorf("xxx: not yet implemented")</code> — never silent <code>nil</code>.</p>
+<h3 id="execution-providers">Execution providers</h3>
+<table>
+<thead>
+<tr>
+<th>Adapter</th>
+<th>Interface</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>adapters/compose</code></td>
+<td><code>ExecutionProvider</code></td>
+<td>implemented</td>
+</tr>
+<tr>
+<td><code>adapters/k8s</code></td>
+<td><code>ExecutionProvider</code></td>
+<td>stub</td>
+</tr>
+</tbody>
+</table>
+<p><code>compose.New(cfg, env)</code> reads <code>docker-compose.&lt;env&gt;.yml</code> and delegates all commands
+to the <code>docker compose</code> CLI via <code>os/exec</code>. <code>Status()</code> parses <code>docker compose ps --json</code>.</p>
+<h3 id="deploy-providers">Deploy providers</h3>
+<table>
+<thead>
+<tr>
+<th>Adapter</th>
+<th>Interface</th>
+<th>Status</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>adapters/vps</code></td>
+<td><code>DeployProvider</code> + <code>HookRunner</code> + <code>MigrationRunner</code></td>
+<td>implemented</td>
+<td>SSH via <code>golang.org/x/crypto/ssh</code></td>
+</tr>
+<tr>
+<td><code>adapters/aws</code></td>
+<td><code>DeployProvider</code></td>
+<td>stub</td>
+<td></td>
+</tr>
+<tr>
+<td><code>adapters/gcp</code></td>
+<td><code>DeployProvider</code></td>
+<td>stub</td>
+<td></td>
+</tr>
+<tr>
+<td><code>adapters/azure</code></td>
+<td><code>DeployProvider</code></td>
+<td>stub</td>
+<td></td>
+</tr>
+<tr>
+<td><code>adapters/do</code></td>
+<td><code>DeployProvider</code></td>
+<td>stub</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><code>adapters/vps</code> is where the TypeA/B/C/D taxonomy is most visible in practice:</p>
+<ul>
+<li>SSH connection failure → <code>NewTypeD("PILOT-SSH-001", ...)</code> with SSH key/port instructions</li>
+<li><code>docker pull</code> failure → <code>NewTypeD("PILOT-DEPLOY-002", ...)</code></li>
+<li>User not in docker group → <code>NewTypeC("PILOT-DEPLOY-003", ...)</code> with two options:
+  <code>["pilot setup --env X", "ssh ... usermod -aG docker deploy"]</code></li>
+<li><code>docker compose up</code> failure → <code>NewTypeD("PILOT-DEPLOY-004", ...)</code></li>
+</ul>
+<p><code>vps.Provider</code> exposes three additional methods beyond <code>DeployProvider</code>:
+<code>RunHooks(ctx, commands)</code>, <code>RunMigrations(ctx, tool, command)</code>,
+<code>RollbackMigrations(ctx, tool, rollbackCmd)</code>. These are bridged to domain interfaces
+by adapters in <code>app/runtime</code> (see <a href="#runtime-wiring">Runtime wiring</a>).</p>
+<h3 id="registry-providers">Registry providers</h3>
+<table>
+<thead>
+<tr>
+<th>Adapter</th>
+<th>Interface</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>adapters/registry/ghcr</code></td>
+<td><code>RegistryProvider</code></td>
+<td>implemented</td>
+</tr>
+<tr>
+<td><code>adapters/registry/dockerhub</code></td>
+<td><code>RegistryProvider</code></td>
+<td>implemented</td>
+</tr>
+<tr>
+<td><code>adapters/registry/custom</code></td>
+<td><code>RegistryProvider</code></td>
+<td>implemented</td>
+</tr>
+<tr>
+<td><code>adapters/registry/ecr</code></td>
+<td><code>RegistryProvider</code></td>
+<td>stub</td>
+</tr>
+<tr>
+<td><code>adapters/registry/gcr</code></td>
+<td><code>RegistryProvider</code></td>
+<td>stub</td>
+</tr>
+<tr>
+<td><code>adapters/registry/acr</code></td>
+<td><code>RegistryProvider</code></td>
+<td>stub</td>
+</tr>
+</tbody>
+</table>
+<p>All registry adapters delegate <code>Build()</code> to <code>adapters/registry/imgbuild</code>:</p>
+<ul>
+<li>single platform → <code>docker build -t &lt;tag&gt; [--build-arg ...]</code></li>
+<li>multi-platform → <code>docker buildx build --platform &lt;...&gt; --push</code></li>
+</ul>
+<h3 id="secret-managers">Secret managers</h3>
+<table>
+<thead>
+<tr>
+<th>Adapter</th>
+<th>Interface</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>adapters/secrets/local</code></td>
+<td><code>SecretManager</code></td>
+<td>implemented</td>
+</tr>
+<tr>
+<td><code>adapters/secrets/aws_sm</code></td>
+<td><code>SecretManager</code></td>
+<td>stub</td>
+</tr>
+<tr>
+<td><code>adapters/secrets/gcp_sm</code></td>
+<td><code>SecretManager</code></td>
+<td>stub</td>
+</tr>
+</tbody>
+</table>
+<p><code>local.New()</code> resolves secrets from <code>.env</code> files on disk.
+<code>Inject(ctx, env, refs)</code> maps logical names to actual values.</p>
+<hr />
+<h2 id="app-layer-use-cases">App layer (use cases)</h2>
+<p>Each use case in <code>internal/app/</code> follows the same pattern:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">type</span><span class="w"> </span><span class="nx">UseCase</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">cfg</span><span class="w">  </span><span class="o">*</span><span class="nx">config</span><span class="p">.</span><span class="nx">Config</span>
+<span class="w">    </span><span class="nx">port</span><span class="w"> </span><span class="nx">domain</span><span class="p">.</span><span class="nx">SomePort</span><span class="w">  </span><span class="c1">// injected</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">New</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><span class="nx">config</span><span class="p">.</span><span class="nx">Config</span><span class="p">,</span><span class="w"> </span><span class="nx">port</span><span class="w"> </span><span class="nx">domain</span><span class="p">.</span><span class="nx">SomePort</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="nx">UseCase</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">...</span><span class="w"> </span><span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">uc</span><span class="w"> </span><span class="o">*</span><span class="nx">UseCase</span><span class="p">)</span><span class="w"> </span><span class="nx">Execute</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">in</span><span class="w"> </span><span class="nx">Input</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">Output</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">...</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+<p>Ports are injected at construction time — unit tests pass fakes, <code>cmd/</code> passes
+real adapters from <code>app/runtime</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Use case</th>
+<th>Package</th>
+<th>Key injected ports</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Deploy</td>
+<td><code>app/deploy</code></td>
+<td><code>DeployProvider</code>, <code>SecretManager</code>, <code>HookRunner</code>, <code>MigrationRunner</code></td>
+</tr>
+<tr>
+<td>Preflight</td>
+<td><code>app/preflight</code></td>
+<td><code>DeployProvider</code>, <code>ExecutionProvider</code></td>
+</tr>
+<tr>
+<td>Push</td>
+<td><code>app/push</code></td>
+<td><code>RegistryProvider</code></td>
+</tr>
+<tr>
+<td>Up / Down</td>
+<td><code>app/up</code></td>
+<td><code>ExecutionProvider</code></td>
+</tr>
+<tr>
+<td>Sync</td>
+<td><code>app/sync</code></td>
+<td><code>DeployProvider</code></td>
+</tr>
+<tr>
+<td>Rollback</td>
+<td><code>app/rollback</code></td>
+<td><code>DeployProvider</code></td>
+</tr>
+<tr>
+<td>Status</td>
+<td><code>app/status</code></td>
+<td><code>DeployProvider</code>, <code>ExecutionProvider</code></td>
+</tr>
+<tr>
+<td>Logs</td>
+<td><code>app/logs</code></td>
+<td><code>DeployProvider</code>, <code>ExecutionProvider</code></td>
+</tr>
+<tr>
+<td>Resume</td>
+<td><code>app/resume</code></td>
+<td>none (reads <code>.pilot/suspended.json</code>)</td>
+</tr>
+<tr>
+<td>Env diff</td>
+<td><code>app/envdiff</code></td>
+<td>none (reads config + env files)</td>
+</tr>
+<tr>
+<td>Diagnose</td>
+<td><code>app/diagnose</code></td>
+<td>none (probes system directly)</td>
+</tr>
+<tr>
+<td>Plan view</td>
+<td><code>app/planview</code></td>
+<td>none (reads <code>pilot.lock</code>)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="runtime-wiring">Runtime wiring</h2>
+<p><code>internal/app/runtime/runtime.go</code> is the only file allowed to import both adapters
+and use cases. It acts as a factory layer: given a <code>*config.Config</code>, it instantiates
+the right concrete adapter and returns a typed domain interface.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Local runtime (compose, k8s)</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">NewExecutionProvider</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><span class="nx">config</span><span class="p">.</span><span class="nx">Config</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">domain</span><span class="p">.</span><span class="nx">ExecutionProvider</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
+
+<span class="c1">// Remote target (vps, aws, ...)</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">NewDeployProvider</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><span class="nx">config</span><span class="p">.</span><span class="nx">Config</span><span class="p">,</span><span class="w"> </span><span class="nx">targetName</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">domain</span><span class="p">.</span><span class="nx">DeployProvider</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
+
+<span class="c1">// Registry (ghcr, dockerhub, ...)</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">NewRegistryProvider</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><span class="nx">config</span><span class="p">.</span><span class="nx">Config</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">domain</span><span class="p">.</span><span class="nx">RegistryProvider</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
+
+<span class="c1">// Secrets (local, aws_sm, ...)</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">NewSecretManager</span><span class="p">(</span><span class="nx">provider</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">domain</span><span class="p">.</span><span class="nx">SecretManager</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
+
+<span class="c1">// Pre/post-deploy hooks (VPS only for now)</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">NewHookRunner</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><span class="nx">config</span><span class="p">.</span><span class="nx">Config</span><span class="p">,</span><span class="w"> </span><span class="nx">targetName</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">domain</span><span class="p">.</span><span class="nx">HookRunner</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
+
+<span class="c1">// Database migrations (VPS only for now)</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">NewMigrationRunner</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><span class="nx">config</span><span class="p">.</span><span class="nx">Config</span><span class="p">,</span><span class="w"> </span><span class="nx">targetName</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">domain</span><span class="p">.</span><span class="nx">MigrationRunner</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="the-hookmigration-bridge">The hook/migration bridge</h3>
+<p><code>vps.Provider</code> has raw <code>RunHooks(ctx, []string)</code> and <code>RunMigrations(ctx, tool, cmd string)</code>
+methods — not the exact signatures the domain interfaces require. <code>runtime.go</code> bridges
+them with local duck-typed adapters:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">type</span><span class="w"> </span><span class="nx">hookRunnerAdapter</span><span class="w"> </span><span class="kd">struct</span><span class="p">{</span><span class="w"> </span><span class="nx">inner</span><span class="w"> </span><span class="nx">hookRunnerIface</span><span class="w"> </span><span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">a</span><span class="w"> </span><span class="o">*</span><span class="nx">hookRunnerAdapter</span><span class="p">)</span><span class="w"> </span><span class="nx">RunHooks</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">commands</span><span class="w"> </span><span class="p">[]</span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">a</span><span class="p">.</span><span class="nx">inner</span><span class="p">.</span><span class="nx">RunHooks</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">commands</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">type</span><span class="w"> </span><span class="nx">migrationRunnerAdapter</span><span class="w"> </span><span class="kd">struct</span><span class="p">{</span><span class="w"> </span><span class="nx">inner</span><span class="w"> </span><span class="nx">migrationRunnerIface</span><span class="w"> </span><span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">a</span><span class="w"> </span><span class="o">*</span><span class="nx">migrationRunnerAdapter</span><span class="p">)</span><span class="w"> </span><span class="nx">RunMigrations</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">cfg</span><span class="w"> </span><span class="nx">domain</span><span class="p">.</span><span class="nx">MigrationConfig</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">a</span><span class="p">.</span><span class="nx">inner</span><span class="p">.</span><span class="nx">RunMigrations</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">cfg</span><span class="p">.</span><span class="nx">Tool</span><span class="p">,</span><span class="w"> </span><span class="nx">cfg</span><span class="p">.</span><span class="nx">Command</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>If the provider does not implement the duck-typed interface (e.g. AWS stub),
+<code>NewHookRunner</code> / <code>NewMigrationRunner</code> returns <code>nil</code>. The deploy use case
+skips those steps silently.</p>
+<hr />
+<h2 id="the-deploy-pipeline">The deploy pipeline</h2>
+<p><code>app/deploy.DeployUseCase.Execute()</code> runs a 7-step skeleton. Each step only executes
+if the corresponding node is active in <code>pilot.lock</code>.</p>
+<div class="highlight"><pre><span></span><code>Step 1  preflight     validate pilot.lock is not stale
+Step 2  secrets       resolve refs → write temp env file
+Step 3  sync          push compose + config files to remote (DeployProvider.Sync)
+Step 4  pre_hooks     run pre-deploy commands on remote (HookRunner.RunHooks)
+Step 5  migrations    apply schema changes (MigrationRunner.RunMigrations)
+Step 6  deploy        docker pull + compose up (DeployProvider.Deploy)
+Step 7  post_hooks    run post-deploy commands on remote (HookRunner.RunHooks)
+Step 8  healthcheck   wait for all services healthy (DeployProvider.Status)
+</code></pre></div>
+<h3 id="lifo-compensation">LIFO compensation</h3>
+<p>Steps are marked as <code>completed</code> <strong>before</strong> they execute. This ensures that if a step
+panics or returns mid-way, the compensation stack still includes it.</p>
+<p>On any failure from step 4 onward, compensation runs in LIFO order:</p>
+<div class="highlight"><pre><span></span><code>failure in step 6 (deploy)
+  → compensate: step 6 (image rollback — always)
+  → compensate: step 5 (migration rollback — if reversible: true)
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>failure in step 5 (migrations)
+  → compensate: step 5 (migration rollback — if reversible: true)
+  (deploy hasn&#39;t started yet — no image to roll back)
+</code></pre></div>
+<p>The compensation loop in <code>deploy.go</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Mark as started BEFORE the call, so compensation fires even on partial execution.</span>
+<span class="nx">completed</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">append</span><span class="p">(</span><span class="nx">completed</span><span class="p">,</span><span class="w"> </span><span class="nx">plan</span><span class="p">.</span><span class="nx">StepMigrations</span><span class="p">)</span>
+<span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">uc</span><span class="p">.</span><span class="nx">cfg</span><span class="p">.</span><span class="nx">Migrations</span><span class="p">.</span><span class="nx">RunMigrations</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">migCfg</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">compensateAndFail</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">completed</span><span class="p">,</span><span class="w"> </span><span class="o">...</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="dry-run-mode">Dry-run mode</h3>
+<p><code>--dry-run</code> prints the full plan (from <code>pilot.lock</code>) and exits before any mutation.
+The plan is identical to what <code>pilot plan</code> renders.</p>
+<hr />
+<h2 id="typec-suspension-resume-cycle">TypeC suspension / resume cycle</h2>
+<p>When a TypeC error occurs in the deploy use case:</p>
+<div class="highlight"><pre><span></span><code>cmd/deploy.go
+  └─► uc.Execute()
+        └─► vps.Deploy() → NewTypeC(&quot;PILOT-DEPLOY-003&quot;, ...)
+              │
+              └─► returned to cmd/deploy.go as *PilotError
+                    │
+                    ├─► errors.As(err, &amp;pe) → TypeC detected
+                    ├─► resume.SaveSuspension({ErrorCode, Command, Args, Options, Recommended})
+                    │      └─► writes .pilot/suspended.json
+                    └─► root.go printTypeC() renders the options to terminal
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>pilot resume [--answer 0]
+  └─► resume.UseCase.Resolve()
+        ├─► resume.LoadSuspension()   → reads .pilot/suspended.json
+        ├─► matches answer to op.Options[idx] or exact text
+        └─► dispatches: runDeployResume(op)
+              └─► reconstructs flags from op.Args
+              └─► deployCmd.RunE()    → re-runs the full deploy
+</code></pre></div>
+<p>For AI agents, the TypeC output is also available as structured JSON when <code>--json</code> is set:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;awaiting_choice&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PILOT-DEPLOY-003&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user &#39;deploy&#39; is not in the docker group on 1.2.3.4&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;pilot setup --env prod&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;ssh deploy@1.2.3.4 &#39;sudo usermod -aG docker deploy&#39;&quot;</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">&quot;recommended&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pilot setup --env prod&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;resume_with&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pilot resume --answer 0&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+<hr />
+<h2 id="mcp-server">MCP server</h2>
+<p><code>internal/mcp/</code> implements a JSON-RPC 2.0 server over stdio. No network port,
+no separate process. Claude Code and Cursor start it automatically via <code>.mcp.json</code>.</p>
+<div class="highlight"><pre><span></span><code>stdin  ──► server.go (Read loop)
+              │
+              ▼
+           Dispatch by method name
+              │
+              ├─ tools/list  ──► tools.go (schema definitions)
+              └─ tools/call  ──► handlers/ (one file per tool group)
+                                    │
+                                    ├─ context.go   → mcp/context.Collect()
+                                    ├─ lifecycle.go → app/deploy, app/up, app/down, ...
+                                    ├─ preflight.go → app/preflight
+                                    ├─ query.go     → app/status, app/logs
+                                    ├─ setup.go     → app/runtime (VPS setup)
+                                    └─ stub.go      → &quot;not yet implemented&quot;
+stdout ◄── JSON response
+</code></pre></div>
+<p>All handlers are synchronous and blocking. Each tool call maps to exactly one use case
+<code>Execute()</code> call. Error responses follow JSON-RPC 2.0 with pilot's error taxonomy
+embedded in <code>data.pilot_error</code>.</p>
+<h3 id="tool-registry">Tool registry</h3>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Handler</th>
+<th>Use case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pilot_context</code></td>
+<td><code>context.go</code></td>
+<td><code>mcp/context.Collect()</code></td>
+</tr>
+<tr>
+<td><code>pilot_generate_dockerfile</code></td>
+<td><code>context.go</code></td>
+<td>writes file to disk</td>
+</tr>
+<tr>
+<td><code>pilot_generate_compose</code></td>
+<td><code>context.go</code></td>
+<td>writes file to disk</td>
+</tr>
+<tr>
+<td><code>pilot_preflight</code></td>
+<td><code>preflight.go</code></td>
+<td><code>app/preflight</code></td>
+</tr>
+<tr>
+<td><code>pilot_up</code></td>
+<td><code>lifecycle.go</code></td>
+<td><code>app/up</code></td>
+</tr>
+<tr>
+<td><code>pilot_down</code></td>
+<td><code>lifecycle.go</code></td>
+<td><code>app/up</code></td>
+</tr>
+<tr>
+<td><code>pilot_push</code></td>
+<td><code>lifecycle.go</code></td>
+<td><code>app/push</code></td>
+</tr>
+<tr>
+<td><code>pilot_deploy</code></td>
+<td><code>lifecycle.go</code></td>
+<td><code>app/deploy</code></td>
+</tr>
+<tr>
+<td><code>pilot_rollback</code></td>
+<td><code>lifecycle.go</code></td>
+<td><code>app/rollback</code></td>
+</tr>
+<tr>
+<td><code>pilot_sync</code></td>
+<td><code>lifecycle.go</code></td>
+<td><code>app/sync</code></td>
+</tr>
+<tr>
+<td><code>pilot_status</code></td>
+<td><code>query.go</code></td>
+<td><code>app/status</code></td>
+</tr>
+<tr>
+<td><code>pilot_logs</code></td>
+<td><code>query.go</code></td>
+<td><code>app/logs</code></td>
+</tr>
+<tr>
+<td><code>pilot_secrets_inject</code></td>
+<td><code>query.go</code></td>
+<td><code>app/runtime.NewSecretManager()</code></td>
+</tr>
+<tr>
+<td><code>pilot_setup</code></td>
+<td><code>setup.go</code></td>
+<td>VPS docker group fix</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="code-conventions">Code conventions</h2>
+<table>
+<thead>
+<tr>
+<th>Convention</th>
+<th>Rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>No <code>panic</code></td>
+<td>Always return an <code>error</code>. <code>panic</code> only in <code>init()</code> for programmer errors.</td>
+</tr>
+<tr>
+<td>Context</td>
+<td>All I/O functions accept <code>context.Context</code> as first argument.</td>
+</tr>
+<tr>
+<td>Stubs</td>
+<td>Return <code>fmt.Errorf("xxx: not yet implemented")</code>, never <code>nil</code>.</td>
+</tr>
+<tr>
+<td>Factories</td>
+<td>Named <code>New(cfg, ...)</code> in their own package.</td>
+</tr>
+<tr>
+<td>Terminal output</td>
+<td>Everything goes through <code>pkg/ui</code> — no <code>fmt.Println</code> in <code>internal/</code>.</td>
+</tr>
+<tr>
+<td><code>--json</code> flag</td>
+<td>Use <code>ui.JSON(v)</code> instead of <code>ui.Success/Error/...</code> when JSON mode is active.</td>
+</tr>
+<tr>
+<td>Error sites</td>
+<td>Return <code>domain/errors.PilotError</code> with the right type, code, and exit code.</td>
+</tr>
+<tr>
+<td>Error propagation</td>
+<td>Use <code>WithCause(err)</code> to wrap the original cause — never lose it.</td>
+</tr>
+<tr>
+<td>File writes</td>
+<td>Atomic: write to <code>.tmp</code>, then <code>os.Rename</code> to final path.</td>
+</tr>
+<tr>
+<td>Git</td>
+<td>Feature branches <code>feat/xxx</code>, docs <code>docs/xxx</code>, merge <code>--no-ff</code> into <code>main</code>.</td>
+</tr>
+<tr>
+<td>Tests</td>
+<td>Use cases are tested with injected mocks — no Docker, no SSH in unit tests.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="adding-a-new-provider">Adding a new provider</h3>
+<ol>
+<li>Create <code>internal/adapters/&lt;name&gt;/&lt;name&gt;.go</code></li>
+<li>Implement <code>domain.DeployProvider</code> (6 methods)</li>
+<li>Add a case to <code>runtime.newRawProvider()</code> for the new <code>target.Type</code></li>
+<li>Update the implementation status table in <code>README.md</code></li>
+</ol>
+<p>That's it. The deploy use case, preflight, rollback, sync, status, and logs all work
+immediately — they operate on the interface, not the concrete type.</p>
+<h3 id="adding-a-new-mcp-tool">Adding a new MCP tool</h3>
+<ol>
+<li>Add the <code>Tool</code> definition to <code>internal/mcp/tools.go</code></li>
+<li>Add the handler in <code>internal/mcp/handlers/&lt;group&gt;.go</code></li>
+<li>Register the handler in <code>internal/mcp/handlers.go</code></li>
+</ol>
+<p>The server loop in <code>server.go</code> dispatches by method name automatically.</p>
 
 
 

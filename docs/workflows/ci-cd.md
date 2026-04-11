@@ -7,13 +7,23 @@ pilot ne remplace pas GitHub Actions, GitLab CI, ou CircleCI. Il fournit les **p
 ```
 CI Runner
   │
-  ├─► pilot push --tag $SHA --env prod   # Build + push l'image (avec vars compile-time)
-  ├─► pilot deploy --env staging         # Déploie sur staging
+  ├─► pilot preflight --target deploy   # Vérifie que pilot.lock est à jour
+  ├─► pilot push --tag $SHA --env prod  # Build + push l'image (avec vars compile-time)
+  ├─► pilot deploy --env staging        # Déploie sur staging
   │   [tests d'intégration...]
-  └─► pilot deploy --env prod            # Déploie en prod
+  └─► pilot deploy --env prod           # Déploie en prod
 ```
 
 Les mêmes commandes que tu utilises en local fonctionnent en CI. Pas de script séparé, pas de traduction.
+
+### `pilot.lock` et CI
+
+`pilot.lock` doit être **commité dans le dépôt** — c'est un prérequis de `pilot deploy`.
+
+En pratique :
+- Tu génères `pilot.lock` localement avec `pilot preflight --target deploy`
+- Tu le commites dans le dépôt
+- Le CI l'utilise tel quel : si les sources ont changé depuis sa génération, `pilot deploy` refuse et te demande de relancer `pilot preflight`
 
 ---
 
@@ -40,6 +50,10 @@ jobs:
           curl -sSL https://github.com/mouhamedsylla/pilot/releases/latest/download/pilot-linux-amd64 -o pilot
           chmod +x pilot
           sudo mv pilot /usr/local/bin/
+
+      - name: Check pilot.lock is fresh
+        run: pilot preflight --target deploy --env prod --json
+        # Échoue si pilot.lock est périmé → force à régénérer en local
 
       - name: Push image
         env:
@@ -105,6 +119,7 @@ jobs:
 ```yaml
 # .gitlab-ci.yml
 stages:
+  - validate
   - build
   - deploy-staging
   - test
@@ -112,6 +127,13 @@ stages:
 
 variables:
   TAG: $CI_COMMIT_SHORT_SHA
+
+validate-lock:
+  stage: validate
+  script:
+    - pilot preflight --target deploy --env prod --json
+  only:
+    - main
 
 build:
   stage: build
@@ -174,8 +196,6 @@ pilot écrit la clé dans un fichier temporaire, l'utilise pour SSH, puis la sup
 
 ### Pour les vars compile-time (Vite, Next.js, CRA)
 
-Si ton projet est stack `node` avec des variables `VITE_*` ou `NEXT_PUBLIC_*`, configure-les dans les secrets CI et expose-les dans un `.env.prod` ou directement comme variables d'environnement CI :
-
 ```yaml
 - name: Push image
   env:
@@ -186,8 +206,6 @@ Si ton projet est stack `node` avec des variables `VITE_*` ou `NEXT_PUBLIC_*`, c
   run: pilot push --tag ${{ github.sha }} --env prod
 ```
 
-pilot détecte automatiquement les `VITE_*` dans l'env file et les injecte en `--build-arg`.
-
 ---
 
 ## Ce que le CI fait vs ce que pilot fait
@@ -197,13 +215,15 @@ pilot détecte automatiquement les `VITE_*` dans l'env file et les injecte en `-
 | Déclencher sur un push | ✓ | |
 | Cloner le dépôt | ✓ | |
 | Lancer les tests unitaires | ✓ | |
+| Vérifier pilot.lock | | ✓ (`pilot preflight`) |
 | Construire l'image Docker | | ✓ (`pilot push`) |
 | Injecter les vars compile-time | | ✓ (auto-détection `VITE_*`) |
 | Pousser vers le registry | | ✓ (`pilot push`) |
 | Synchroniser les fichiers de config | | ✓ (`pilot deploy` implicite) |
 | Déployer sur le serveur | | ✓ (`pilot deploy`) |
+| Exécuter migrations + hooks | | ✓ (pipeline 8 étapes) |
 | Rollback si échec | | ✓ (`pilot rollback`) |
-| Vérifier la santé post-deploy | (peut déléguer à pilot) | ✓ (`pilot status`) |
+| Vérifier la santé post-deploy | | ✓ (`pilot deploy` étape 8) |
 | Notifications Slack/email | ✓ | |
 | Gestion des branches/PRs | ✓ | |
 
@@ -235,26 +255,25 @@ pilot deploy --env prod --tag v1.2.0 --strategy canary --weight 10
 
 ## Bonnes pratiques
 
-**Tags immuables** : utilise toujours `--tag $SHA` (SHA Git), jamais `latest`. `latest` est mutable et rend le rollback ambigu.
+**Tags immuables** : utilise toujours `--tag $SHA` (SHA Git), jamais `latest`.
 
 ```bash
 # Bien
 pilot push --tag ${{ github.sha }} --env prod
 pilot deploy --env prod --tag ${{ github.sha }}
-
-# Éviter
-pilot push  # tag par défaut = SHA courant, ok mais moins explicite en CI
 ```
 
-**`--env` sur pilot push** : toujours préciser l'env en CI pour que pilot lise le bon fichier `.env.<env>` et injecte les bonnes variables compile-time.
+**`pilot.lock` commité** : régénère `pilot.lock` localement après chaque changement de `pilot.yaml`, compose file ou schéma de migration. Le CI ne doit pas générer le lock — il vérifie que celui commité est à jour.
+
+**`--env` sur pilot push** : toujours préciser l'env en CI pour que pilot lise le bon `.env.<env>` et injecte les bonnes variables compile-time.
 
 **Rollback automatique** : configure toujours un step de rollback sur `if: failure()`.
 
 **Staging avant prod** : ne déploie jamais directement en prod sans passer par staging.
 
-**`pilot status` après deploy** : vérifie que tous les services sont `healthy` avant de continuer le pipeline.
+**`pilot status` après deploy** :
 
 ```bash
 pilot deploy --env prod --tag $SHA
-pilot status --env prod --json | jq '.services[] | select(.status != "running")'
+pilot status --env prod --json | jq '.services[] | select(.health != "healthy")'
 ```

@@ -1635,7 +1635,7 @@
 
 
 <h1 id="internals-moteur-de-contexte">Internals : Moteur de contexte</h1>
-<p><code>internal/context</code> est le package qui collecte une photo complète du projet à un instant T. C'est la pièce centrale qui permet aux agents AI de comprendre le projet sans avoir besoin de lire chaque fichier manuellement.</p>
+<p><code>internal/mcp/context</code> est le package qui collecte une photo complète du projet à un instant T. C'est la pièce centrale qui permet aux agents AI de comprendre le projet sans avoir besoin de lire chaque fichier manuellement.</p>
 <hr />
 <h2 id="pourquoi-ce-package-existe">Pourquoi ce package existe</h2>
 <p>Un agent AI a besoin de contexte pour générer de bons fichiers d'infra. Sans contexte :
@@ -1646,17 +1646,18 @@
 <p>Avec <code>pilot context</code>, l'agent reçoit tout ce dont il a besoin en un seul appel.</p>
 <hr />
 <h2 id="projectcontext"><code>ProjectContext</code></h2>
-<div class="highlight"><pre><span></span><code><span class="kd">type</span><span class="w"> </span><span class="nx">ProjectContext</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<div class="highlight"><pre><span></span><code><span class="c1">// internal/mcp/context/context.go</span>
+<span class="kd">type</span><span class="w"> </span><span class="nx">ProjectContext</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="c1">// Source de vérité</span>
-<span class="w">    </span><span class="nx">PilotYAML</span><span class="w"> </span><span class="kt">string</span>
+<span class="w">    </span><span class="nx">KaalYAML</span><span class="w"> </span><span class="kt">string</span><span class="w">  </span><span class="c1">// contenu brut de pilot.yaml (champ JSON: &quot;pilot_yaml&quot;)</span>
 
 <span class="w">    </span><span class="c1">// Détection automatique</span>
-<span class="w">    </span><span class="nx">Stack</span><span class="w">            </span><span class="kt">string</span><span class="w">  </span><span class="c1">// &quot;go&quot;, &quot;node&quot;, &quot;python&quot;, &quot;rust&quot;, &quot;java&quot;</span>
-<span class="w">    </span><span class="nx">LanguageVersion</span><span class="w">  </span><span class="kt">string</span><span class="w">  </span><span class="c1">// &quot;1.23&quot;, &quot;20&quot;, &quot;3.12&quot;</span>
-<span class="w">    </span><span class="nx">IsExistingProject</span><span class="w"> </span><span class="kt">bool</span><span class="w">   </span><span class="c1">// true si des fichiers de code existent déjà</span>
+<span class="w">    </span><span class="nx">Stack</span><span class="w">             </span><span class="kt">string</span><span class="w">  </span><span class="c1">// &quot;go&quot;, &quot;node&quot;, &quot;python&quot;, &quot;rust&quot;, &quot;java&quot;</span>
+<span class="w">    </span><span class="nx">LanguageVersion</span><span class="w">   </span><span class="kt">string</span><span class="w">  </span><span class="c1">// &quot;1.23&quot;, &quot;20&quot;, &quot;3.12&quot;</span>
+<span class="w">    </span><span class="nx">IsExistingProject</span><span class="w"> </span><span class="kt">bool</span><span class="w">    </span><span class="c1">// true si des fichiers de code existent déjà</span>
 
 <span class="w">    </span><span class="c1">// Structure du projet</span>
-<span class="w">    </span><span class="nx">FileTree</span><span class="w"> </span><span class="kt">string</span><span class="w">     </span><span class="c1">// Arbre (3 niveaux max, noise filtré)</span>
+<span class="w">    </span><span class="nx">FileTree</span><span class="w"> </span><span class="kt">string</span><span class="w">     </span><span class="c1">// Arbre (3 niveaux max, bruit filtré)</span>
 <span class="w">    </span><span class="nx">KeyFiles</span><span class="w"> </span><span class="p">[]</span><span class="kt">string</span><span class="w">   </span><span class="c1">// go.mod, package.json, Cargo.toml, etc.</span>
 
 <span class="w">    </span><span class="c1">// Infra existante</span>
@@ -1683,9 +1684,8 @@
 <li><code>config.Load(".")</code> : parse pilot.yaml</li>
 <li><code>scaffold.Detect(".")</code> : détecte le stack depuis les fichiers manifestes</li>
 <li>Construit le <code>FileTree</code> en ignorant : <code>.git</code>, <code>node_modules</code>, <code>vendor</code>, <code>.cache</code>, <code>dist</code>, <code>build</code>, <code>__pycache__</code></li>
-<li><code>scanKeyFiles(".")</code> : cherche <code>go.mod</code>, <code>package.json</code>, <code>Cargo.toml</code>, <code>requirements.txt</code>, <code>pyproject.toml</code>, <code>pom.xml</code>, <code>build.gradle</code>, <code>Makefile</code></li>
-<li><code>glob(".", "Dockerfile*")</code> : liste les Dockerfiles existants</li>
-<li><code>glob(".", "docker-compose*.yml")</code> : liste les compose files existants</li>
+<li>Cherche les fichiers clés : <code>go.mod</code>, <code>package.json</code>, <code>Cargo.toml</code>, <code>requirements.txt</code>, <code>pyproject.toml</code>, <code>pom.xml</code>, <code>build.gradle</code>, <code>Makefile</code></li>
+<li>Liste les Dockerfiles et compose files existants</li>
 <li>Détermine <code>MissingDockerfile</code> et <code>MissingCompose</code> pour l'env actif</li>
 </ol>
 <hr />
@@ -1735,7 +1735,6 @@ Compose:     docker-compose.dev.yml
 <div class="highlight"><pre><span></span><code><span class="kd">var</span><span class="w"> </span><span class="nx">skipDirs</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">bool</span><span class="p">{</span>
 <span class="w">    </span><span class="s">&quot;.git&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;node_modules&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;vendor&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <span class="w">    </span><span class="s">&quot;.cache&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;dist&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;build&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;__pycache__&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">    </span><span class="s">&quot;.pilot-current-env&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <span class="p">}</span>
 </code></pre></div>
 <p>Les fichiers cachés (<code>.</code>) à la racine sont ignorés, sauf <code>.env.example</code> : car <code>.env.example</code> documente les variables requises et est utile pour l'agent.</p>

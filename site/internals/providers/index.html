@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#internals-providers" class="md-skip">
+        <a href="#internals-deploiement-distant-deployprovider" class="md-skip">
           Skip to content
         </a>
       
@@ -1307,13 +1307,52 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#interface" class="md-nav__link">
+  <a href="#interfaces" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Interface
+        Interfaces
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Interfaces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deployprovider-obligatoire" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DeployProvider (obligatoire)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hookrunner-optionnel-prepost-deploy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HookRunner (optionnel — pre/post deploy)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#migrationrunner-optionnel-migrations-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MigrationRunner (optionnel — migrations schema)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1342,6 +1381,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#repertoire-de-travail-distant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Répertoire de travail distant
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#flux-de-deploy" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1353,10 +1403,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#repertoire-de-travail-distant" class="md-nav__link">
+  <a href="#erreurs-structurees-taxonomie-typeabcd" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Répertoire de travail distant
+        Erreurs structurées (taxonomie TypeA/B/C/D)
       
     </span>
   </a>
@@ -1375,21 +1425,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#flux-de-rollback" class="md-nav__link">
+  <a href="#output-distant" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Flux de Rollback
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#setup-docker-group" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Setup (Docker group)
+        Output distant
       
     </span>
   </a>
@@ -1402,43 +1441,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#aws-aws-ecseks-stub" class="md-nav__link">
+  <a href="#aws-gcp-azure-do-cloud-providers-stubs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        aws : AWS ECS/EKS (stub)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#gcp-gcp-cloud-rungke-stub" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        gcp : GCP Cloud Run/GKE (stub)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#azure-azure-container-appsaks-stub" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        azure : Azure Container Apps/AKS (stub)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#do-digitalocean-stub" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        do : DigitalOcean (stub)
+        aws / gcp / azure / do : Cloud providers (stubs)
       
     </span>
   </a>
@@ -1641,13 +1647,52 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#interface" class="md-nav__link">
+  <a href="#interfaces" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Interface
+        Interfaces
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Interfaces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deployprovider-obligatoire" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DeployProvider (obligatoire)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hookrunner-optionnel-prepost-deploy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HookRunner (optionnel — pre/post deploy)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#migrationrunner-optionnel-migrations-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MigrationRunner (optionnel — migrations schema)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1676,6 +1721,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#repertoire-de-travail-distant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Répertoire de travail distant
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#flux-de-deploy" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1687,10 +1743,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#repertoire-de-travail-distant" class="md-nav__link">
+  <a href="#erreurs-structurees-taxonomie-typeabcd" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Répertoire de travail distant
+        Erreurs structurées (taxonomie TypeA/B/C/D)
       
     </span>
   </a>
@@ -1709,21 +1765,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#flux-de-rollback" class="md-nav__link">
+  <a href="#output-distant" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Flux de Rollback
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#setup-docker-group" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Setup (Docker group)
+        Output distant
       
     </span>
   </a>
@@ -1736,43 +1781,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#aws-aws-ecseks-stub" class="md-nav__link">
+  <a href="#aws-gcp-azure-do-cloud-providers-stubs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        aws : AWS ECS/EKS (stub)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#gcp-gcp-cloud-rungke-stub" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        gcp : GCP Cloud Run/GKE (stub)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#azure-azure-container-appsaks-stub" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        azure : Azure Container Apps/AKS (stub)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#do-digitalocean-stub" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        do : DigitalOcean (stub)
+        aws / gcp / azure / do : Cloud providers (stubs)
       
     </span>
   </a>
@@ -1834,93 +1846,136 @@
 
 
 
-<h1 id="internals-providers">Internals : Providers</h1>
-<p>Les providers gèrent le <strong>déploiement sur les cibles distantes</strong> : VPS, cloud, etc.</p>
+<h1 id="internals-deploiement-distant-deployprovider">Internals : Déploiement distant (DeployProvider)</h1>
+<p>Les <code>DeployProvider</code> gèrent le <strong>déploiement sur les cibles distantes</strong> : VPS, cloud, etc.
+Ils implémentent également deux interfaces optionnelles pour les hooks et migrations.</p>
 <hr />
-<h2 id="interface">Interface</h2>
-<div class="highlight"><pre><span></span><code><span class="c1">// internal/providers/provider.go</span>
-<span class="kd">type</span><span class="w"> </span><span class="nx">Provider</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nx">Deploy</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="nx">DeployOptions</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
+<h2 id="interfaces">Interfaces</h2>
+<p>Toutes définies dans <code>internal/domain/ports.go</code>.</p>
+<h3 id="deployprovider-obligatoire"><code>DeployProvider</code> (obligatoire)</h3>
+<div class="highlight"><pre><span></span><code><span class="kd">type</span><span class="w"> </span><span class="nx">DeployProvider</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nx">Sync</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
+<span class="w">    </span><span class="nx">Deploy</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="nx">DeployOptions</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
+<span class="w">    </span><span class="nx">Rollback</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">toTag</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">restoredTag</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
 <span class="w">    </span><span class="nx">Status</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">([]</span><span class="nx">ServiceStatus</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
-<span class="w">    </span><span class="nx">Logs</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">service</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">lines</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="nx">since</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
-<span class="w">    </span><span class="nx">Rollback</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="p">,</span><span class="w"> </span><span class="nx">version</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
-<span class="w">    </span><span class="nx">Setup</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
+<span class="w">    </span><span class="nx">Logs</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">service</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="nx">LogOptions</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">&lt;-</span><span class="kd">chan</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre></div>
-<p><code>DeployOptions</code> :</p>
-<div class="highlight"><pre><span></span><code><span class="kd">type</span><span class="w"> </span><span class="nx">DeployOptions</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nx">Env</span><span class="w"> </span><span class="kt">string</span>
-<span class="w">    </span><span class="nx">Tag</span><span class="w"> </span><span class="kt">string</span>
+<h3 id="hookrunner-optionnel-prepost-deploy"><code>HookRunner</code> (optionnel — pre/post deploy)</h3>
+<div class="highlight"><pre><span></span><code><span class="kd">type</span><span class="w"> </span><span class="nx">HookRunner</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">RunHooks</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">commands</span><span class="w"> </span><span class="p">[]</span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
 <span class="p">}</span>
 </code></pre></div>
+<h3 id="migrationrunner-optionnel-migrations-schema"><code>MigrationRunner</code> (optionnel — migrations schema)</h3>
+<div class="highlight"><pre><span></span><code><span class="kd">type</span><span class="w"> </span><span class="nx">MigrationRunner</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">RunMigrations</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">cfg</span><span class="w"> </span><span class="nx">MigrationConfig</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
+<span class="w">    </span><span class="nx">RollbackMigrations</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">cfg</span><span class="w"> </span><span class="nx">MigrationConfig</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><code>HookRunner</code> et <code>MigrationRunner</code> sont des interfaces optionnelles : si le provider ne les implémente pas (ou si le factory retourne <code>nil</code>), les étapes correspondantes sont silencieusement ignorées dans le pipeline de déploiement.</p>
 <hr />
 <h2 id="implementations">Implémentations</h2>
 <h3 id="vps-ssh-docker-compose-implemente"><code>vps</code> : SSH + Docker Compose (implémenté)</h3>
-<p>Fichier : <code>internal/providers/vps/ssh.go</code></p>
-<p>Utilise <code>pkg/ssh</code> pour se connecter et exécuter des commandes à distance.</p>
-<h4 id="flux-de-deploy">Flux de Deploy</h4>
-<ol>
-<li>Connexion SSH (<code>host:port</code>, <code>user</code>, clé privée)</li>
-<li><code>Sync(env)</code> : copie tous les fichiers vers <code>~/pilot/</code> sur le VPS</li>
-<li><code>docker pull &lt;image&gt;:&lt;tag&gt;</code> sur le VPS</li>
-<li><code>IMAGE_TAG=&lt;tag&gt; docker compose -f ~/pilot/docker-compose.&lt;env&gt;.yml up -d --remove-orphans</code></li>
-<li>Sauvegarde le tag dans <code>~/.pilot/&lt;project&gt;/current-tag</code></li>
-</ol>
+<p>Fichier : <code>internal/adapters/vps/ssh.go</code></p>
+<p>Utilise <code>pkg/ssh</code> pour se connecter et exécuter des commandes à distance.
+Implémente <code>DeployProvider</code>, <code>HookRunner</code> et <code>MigrationRunner</code>.</p>
 <h4 id="repertoire-de-travail-distant">Répertoire de travail distant</h4>
 <p>Toutes les commandes utilisent <code>~/pilot/</code> comme répertoire de travail :</p>
 <div class="highlight"><pre><span></span><code><span class="kd">func</span><span class="w"> </span><span class="nx">remoteComposeFile</span><span class="p">(</span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Sprintf</span><span class="p">(</span><span class="s">&quot;~/pilot/docker-compose.%s.yml&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre></div>
-<p>Jamais de chemins relatifs, jamais de commandes dans le home directory racine.</p>
-<h4 id="flux-de-sync">Flux de Sync</h4>
+<h4 id="flux-de-deploy">Flux de <code>Deploy</code></h4>
+<p>Le pipeline complet est orchestré par <code>app/deploy.DeployUseCase</code>, pas par le provider lui-même. Le provider expose les briques primitives :</p>
+<ol>
+<li><code>Sync(env)</code> — copie les fichiers vers <code>~/pilot/</code> sur le VPS</li>
+<li><code>RunHooks(ctx, commands)</code> — exécute des commandes SSH arbitraires</li>
+<li><code>RunMigrations(ctx, tool, command)</code> — exécute la commande de migration via SSH</li>
+<li><code>Deploy(ctx, env, opts)</code> — <code>docker pull</code> + <code>docker compose up -d</code></li>
+<li><code>Rollback(ctx, env, toTag)</code> — restaure un tag précédent</li>
+</ol>
+<h4 id="erreurs-structurees-taxonomie-typeabcd">Erreurs structurées (taxonomie TypeA/B/C/D)</h4>
+<p><code>vps.Provider</code> retourne des <code>*domain/errors.PilotError</code> typés :</p>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Type</th>
+<th>Code</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Connexion SSH échoue</td>
+<td>D</td>
+<td><code>PILOT-SSH-001</code></td>
+</tr>
+<tr>
+<td><code>docker pull</code> échoue</td>
+<td>D</td>
+<td><code>PILOT-DEPLOY-002</code></td>
+</tr>
+<tr>
+<td>User pas dans le groupe docker</td>
+<td><strong>C</strong></td>
+<td><code>PILOT-DEPLOY-003</code></td>
+</tr>
+<tr>
+<td><code>docker compose up</code> échoue</td>
+<td>D</td>
+<td><code>PILOT-DEPLOY-004</code></td>
+</tr>
+<tr>
+<td>Rollback image échoue</td>
+<td>D</td>
+<td><code>PILOT-DEPLOY-005</code></td>
+</tr>
+<tr>
+<td>Rollback migration échoue</td>
+<td>D</td>
+<td><code>PILOT-DEPLOY-006</code></td>
+</tr>
+</tbody>
+</table>
+<p>Pour PILOT-DEPLOY-003 (TypeC), le provider génère automatiquement deux options :</p>
+<div class="highlight"><pre><span></span><code>→ [0] pilot setup --env &lt;env&gt;   (automatique)
+  [1] ssh &lt;user&gt;@&lt;host&gt; &#39;sudo usermod -aG docker &lt;user&gt;&#39;   (manuel)
+</code></pre></div>
+<p>pilot suspend l'opération et attend un choix. <code>pilot resume --answer 0</code> reprend depuis le début.</p>
+<h4 id="flux-de-sync">Flux de <code>Sync</code></h4>
 <p><code>Sync(env)</code> collecte et copie :</p>
 <ol>
-<li><strong>Tous les compose files</strong> déclarés dans <code>pilot.yaml</code> pour tous les environnements</li>
-<li><strong>Tous les env files</strong> (<code>environments.&lt;env&gt;.env_file</code>) pour tous les environnements</li>
-<li><strong>Tous les fichiers bind-mount</strong> détectés dans chaque compose file</li>
+<li>Tous les compose files déclarés dans <code>pilot.yaml</code></li>
+<li>Tous les env files (<code>environments.&lt;env&gt;.env_file</code>)</li>
+<li>Tous les fichiers bind-mount détectés dans les compose files</li>
 </ol>
-<div class="highlight"><pre><span></span><code><span class="kd">func</span><span class="w"> </span><span class="nx">parseComposeMounts</span><span class="p">(</span><span class="nx">composeFile</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">([]</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="c1">// internal/adapters/vps/ssh.go</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">parseComposeMounts</span><span class="p">(</span><span class="nx">composeFile</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">([]</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
 </code></pre></div>
-<p>Cette fonction parse le YAML du compose file et extrait les sources locales des volumes (syntaxe courte <code>./path:container</code> et syntaxe longue <code>source: ./path</code>). Seuls les chemins relatifs (<code>./ ou ../</code>) sont retenus : les volumes Docker nommés sont ignorés.</p>
+<p>Parse le YAML du compose file et extrait les sources locales des volumes (syntaxe courte <code>./path:container</code> et longue <code>source: ./path</code>). Seuls les chemins relatifs sont retenus.</p>
 <p>Exemple : si <code>docker-compose.prod.yml</code> contient :
 <div class="highlight"><pre><span></span><code><span class="nt">volumes</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./nginx/prod.conf:/etc/nginx/conf.d/default.conf:ro</span>
 </code></pre></div></p>
-<p>pilot copie <code>./nginx/prod.conf</code> vers <code>~/pilot/nginx/prod.conf</code> sur le VPS, en préservant la structure de répertoires. Docker compose trouve le fichier exactement là où il l'attend.</p>
-<h4 id="flux-de-rollback">Flux de Rollback</h4>
-<ol>
-<li>Lit le tag précédent depuis <code>~/.pilot/&lt;project&gt;/prev-tag</code> sur le VPS</li>
-<li><code>IMAGE_TAG=&lt;prev-tag&gt; docker compose -f ~/pilot/docker-compose.&lt;env&gt;.yml up -d</code></li>
-<li>Avec <code>--version</code> : utilise directement le tag spécifié</li>
-</ol>
-<h4 id="setup-docker-group">Setup (Docker group)</h4>
-<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>usermod<span class="w"> </span>-aG<span class="w"> </span>docker<span class="w"> </span>&lt;user&gt;
+<p>pilot copie <code>./nginx/prod.conf</code> → <code>~/pilot/nginx/prod.conf</code> sur le VPS, en préservant la structure. Docker compose trouve le fichier exactement là où il l'attend.</p>
+<h4 id="output-distant">Output distant</h4>
+<p>Toutes les sorties SSH sont préfixées <code>│</code> pour distinguer l'output remote du terminal local :</p>
+<div class="highlight"><pre><span></span><code>  │  Step 1/5 : FROM golang:1.23-alpine
+  │  Step 2/5 : WORKDIR /app
 </code></pre></div>
-<p>Exécuté via SSH avec sudo. Nécessite que le user ait les droits sudo sur le VPS.</p>
-<h3 id="aws-aws-ecseks-stub"><code>aws</code> : AWS ECS/EKS (stub)</h3>
-<h3 id="gcp-gcp-cloud-rungke-stub"><code>gcp</code> : GCP Cloud Run/GKE (stub)</h3>
-<h3 id="azure-azure-container-appsaks-stub"><code>azure</code> : Azure Container Apps/AKS (stub)</h3>
-<h3 id="do-digitalocean-stub"><code>do</code> : DigitalOcean (stub)</h3>
+<h3 id="aws-gcp-azure-do-cloud-providers-stubs"><code>aws</code> / <code>gcp</code> / <code>azure</code> / <code>do</code> : Cloud providers (stubs)</h3>
+<p>Fichiers : <code>internal/adapters/{aws,gcp,azure,do}/</code></p>
+<p>Retournent <code>fmt.Errorf("xxx: not yet implemented")</code>.</p>
 <hr />
 <h2 id="factory">Factory</h2>
-<div class="highlight"><pre><span></span><code><span class="c1">// internal/runtime/runtime.go</span>
-<span class="kd">func</span><span class="w"> </span><span class="nx">NewProvider</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><span class="nx">config</span><span class="p">.</span><span class="nx">Config</span><span class="p">,</span><span class="w"> </span><span class="nx">targetName</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">providers</span><span class="p">.</span><span class="nx">Provider</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nx">target</span><span class="p">,</span><span class="w"> </span><span class="nx">ok</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">cfg</span><span class="p">.</span><span class="nx">Targets</span><span class="p">[</span><span class="nx">targetName</span><span class="p">]</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">!</span><span class="nx">ok</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="kc">nil</span><span class="p">,</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;target %q not found in pilot.yaml&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">targetName</span><span class="p">)</span>
-<span class="w">    </span><span class="p">}</span>
-
-<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="nx">target</span><span class="p">.</span><span class="nx">Type</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="s">&quot;vps&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">vps</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="nx">cfg</span><span class="p">,</span><span class="w"> </span><span class="nx">target</span><span class="p">),</span><span class="w"> </span><span class="kc">nil</span>
-<span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="s">&quot;aws&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">aws</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="nx">target</span><span class="p">),</span><span class="w"> </span><span class="kc">nil</span>
-<span class="w">    </span><span class="c1">// ...</span>
-<span class="w">    </span><span class="p">}</span>
-<span class="p">}</span>
+<div class="highlight"><pre><span></span><code><span class="c1">// internal/app/runtime/runtime.go</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">NewDeployProvider</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><span class="nx">config</span><span class="p">.</span><span class="nx">Config</span><span class="p">,</span><span class="w"> </span><span class="nx">targetName</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">domain</span><span class="p">.</span><span class="nx">DeployProvider</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">NewHookRunner</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><span class="nx">config</span><span class="p">.</span><span class="nx">Config</span><span class="p">,</span><span class="w"> </span><span class="nx">targetName</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">domain</span><span class="p">.</span><span class="nx">HookRunner</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">NewMigrationRunner</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><span class="nx">config</span><span class="p">.</span><span class="nx">Config</span><span class="p">,</span><span class="w"> </span><span class="nx">targetName</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">domain</span><span class="p">.</span><span class="nx">MigrationRunner</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
 </code></pre></div>
+<p><code>NewHookRunner</code> et <code>NewMigrationRunner</code> font une assertion de type duck-typée :
+si le provider concret n'implémente pas <code>RunHooks</code> / <code>RunMigrations</code>, ils retournent <code>nil</code> sans erreur.</p>
+<p>Les adapters runtime (<code>hookRunnerAdapter</code>, <code>migrationRunnerAdapter</code>) dans <code>runtime.go</code> servent de pont entre les signatures concrètes de <code>vps.Provider</code> et les interfaces <code>domain.HookRunner</code> / <code>domain.MigrationRunner</code>.</p>
 <hr />
 <h2 id="pkgssh-client-ssh"><code>pkg/ssh</code> : Client SSH</h2>
 <p>Le client SSH bas niveau utilisé par le provider VPS.</p>
@@ -1933,25 +1988,25 @@
 <span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><span class="nx">Client</span><span class="p">)</span><span class="w"> </span><span class="nx">CopyFileTo</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">localPath</span><span class="p">,</span><span class="w"> </span><span class="nx">remotePath</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
 </code></pre></div>
 <ul>
-<li><code>CopyFiles</code> : transfert SCP de plusieurs fichiers, <code>map[localPath]remotePath</code></li>
+<li><code>CopyFiles</code> : transfert SCP de plusieurs fichiers <code>map[localPath]remotePath</code></li>
 <li><code>CopyFileTo</code> : copie un fichier vers un chemin distant exact, crée les répertoires parents avec <code>mkdir -p</code></li>
 </ul>
-<p><code>CopyFileTo</code> est utilisé par <code>Sync</code> pour les bind-mounts afin de garantir que le fichier distant est bien un fichier (et non un répertoire que Docker créerait silencieusement).</p>
 <hr />
 <h2 id="ajouter-un-nouveau-provider">Ajouter un nouveau provider</h2>
 <ol>
-<li>Créer <code>internal/providers/&lt;name&gt;/&lt;name&gt;.go</code></li>
-<li>Implémenter l'interface <code>Provider</code></li>
-<li>Ajouter le cas dans <code>internal/runtime/runtime.go</code></li>
+<li>Créer <code>internal/adapters/&lt;name&gt;/&lt;name&gt;.go</code></li>
+<li>Implémenter <code>domain.DeployProvider</code> (5 méthodes)</li>
+<li>Ajouter le cas dans <code>runtime.newRawProvider()</code> pour le nouveau <code>target.Type</code></li>
 </ol>
-<div class="highlight"><pre><span></span><code><span class="c1">// internal/providers/hetzner/hetzner.go</span>
+<p>Exemple minimal :</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// internal/adapters/hetzner/hetzner.go</span>
 <span class="kn">package</span><span class="w"> </span><span class="nx">hetzner</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="p">(</span>
 <span class="w">    </span><span class="s">&quot;context&quot;</span>
 <span class="w">    </span><span class="s">&quot;fmt&quot;</span>
+<span class="w">    </span><span class="nx">domain</span><span class="w"> </span><span class="s">&quot;github.com/mouhamedsylla/pilot/internal/domain&quot;</span>
 <span class="w">    </span><span class="s">&quot;github.com/mouhamedsylla/pilot/internal/config&quot;</span>
-<span class="w">    </span><span class="s">&quot;github.com/mouhamedsylla/pilot/internal/providers&quot;</span>
 <span class="p">)</span>
 
 <span class="kd">type</span><span class="w"> </span><span class="nx">Hetzner</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
@@ -1959,19 +2014,24 @@
 <span class="w">    </span><span class="nx">target</span><span class="w"> </span><span class="nx">config</span><span class="p">.</span><span class="nx">Target</span>
 <span class="p">}</span>
 
-<span class="kd">func</span><span class="w"> </span><span class="nx">New</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><span class="nx">config</span><span class="p">.</span><span class="nx">Config</span><span class="p">,</span><span class="w"> </span><span class="nx">target</span><span class="w"> </span><span class="nx">config</span><span class="p">.</span><span class="nx">Target</span><span class="p">)</span><span class="w"> </span><span class="nx">providers</span><span class="p">.</span><span class="nx">Provider</span><span class="w"> </span><span class="p">{</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">New</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><span class="nx">config</span><span class="p">.</span><span class="nx">Config</span><span class="p">,</span><span class="w"> </span><span class="nx">target</span><span class="w"> </span><span class="nx">config</span><span class="p">.</span><span class="nx">Target</span><span class="p">)</span><span class="w"> </span><span class="nx">domain</span><span class="p">.</span><span class="nx">DeployProvider</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">Hetzner</span><span class="p">{</span><span class="nx">cfg</span><span class="p">:</span><span class="w"> </span><span class="nx">cfg</span><span class="p">,</span><span class="w"> </span><span class="nx">target</span><span class="p">:</span><span class="w"> </span><span class="nx">target</span><span class="p">}</span>
 <span class="p">}</span>
 
-<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">h</span><span class="w"> </span><span class="o">*</span><span class="nx">Hetzner</span><span class="p">)</span><span class="w"> </span><span class="nx">Deploy</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="nx">providers</span><span class="p">.</span><span class="nx">DeployOptions</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">h</span><span class="w"> </span><span class="o">*</span><span class="nx">Hetzner</span><span class="p">)</span><span class="w"> </span><span class="nx">Deploy</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="nx">domain</span><span class="p">.</span><span class="nx">DeployOptions</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;hetzner: not yet implemented&quot;</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">h</span><span class="w"> </span><span class="o">*</span><span class="nx">Hetzner</span><span class="p">)</span><span class="w"> </span><span class="nx">Sync</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">env</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;hetzner: not yet implemented&quot;</span><span class="p">)</span>
 <span class="p">}</span>
-<span class="c1">// ...</span>
+<span class="c1">// ... Rollback, Status, Logs</span>
 </code></pre></div>
+<p>Ensuite dans <code>runtime.newRawProvider()</code> :
+<div class="highlight"><pre><span></span><code><span class="k">case</span><span class="w"> </span><span class="s">&quot;hetzner&quot;</span><span class="p">:</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">hetzner</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="nx">cfg</span><span class="p">,</span><span class="w"> </span><span class="nx">target</span><span class="p">),</span><span class="w"> </span><span class="kc">nil</span>
+</code></pre></div></p>
+<p>C'est tout. Le pipeline de déploiement, le preflight, le rollback, le sync, le status et les logs fonctionnent immédiatement — ils opèrent sur l'interface, pas sur le type concret.</p>
 
 
 

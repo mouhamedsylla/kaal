@@ -1,6 +1,6 @@
 # Internals : Moteur de contexte
 
-`internal/context` est le package qui collecte une photo complète du projet à un instant T. C'est la pièce centrale qui permet aux agents AI de comprendre le projet sans avoir besoin de lire chaque fichier manuellement.
+`internal/mcp/context` est le package qui collecte une photo complète du projet à un instant T. C'est la pièce centrale qui permet aux agents AI de comprendre le projet sans avoir besoin de lire chaque fichier manuellement.
 
 ---
 
@@ -19,17 +19,18 @@ Avec `pilot context`, l'agent reçoit tout ce dont il a besoin en un seul appel.
 ## `ProjectContext`
 
 ```go
+// internal/mcp/context/context.go
 type ProjectContext struct {
     // Source de vérité
-    PilotYAML string
+    KaalYAML string  // contenu brut de pilot.yaml (champ JSON: "pilot_yaml")
 
     // Détection automatique
-    Stack            string  // "go", "node", "python", "rust", "java"
-    LanguageVersion  string  // "1.23", "20", "3.12"
-    IsExistingProject bool   // true si des fichiers de code existent déjà
+    Stack             string  // "go", "node", "python", "rust", "java"
+    LanguageVersion   string  // "1.23", "20", "3.12"
+    IsExistingProject bool    // true si des fichiers de code existent déjà
 
     // Structure du projet
-    FileTree string     // Arbre (3 niveaux max, noise filtré)
+    FileTree string     // Arbre (3 niveaux max, bruit filtré)
     KeyFiles []string   // go.mod, package.json, Cargo.toml, etc.
 
     // Infra existante
@@ -62,10 +63,9 @@ projCtx, err := context.Collect("dev")
 1. `config.Load(".")` : parse pilot.yaml
 2. `scaffold.Detect(".")` : détecte le stack depuis les fichiers manifestes
 3. Construit le `FileTree` en ignorant : `.git`, `node_modules`, `vendor`, `.cache`, `dist`, `build`, `__pycache__`
-4. `scanKeyFiles(".")` : cherche `go.mod`, `package.json`, `Cargo.toml`, `requirements.txt`, `pyproject.toml`, `pom.xml`, `build.gradle`, `Makefile`
-5. `glob(".", "Dockerfile*")` : liste les Dockerfiles existants
-6. `glob(".", "docker-compose*.yml")` : liste les compose files existants
-7. Détermine `MissingDockerfile` et `MissingCompose` pour l'env actif
+4. Cherche les fichiers clés : `go.mod`, `package.json`, `Cargo.toml`, `requirements.txt`, `pyproject.toml`, `pom.xml`, `build.gradle`, `Makefile`
+5. Liste les Dockerfiles et compose files existants
+6. Détermine `MissingDockerfile` et `MissingCompose` pour l'env actif
 
 ---
 
@@ -127,7 +127,6 @@ Compose:     docker-compose.dev.yml
 var skipDirs = map[string]bool{
     ".git": true, "node_modules": true, "vendor": true,
     ".cache": true, "dist": true, "build": true, "__pycache__": true,
-    ".pilot-current-env": true,
 }
 ```
 

@@ -1180,10 +1180,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#etape-1-preflight" class="md-nav__link">
+  <a href="#etape-1-preflight-generation-de-pilotlock" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Étape 1 : Preflight
+        Étape 1 : Preflight + génération de pilot.lock
       
     </span>
   </a>
@@ -1202,22 +1202,33 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#etape-3-deploiement" class="md-nav__link">
+  <a href="#etape-3-voir-le-plan-optionnel" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Étape 3 : Déploiement
+        Étape 3 : Voir le plan (optionnel)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Étape 3 : Déploiement">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#etape-4-deploiement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Étape 4 : Déploiement
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Étape 4 : Déploiement">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#le-repertoire-de-travail-remote" class="md-nav__link">
+  <a href="#compensation-lifo-en-cas-dechec" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Le répertoire de travail remote
+        Compensation LIFO en cas d'échec
       
     </span>
   </a>
@@ -1238,30 +1249,8 @@
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#sync-sans-redeploiement" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Sync sans redéploiement
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Sync sans redéploiement">
+    <nav class="md-nav" aria-label="Sync manuel">
       <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#ce-que-pilot-sync-fait" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Ce que pilot sync fait
-      
-    </span>
-  </a>
-  
-</li>
         
           <li class="md-nav__item">
   <a href="#rechargement-automatique-de-nginx" class="md-nav__link">
@@ -1763,10 +1752,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#etape-1-preflight" class="md-nav__link">
+  <a href="#etape-1-preflight-generation-de-pilotlock" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Étape 1 : Preflight
+        Étape 1 : Preflight + génération de pilot.lock
       
     </span>
   </a>
@@ -1785,22 +1774,33 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#etape-3-deploiement" class="md-nav__link">
+  <a href="#etape-3-voir-le-plan-optionnel" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Étape 3 : Déploiement
+        Étape 3 : Voir le plan (optionnel)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Étape 3 : Déploiement">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#etape-4-deploiement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Étape 4 : Déploiement
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Étape 4 : Déploiement">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#le-repertoire-de-travail-remote" class="md-nav__link">
+  <a href="#compensation-lifo-en-cas-dechec" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Le répertoire de travail remote
+        Compensation LIFO en cas d'échec
       
     </span>
   </a>
@@ -1821,30 +1821,8 @@
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#sync-sans-redeploiement" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Sync sans redéploiement
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Sync sans redéploiement">
+    <nav class="md-nav" aria-label="Sync manuel">
       <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#ce-que-pilot-sync-fait" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Ce que pilot sync fait
-      
-    </span>
-  </a>
-  
-</li>
         
           <li class="md-nav__item">
   <a href="#rechargement-automatique-de-nginx" class="md-nav__link">
@@ -1938,12 +1916,17 @@
 <h2 id="vue-densemble">Vue d'ensemble</h2>
 <div class="highlight"><pre><span></span><code>Dev local                       VPS (SSH)
 ─────────────                   ──────────────────────────────
-pilot preflight  →               validation de tous les prérequis
+pilot preflight  →               validation + génère pilot.lock
 pilot push       →               [image sur le registry]
-pilot deploy     →               SSH connect
-                                ~/pilot/ ← compose + env + config files
-                                docker compose pull
-                                docker compose up -d
+pilot plan       →               affiche le plan (rien exécuté)
+pilot deploy     →               [1] lock check
+                                 [2] résolution secrets
+                                 [3] sync compose + config
+                                 [4] pre_hooks (si déclarés)
+                                 [5] migrations (si détectées)
+                                 [6] docker pull + compose up
+                                 [7] post_hooks (si déclarés)
+                                 [8] healthcheck
                 ◄─              ✓ deployed
 </code></pre></div>
 <hr />
@@ -1970,6 +1953,18 @@ cat<span class="w"> </span>your-key.pub<span class="w"> </span>&gt;&gt;<span cla
 <span class="w">  </span><span class="nt">prod</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">target</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">vps-prod</span>
 <span class="w">    </span><span class="nt">env_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.env.prod</span>
+<span class="w">    </span><span class="nt">hooks</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">pre_deploy</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;echo</span><span class="nv"> </span><span class="s">&#39;starting</span><span class="nv"> </span><span class="s">deploy&#39;&quot;</span>
+<span class="w">          </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;notification&quot;</span>
+<span class="w">      </span><span class="nt">post_deploy</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;curl</span><span class="nv"> </span><span class="s">-X</span><span class="nv"> </span><span class="s">POST</span><span class="nv"> </span><span class="s">$WEBHOOK_URL&quot;</span>
+<span class="w">          </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;notify</span><span class="nv"> </span><span class="s">webhook&quot;</span>
+<span class="w">    </span><span class="nt">migrations</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">tool</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prisma</span>
+<span class="w">      </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;npx</span><span class="nv"> </span><span class="s">prisma</span><span class="nv"> </span><span class="s">migrate</span><span class="nv"> </span><span class="s">deploy&quot;</span>
+<span class="w">      </span><span class="nt">rollback_command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;npx</span><span class="nv"> </span><span class="s">prisma</span><span class="nv"> </span><span class="s">migrate</span><span class="nv"> </span><span class="s">rollback&quot;</span>
+<span class="w">      </span><span class="nt">reversible</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 </code></pre></div>
 <h3 id="cle-ssh-dediee-recommande">Clé SSH dédiée (recommandé)</h3>
 <div class="highlight"><pre><span></span><code>ssh-keygen<span class="w"> </span>-t<span class="w"> </span>ed25519<span class="w"> </span>-f<span class="w"> </span>~/.ssh/id_pilot<span class="w"> </span>-C<span class="w"> </span><span class="s2">&quot;pilot deploy key&quot;</span>
@@ -1984,10 +1979,9 @@ ssh-copy-id<span class="w"> </span>-i<span class="w"> </span>~/.ssh/id_pilot.pub
 <span class="c1"># → Verified: deploy is in docker group</span>
 </code></pre></div>
 <hr />
-<h2 id="etape-1-preflight">Étape 1 : Preflight</h2>
-<p>Avant chaque déploiement, <code>pilot preflight</code> vérifie tout et retourne un plan d'action :</p>
-<div class="highlight"><pre><span></span><code>pilot<span class="w"> </span>preflight<span class="w"> </span>--target<span class="w"> </span>deploy
-<span class="c1"># (auto-détecte l&#39;env prod si l&#39;env actif est dev)</span>
+<h2 id="etape-1-preflight-generation-de-pilotlock">Étape 1 : Preflight + génération de pilot.lock</h2>
+<p>Avant chaque déploiement, <code>pilot preflight</code> vérifie tout <strong>et génère <code>pilot.lock</code></strong> :</p>
+<div class="highlight"><pre><span></span><code>pilot<span class="w"> </span>preflight<span class="w"> </span>--target<span class="w"> </span>deploy<span class="w"> </span>--env<span class="w"> </span>prod
 </code></pre></div>
 <div class="highlight"><pre><span></span><code>✓ pilot_yaml            project: my-api
 ✓ registry_image       ghcr.io/mouhamedsylla/my-api
@@ -2000,74 +1994,89 @@ ssh-copy-id<span class="w"> </span>-i<span class="w"> </span>~/.ssh/id_pilot.pub
 ✓ vps_connectivity     connected to deploy@1.2.3.4
 ✓ vps_docker_group     deploy can run docker commands
 ✓ vps_env_file         .env.prod synced at ~/pilot/.env.prod
-✓ All checks passed : ready to deploy
+✓ All checks passed — pilot.lock generated
 </code></pre></div>
-<p>Si une vérification échoue, le rapport indique :
-- <code>[HUMAN]</code> : ce que tu dois faire toi-même (crédentials, clé SSH, port firewall)
-- <code>[AGENT]</code> : ce que ton agent AI peut fixer automatiquement (<code>pilot_setup</code>, <code>pilot_sync</code>…)</p>
+<p><strong>Commiter <code>pilot.lock</code> dans le dépôt :</strong></p>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>add<span class="w"> </span>pilot.lock
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;chore: update pilot.lock&quot;</span>
+</code></pre></div>
+<p><code>pilot.lock</code> est le contrat de déploiement validé. <code>pilot deploy</code> le vérifie au premier pas : si les sources ont changé depuis sa génération, le déploiement est refusé.</p>
 <hr />
 <h2 id="etape-2-push-de-limage">Étape 2 : Push de l'image</h2>
-<div class="highlight"><pre><span></span><code>pilot<span class="w"> </span>push
+<div class="highlight"><pre><span></span><code>pilot<span class="w"> </span>push<span class="w"> </span>--env<span class="w"> </span>prod
 <span class="c1"># ou avec un tag explicite :</span>
-pilot<span class="w"> </span>push<span class="w"> </span>--tag<span class="w"> </span>v1.0.0
+pilot<span class="w"> </span>push<span class="w"> </span>--tag<span class="w"> </span>v1.0.0<span class="w"> </span>--env<span class="w"> </span>prod
 </code></pre></div>
 <p><strong>Ce que pilot fait automatiquement :</strong></p>
 <ul>
 <li>Détecte macOS ARM64 → build <code>linux/amd64</code> pour la compatibilité VPS</li>
-<li>Pour les stacks Node/Vite : scanne <code>.env.prod</code> et injecte tous les <code>VITE_*</code> / <code>NEXT_PUBLIC_*</code> / <code>REACT_APP_*</code> en <code>--build-arg</code> pour qu'ils soient baked dans le bundle</li>
-<li>Si le Dockerfile manque les <code>ARG</code> correspondants → patch transparent dans un fichier temporaire (l'original n'est pas modifié)</li>
+<li>Pour les stacks Node/Vite : scanne <code>.env.prod</code> et injecte tous les <code>VITE_*</code> / <code>NEXT_PUBLIC_*</code> / <code>REACT_APP_*</code> en <code>--build-arg</code></li>
+<li>Si le Dockerfile manque les <code>ARG</code> correspondants → patch transparent dans un fichier temporaire</li>
 </ul>
 <div class="highlight"><pre><span></span><code>→ Detected macOS ARM64 : building for linux/amd64 (VPS target)
 → Injecting build args: VITE_APP_ENV, VITE_API_URL
-  ARG/ENV lines auto-injected into builder stage (original Dockerfile unchanged)
 → Building ghcr.io/mouhamedsylla/my-api:abc1234 [linux/amd64]
 → Pushing ghcr.io/mouhamedsylla/my-api:abc1234
 ✓ Pushed ghcr.io/mouhamedsylla/my-api:abc1234
 </code></pre></div>
 <hr />
-<h2 id="etape-3-deploiement">Étape 3 : Déploiement</h2>
+<h2 id="etape-3-voir-le-plan-optionnel">Étape 3 : Voir le plan (optionnel)</h2>
+<div class="highlight"><pre><span></span><code>pilot<span class="w"> </span>plan<span class="w"> </span>--env<span class="w"> </span>prod
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>  Execution plan — pilot deploy --env prod
+
+  Steps
+  ──────────────────────────────────────────────────
+  [1] preflight        verify config, secrets, SSH reachability
+  [2] migrations       run prisma migrations (reversible)  (compensable)
+  [3] deploy           pull image + docker compose up      (compensable)
+  [4] post_hooks       run post-deploy hooks on remote
+  [5] healthcheck      wait for all services healthy
+
+  Compensation plan  (LIFO — executed on failure)
+  ──────────────────────────────────────────────────
+  [1] deploy           restore previous image tag
+  [2] migrations       npx prisma migrate rollback
+</code></pre></div>
+<p>Rien n'est exécuté. C'est la prévisualisation exacte de ce que <code>pilot deploy</code> fera.</p>
+<hr />
+<h2 id="etape-4-deploiement">Étape 4 : Déploiement</h2>
 <div class="highlight"><pre><span></span><code>pilot<span class="w"> </span>deploy<span class="w"> </span>--env<span class="w"> </span>prod
 <span class="c1"># ou avec un tag précis :</span>
 pilot<span class="w"> </span>deploy<span class="w"> </span>--env<span class="w"> </span>prod<span class="w"> </span>--tag<span class="w"> </span>v1.0.0
 </code></pre></div>
-<p><strong>Ce que pilot fait automatiquement :</strong></p>
-<ol>
-<li>Résout le target (<code>vps-prod</code>) depuis <code>pilot.yaml</code></li>
-<li>Ouvre une connexion SSH</li>
-<li><strong>Sync automatique</strong> : copie vers <code>~/pilot/</code> sur le VPS :</li>
-<li><code>pilot.yaml</code></li>
-<li><code>docker-compose.prod.yml</code></li>
-<li><code>.env.prod</code> (déclaré dans <code>environments.prod.env_file</code>)</li>
-<li>Tous les fichiers référencés en bind-mount dans le compose (ex: <code>./nginx/prod.conf</code>)</li>
-<li><code>docker pull &lt;image&gt;:&lt;tag&gt;</code> sur le VPS</li>
-<li><code>IMAGE_TAG=&lt;tag&gt; docker compose -f ~/pilot/docker-compose.prod.yml up -d --remove-orphans</code></li>
-<li>Sauvegarde le tag dans <code>~/.pilot/&lt;project&gt;/current-tag</code> pour permettre un rollback</li>
-</ol>
-<div class="highlight"><pre><span></span><code>→ Deploying prod to vps-prod (vps:1.2.3.4)
-→ Syncing files to remote
-→ Pulling image and restarting services (tag: abc1234)
-✓ Deployed my-api:abc1234 → vps-prod (1.2.3.4)
+<p>Le pipeline complet :</p>
+<div class="highlight"><pre><span></span><code>✓  [1] lock check     pilot.lock OK (hash: abc123)
+✓  [2] secrets        3 refs resolved → .pilot/env.tmp
+✓  [3] sync           4 files → ~/pilot/
+   │  ✓ docker-compose.prod.yml
+   │  ✓ .env.prod
+   │  ✓ nginx/prod.conf
+✓  [4] pre_hooks      echo &#39;starting deploy&#39;
+✓  [5] migrations     npx prisma migrate deploy
+✓  [6] deploy         my-api:abc1234 pulled, services restarted
+✓  [7] post_hooks     curl -X POST $WEBHOOK_URL
+✓  [8] healthcheck    api healthy · db healthy · proxy healthy
+✓  Deployed my-api:abc1234 → vps-prod (1.2.3.4)
 </code></pre></div>
-<h3 id="le-repertoire-de-travail-remote">Le répertoire de travail remote</h3>
-<p>Tous les fichiers vivent dans <code>~/pilot/</code> sur le VPS : jamais dans le home directory racine. docker compose est toujours lancé avec le chemin complet <code>~/pilot/docker-compose.&lt;env&gt;.yml</code>.</p>
+<h3 id="compensation-lifo-en-cas-dechec">Compensation LIFO en cas d'échec</h3>
+<p>Si le déploiement échoue à partir de l'étape 4, pilot compense en LIFO automatiquement :</p>
+<div class="highlight"><pre><span></span><code>✗  [6] deploy         docker compose up failed
+
+→  Compensating (LIFO):
+   [1] Restoring previous image tag (v0.9.5)
+   [2] Rolling back migrations (npx prisma migrate rollback)
+✓  VPS restored to previous state
+</code></pre></div>
 <hr />
 <h2 id="sync-manuel">Sync manuel</h2>
 <p>Pour pousser les fichiers de config sans redéployer :</p>
 <div class="highlight"><pre><span></span><code>pilot<span class="w"> </span>sync<span class="w"> </span>--env<span class="w"> </span>prod
-<span class="c1"># ✓ pilot.yaml, compose files, env files and bind-mount config files copied to ~/pilot/</span>
 </code></pre></div>
 <p>Utile après avoir modifié <code>nginx/prod.conf</code> ou <code>.env.prod</code> sans changer l'image.</p>
-<hr />
-<h2 id="sync-sans-redeploiement">Sync sans redéploiement</h2>
-<p>Quand seuls des <strong>fichiers de configuration</strong> changent (ex : <code>nginx/prod.conf</code>, <code>.env.prod</code>), utiliser <code>pilot sync</code> plutôt que de relancer un push + deploy complet.</p>
-<h3 id="ce-que-pilot-sync-fait">Ce que <code>pilot sync</code> fait</h3>
-<p><code>pilot sync --env prod</code> copie vers <code>~/pilot/</code> sur le VPS :
-- Les fichiers plats déclarés dans <code>pilot.yaml</code> : fichier compose, fichier env
-- Tous les fichiers référencés en <strong>bind-mount</strong> dans le compose (ex : <code>./nginx/prod.conf</code> → <code>~/pilot/nginx/prod.conf</code>)</p>
 <h3 id="rechargement-automatique-de-nginx">Rechargement automatique de nginx</h3>
-<p>Si des fichiers de configuration nginx ont été mis à jour, pilot exécute automatiquement <code>nginx -s reload</code> à l'intérieur du container proxy : <strong>sans interruption de service</strong>. Aucune commande manuelle n'est nécessaire.</p>
+<p>Si des fichiers de configuration nginx ont été mis à jour, pilot exécute automatiquement <code>nginx -s reload</code> dans le container — sans interruption de service.</p>
 <div class="highlight"><pre><span></span><code>→ Syncing files to remote
-  ✓ pilot.yaml
   ✓ docker-compose.prod.yml
   ✓ .env.prod
   ✓ nginx/prod.conf
@@ -2075,7 +2084,6 @@ pilot<span class="w"> </span>deploy<span class="w"> </span>--env<span class="w">
 ✓ nginx -s reload (zero downtime)
 </code></pre></div>
 <h3 id="quand-utiliser-quoi">Quand utiliser quoi</h3>
-<p>Utiliser <code>pilot push</code> + <code>pilot deploy</code> uniquement quand le <strong>code source ou le Dockerfile</strong> change.</p>
 <table>
 <thead>
 <tr>
@@ -2085,20 +2093,20 @@ pilot<span class="w"> </span>deploy<span class="w"> </span>--env<span class="w">
 </thead>
 <tbody>
 <tr>
-<td>Code source (<code>App.jsx</code>, <code>main.go</code>, etc.)</td>
-<td><code>pilot push --env prod --tag vX</code> + <code>pilot deploy --env prod --tag vX</code></td>
+<td>Code source</td>
+<td><code>pilot push --tag vX</code> + <code>pilot deploy --tag vX</code></td>
 </tr>
 <tr>
-<td>Config nginx (<code>nginx/prod.conf</code>)</td>
-<td><code>pilot sync --env prod</code> (+ reload auto)</td>
+<td>Config nginx</td>
+<td><code>pilot sync</code> (+ reload auto)</td>
 </tr>
 <tr>
-<td>Variables d'env (<code>.env.prod</code>)</td>
-<td><code>pilot sync --env prod</code> + <code>pilot deploy --env prod</code></td>
+<td>Variables d'env</td>
+<td><code>pilot sync</code> + <code>pilot deploy</code></td>
 </tr>
 <tr>
 <td><code>docker-compose.prod.yml</code></td>
-<td><code>pilot sync --env prod</code> + <code>pilot deploy --env prod</code></td>
+<td><code>pilot sync</code> + <code>pilot deploy</code></td>
 </tr>
 </tbody>
 </table>
@@ -2107,20 +2115,17 @@ pilot<span class="w"> </span>deploy<span class="w"> </span>--env<span class="w">
 <div class="highlight"><pre><span></span><code>pilot<span class="w"> </span>status<span class="w"> </span>--env<span class="w"> </span>prod
 </code></pre></div>
 <div class="highlight"><pre><span></span><code>SERVICE   STATUS    HEALTH
-app       running   healthy
+api       running   healthy
 proxy     running   healthy
 db        running   healthy
 </code></pre></div>
-<div class="highlight"><pre><span></span><code>pilot<span class="w"> </span>logs<span class="w"> </span>app<span class="w"> </span>--env<span class="w"> </span>prod<span class="w"> </span>--follow
-pilot<span class="w"> </span>logs<span class="w"> </span>app<span class="w"> </span>--env<span class="w"> </span>prod<span class="w"> </span>--since<span class="w"> </span>1h
+<div class="highlight"><pre><span></span><code>pilot<span class="w"> </span>logs<span class="w"> </span>api<span class="w"> </span>--env<span class="w"> </span>prod<span class="w"> </span>--follow
+pilot<span class="w"> </span>logs<span class="w"> </span>api<span class="w"> </span>--env<span class="w"> </span>prod<span class="w"> </span>--since<span class="w"> </span>1h
 </code></pre></div>
 <hr />
 <h2 id="rollback">Rollback</h2>
-<div class="highlight"><pre><span></span><code>pilot<span class="w"> </span>rollback<span class="w"> </span>--env<span class="w"> </span>prod
-<span class="c1"># → revient automatiquement au tag précédent</span>
-
-pilot<span class="w"> </span>rollback<span class="w"> </span>--env<span class="w"> </span>prod<span class="w"> </span>--version<span class="w"> </span>v0.9.5
-<span class="c1"># → version explicite</span>
+<div class="highlight"><pre><span></span><code>pilot<span class="w"> </span>rollback<span class="w"> </span>--env<span class="w"> </span>prod<span class="w">          </span><span class="c1"># revient au tag précédent</span>
+pilot<span class="w"> </span>rollback<span class="w"> </span>--env<span class="w"> </span>prod<span class="w"> </span>--version<span class="w"> </span>v0.9.5<span class="w">   </span><span class="c1"># version explicite</span>
 </code></pre></div>
 <hr />
 <h2 id="architecture-typique-en-prod">Architecture typique en prod</h2>
@@ -2131,7 +2136,7 @@ pilot<span class="w"> </span>rollback<span class="w"> </span>--env<span class="w
 <span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;80:80&quot;</span>
 <span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./nginx/prod.conf:/etc/nginx/conf.d/default.conf:ro</span><span class="w">  </span><span class="c1"># ← pilot sync copie ce fichier</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./nginx/prod.conf:/etc/nginx/conf.d/default.conf:ro</span>
 <span class="w">    </span><span class="nt">depends_on</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">app</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">condition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">service_healthy</span>
@@ -2141,31 +2146,34 @@ pilot<span class="w"> </span>rollback<span class="w"> </span>--env<span class="w
 <span class="w">    </span><span class="nt">expose</span><span class="p">:</span>
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;8080&quot;</span>
 <span class="w">    </span><span class="nt">env_file</span><span class="p">:</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.env.prod</span><span class="w">    </span><span class="c1"># ← pilot sync copie ce fichier</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.env.prod</span>
 <span class="w">    </span><span class="nt">healthcheck</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">test</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;CMD&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;curl&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;-f&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;http://localhost:8080/health&quot;</span><span class="p p-Indicator">]</span>
 <span class="w">      </span><span class="nt">interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30s</span>
 <span class="w">      </span><span class="nt">retries</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
 <span class="w">    </span><span class="nt">restart</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unless-stopped</span>
 </code></pre></div>
-<p>pilot sync détecte <code>./nginx/prod.conf</code> dans les volumes, le copie à <code>~/pilot/nginx/prod.conf</code>. docker compose le trouve exactement là où il l'attend.</p>
 <hr />
 <h2 id="checklist-avant-le-premier-deploiement">Checklist avant le premier déploiement</h2>
-<div class="highlight"><pre><span></span><code><span class="c1"># 1. pilot.yaml configuré avec targets et environments.prod</span>
-pilot<span class="w"> </span>preflight<span class="w"> </span>--target<span class="w"> </span>deploy
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Prérequis + génération de pilot.lock</span>
+pilot<span class="w"> </span>preflight<span class="w"> </span>--target<span class="w"> </span>deploy<span class="w"> </span>--env<span class="w"> </span>prod
+git<span class="w"> </span>add<span class="w"> </span>pilot.lock<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;chore: update pilot.lock&quot;</span>
 
 <span class="c1"># 2. Si docker group manquant</span>
 pilot<span class="w"> </span>setup<span class="w"> </span>--env<span class="w"> </span>prod
 
-<span class="c1"># 3. Push test</span>
-pilot<span class="w"> </span>push<span class="w"> </span>--tag<span class="w"> </span>test-<span class="k">$(</span>date<span class="w"> </span>+%s<span class="k">)</span>
+<span class="c1"># 3. Push</span>
+pilot<span class="w"> </span>push<span class="w"> </span>--tag<span class="w"> </span>v1.0.0<span class="w"> </span>--env<span class="w"> </span>prod
 
-<span class="c1"># 4. Premier deploy</span>
-pilot<span class="w"> </span>deploy<span class="w"> </span>--env<span class="w"> </span>prod
+<span class="c1"># 4. Voir le plan</span>
+pilot<span class="w"> </span>plan<span class="w"> </span>--env<span class="w"> </span>prod
 
-<span class="c1"># 5. Vérification</span>
+<span class="c1"># 5. Premier deploy</span>
+pilot<span class="w"> </span>deploy<span class="w"> </span>--env<span class="w"> </span>prod<span class="w"> </span>--tag<span class="w"> </span>v1.0.0
+
+<span class="c1"># 6. Vérification</span>
 pilot<span class="w"> </span>status<span class="w"> </span>--env<span class="w"> </span>prod
-pilot<span class="w"> </span>logs<span class="w"> </span>app<span class="w"> </span>--env<span class="w"> </span>prod
+pilot<span class="w"> </span>logs<span class="w"> </span>api<span class="w"> </span>--env<span class="w"> </span>prod
 </code></pre></div>
 
 

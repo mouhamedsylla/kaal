@@ -1,6 +1,6 @@
 # pilot : Modèle de résilience
 
-> **Document de référence — conception uniquement, pas encore implémenté**
+> **Document de référence — architecture et vision du modèle de résilience**
 
 ---
 
