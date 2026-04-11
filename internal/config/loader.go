@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/mouhamedsylla/pilot/internal/piloterr"
+	pilotErr "github.com/mouhamedsylla/pilot/internal/domain/errors"
 	"gopkg.in/yaml.v3"
 )
 
@@ -31,16 +31,34 @@ func LoadFromPath(path string) (*Config, error) {
 func loadFromPath(path string) (*Config, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, &piloterr.ConfigError{Path: path, Cause: err}
+		return nil, pilotErr.NewTypeD(
+			"PILOT-CFG-001",
+			fmt.Sprintf("cannot read %s", path),
+			fmt.Sprintf("Verify the file exists and is readable:\n  ls -la %s", path),
+			pilotErr.ExitConfig,
+			pilotErr.WithCause(err),
+		)
 	}
 
 	var cfg Config
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
-		return nil, &piloterr.ConfigError{Path: path, Cause: fmt.Errorf("invalid YAML: %w", err)}
+		return nil, pilotErr.NewTypeD(
+			"PILOT-CFG-002",
+			fmt.Sprintf("invalid YAML in %s", path),
+			fmt.Sprintf("Fix the YAML syntax in %s and run again.", path),
+			pilotErr.ExitConfig,
+			pilotErr.WithCause(err),
+		)
 	}
 
 	if err := Validate(&cfg); err != nil {
-		return nil, &piloterr.ConfigError{Path: path, Cause: err}
+		return nil, pilotErr.NewTypeD(
+			"PILOT-CFG-003",
+			fmt.Sprintf("invalid config in %s", path),
+			fmt.Sprintf("Fix the validation error in %s:\n  %v", path, err),
+			pilotErr.ExitConfig,
+			pilotErr.WithCause(err),
+		)
 	}
 
 	return &cfg, nil
@@ -66,7 +84,12 @@ func findConfigFile(dir string) (string, error) {
 		dir = parent
 	}
 
-	return "", &piloterr.ConfigError{Cause: fmt.Errorf("%s not found (run 'pilot init' to create one)", FileName)}
+	return "", pilotErr.NewTypeD(
+		"PILOT-CFG-001",
+		fmt.Sprintf("%s not found", FileName),
+		"Run 'pilot init' to create a new project, or cd into an existing pilot project.",
+		pilotErr.ExitConfig,
+	)
 }
 
 // Save writes the config back to pilot.yaml at the given path.

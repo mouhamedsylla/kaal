@@ -10,7 +10,7 @@ import (
 
 	"github.com/mouhamedsylla/pilot/internal/config"
 	domain "github.com/mouhamedsylla/pilot/internal/domain"
-	"github.com/mouhamedsylla/pilot/internal/piloterr"
+	pilotErr "github.com/mouhamedsylla/pilot/internal/domain/errors"
 	pilotSSH "github.com/mouhamedsylla/pilot/pkg/ssh"
 	"github.com/mouhamedsylla/pilot/pkg/ui"
 	"gopkg.in/yaml.v3"
@@ -70,7 +70,13 @@ func (p *Provider) Deploy(ctx context.Context, env string, opts domain.DeployOpt
 		return nil
 	}); err != nil {
 		p.recordDeploy(ctx, client, env, opts.Tag, false, err.Error())
-		return &piloterr.DeployError{Phase: "state", Target: p.target.Host, Cause: err}
+		return pilotErr.NewTypeD(
+			"PILOT-DEPLOY-001",
+			fmt.Sprintf("failed to prepare remote state on %s", p.target.Host),
+			fmt.Sprintf("SSH into %s and verify ~/pilot/ is writable:\n  ssh %s@%s 'ls -la ~/'", p.target.Host, p.target.User, p.target.Host),
+			pilotErr.ExitDeploy,
+			pilotErr.WithCause(err),
+		)
 	}
 
 	// ── Step 2: docker pull — stream output ────────────────────────────────
@@ -82,20 +88,22 @@ func (p *Provider) Deploy(ctx context.Context, env string, opts domain.DeployOpt
 	var pullBuf strings.Builder
 	if err := client.RunWithOutput(ctx, pullCmd, remoteOutputWriter(&pullBuf)); err != nil {
 		p.recordDeploy(ctx, client, env, opts.Tag, false, pullBuf.String())
-		return &piloterr.DeployError{
-			Phase:    "pull",
-			Target:   p.target.Host,
-			Command:  pullCmd,
-			Output:   pullBuf.String(),
-			Streamed: streamed,
-			Cause: fmt.Errorf(
-				"%w\n\n  Hints:\n"+
-					"  • Verify the image tag %q exists in the registry\n"+
-					"  • Check your registry credentials: pilot preflight --target push\n"+
-					"  • If credentials expired, re-export and retry",
-				err, opts.Tag,
-			),
+		instructions := fmt.Sprintf(
+			"Verify the image tag %q exists in the registry, then retry:\n"+
+				"  • Check: pilot push --env %s\n"+
+				"  • Check credentials: pilot preflight --target push\n"+
+				"  • If credentials expired, re-export and run pilot deploy again",
+			opts.Tag, env,
+		)
+		if !streamed && pullBuf.Len() > 0 {
+			instructions += "\n\nRemote output:\n" + indentOutput(pullBuf.String())
 		}
+		return pilotErr.NewTypeD("PILOT-DEPLOY-002",
+			fmt.Sprintf("docker pull %s failed on %s", opts.Tag, p.target.Host),
+			instructions,
+			pilotErr.ExitDeploy,
+			pilotErr.WithCause(err),
+		)
 	}
 
 	// ── Step 3: docker compose up — stream output ─────────────────────────
@@ -106,28 +114,37 @@ func (p *Provider) Deploy(ctx context.Context, env string, opts domain.DeployOpt
 	)
 	var composeBuf strings.Builder
 	if err := client.RunWithOutput(ctx, composeCmd, remoteOutputWriter(&composeBuf)); err != nil {
-		cause := err
 		capturedOutput := composeBuf.String()
+		p.recordDeploy(ctx, client, env, opts.Tag, false, capturedOutput)
+
 		if isDockerPermissionError(capturedOutput) {
-			cause = fmt.Errorf(
-				"user %q is not in the docker group on %s\n\n"+
-					"  Fix automatically:\n"+
-					"    pilot setup --env %s\n\n"+
-					"  Or manually on your VPS:\n"+
-					"    sudo usermod -aG docker %s\n"+
-					"  Then reconnect and run pilot deploy again",
-				p.target.User, p.target.Host, env, p.target.User,
+			// TypeC — pilot knows exactly what to do: add user to docker group.
+			return pilotErr.NewTypeC(
+				"PILOT-DEPLOY-003",
+				fmt.Sprintf("user %q is not in the docker group on %s", p.target.User, p.target.Host),
+				pilotErr.ExitDeploy,
+				pilotErr.WithOptions(
+					[]string{
+						fmt.Sprintf("pilot setup --env %s  (automatic)", env),
+						fmt.Sprintf("ssh %s@%s 'sudo usermod -aG docker %s'  (manual)", p.target.User, p.target.Host, p.target.User),
+					},
+					fmt.Sprintf("pilot setup --env %s", env),
+				),
+				pilotErr.WithAppliesTo(fmt.Sprintf("targets.%s.user", env)),
+				pilotErr.WithCause(err),
 			)
 		}
-		p.recordDeploy(ctx, client, env, opts.Tag, false, capturedOutput)
-		return &piloterr.DeployError{
-			Phase:    "restart",
-			Target:   p.target.Host,
-			Command:  composeCmd,
-			Output:   capturedOutput,
-			Streamed: streamed,
-			Cause:    cause,
+
+		instructions := fmt.Sprintf("docker compose up failed on %s.\nCheck the service logs:\n  pilot logs --env %s", p.target.Host, env)
+		if !streamed && len(capturedOutput) > 0 {
+			instructions += "\n\nRemote output:\n" + indentOutput(capturedOutput)
 		}
+		return pilotErr.NewTypeD("PILOT-DEPLOY-004",
+			fmt.Sprintf("docker compose up failed on %s", p.target.Host),
+			instructions,
+			pilotErr.ExitDeploy,
+			pilotErr.WithCause(err),
+		)
 	}
 
 	p.recordDeploy(ctx, client, env, opts.Tag, true, "")
@@ -389,11 +406,16 @@ func (p *Provider) Rollback(ctx context.Context, env string, version string) (st
 	var pullBuf strings.Builder
 	if err := client.RunWithOutput(ctx, pullCmd, remoteOutputWriter(&pullBuf)); err != nil {
 		p.recordDeploy(ctx, client, env, tag, false, "rollback pull: "+err.Error())
-		return "", &piloterr.DeployError{
-			Phase: "rollback-pull", Target: p.target.Host,
-			Command: pullCmd, Output: pullBuf.String(),
-			Streamed: streamed, Cause: err,
+		instructions := fmt.Sprintf("Verify image tag %q exists in the registry.\n  pilot push --env %s", tag, env)
+		if !streamed && pullBuf.Len() > 0 {
+			instructions += "\n\nRemote output:\n" + indentOutput(pullBuf.String())
 		}
+		return "", pilotErr.NewTypeD("PILOT-DEPLOY-005",
+			fmt.Sprintf("rollback pull %s failed on %s", tag, p.target.Host),
+			instructions,
+			pilotErr.ExitDeploy,
+			pilotErr.WithCause(err),
+		)
 	}
 
 	// docker compose up
@@ -402,11 +424,16 @@ func (p *Provider) Rollback(ctx context.Context, env string, version string) (st
 	var composeBuf strings.Builder
 	if err := client.RunWithOutput(ctx, composeCmd, remoteOutputWriter(&composeBuf)); err != nil {
 		p.recordDeploy(ctx, client, env, tag, false, "rollback restart: "+err.Error())
-		return "", &piloterr.DeployError{
-			Phase: "rollback-restart", Target: p.target.Host,
-			Command: composeCmd, Output: composeBuf.String(),
-			Streamed: streamed, Cause: err,
+		instructions := fmt.Sprintf("docker compose up failed during rollback on %s.\n  pilot logs --env %s", p.target.Host, env)
+		if !streamed && composeBuf.Len() > 0 {
+			instructions += "\n\nRemote output:\n" + indentOutput(composeBuf.String())
 		}
+		return "", pilotErr.NewTypeD("PILOT-DEPLOY-006",
+			fmt.Sprintf("rollback restart failed on %s", p.target.Host),
+			instructions,
+			pilotErr.ExitDeploy,
+			pilotErr.WithCause(err),
+		)
 	}
 
 	// Persist the rolled-back tag as current.
@@ -435,9 +462,34 @@ func (p *Provider) connect() (*pilotSSH.Client, error) {
 		Port:    port,
 	})
 	if err != nil {
-		return nil, &piloterr.SSHError{Host: p.target.Host, Op: "connect", Cause: err}
+		return nil, pilotErr.NewTypeD(
+			"PILOT-SSH-001",
+			fmt.Sprintf("cannot connect to %s", p.target.Host),
+			fmt.Sprintf(
+				"Check your SSH configuration in pilot.yaml:\n"+
+					"  • host: %s is reachable (try: ping %s)\n"+
+					"  • key: %s exists and has correct permissions (chmod 600)\n"+
+					"  • user: %s has SSH access\n"+
+					"  • port: %d is open",
+				p.target.Host, p.target.Host,
+				p.target.Key,
+				p.target.User,
+				port,
+			),
+			pilotErr.ExitSSH,
+			pilotErr.WithCause(err),
+		)
 	}
 	return c, nil
+}
+
+// indentOutput prefixes each line of remote output with "  │ " for display.
+func indentOutput(output string) string {
+	var b strings.Builder
+	for _, line := range strings.Split(strings.TrimRight(output, "\n"), "\n") {
+		fmt.Fprintf(&b, "  │ %s\n", line)
+	}
+	return b.String()
 }
 
 // composeFileForEnv returns the conventional compose filename for an environment.

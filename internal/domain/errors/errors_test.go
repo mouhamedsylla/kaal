@@ -14,6 +14,7 @@ func TestTypeA_AutoFixSilent(t *testing.T) {
 
 	assert.Equal(t, pilotErrors.TypeA, err.Type)
 	assert.Equal(t, "PILOT-SSH-001", err.Code)
+	assert.Equal(t, pilotErrors.ExitOK, err.Exit)
 	assert.False(t, err.RequiresChoice())
 	assert.False(t, err.RequiresHuman())
 	assert.False(t, err.CanDryRun())
@@ -21,9 +22,10 @@ func TestTypeA_AutoFixSilent(t *testing.T) {
 
 // TypeB — auto-fix annoncé, supporte --dry-run.
 func TestTypeB_AutoFixAnnounced(t *testing.T) {
-	err := pilotErrors.NewTypeB("PILOT-DOCKER-001", "Docker not running")
+	err := pilotErrors.NewTypeB("PILOT-DOCKER-001", "Docker not running", pilotErrors.ExitGeneral)
 
 	assert.Equal(t, pilotErrors.TypeB, err.Type)
+	assert.Equal(t, pilotErrors.ExitGeneral, err.Exit)
 	assert.True(t, err.CanDryRun())
 	assert.False(t, err.RequiresChoice())
 	assert.False(t, err.RequiresHuman())
@@ -31,7 +33,7 @@ func TestTypeB_AutoFixAnnounced(t *testing.T) {
 
 // TypeC — choix requis, options connues. L'opération est suspendue.
 func TestTypeC_ChoiceRequired(t *testing.T) {
-	err := pilotErrors.NewTypeC("PILOT-NET-001", "Port 8080 in use",
+	err := pilotErrors.NewTypeC("PILOT-NET-001", "Port 8080 in use", pilotErrors.ExitGeneral,
 		pilotErrors.WithOptions([]string{"8081", "8082", "3001"}, "8081"),
 		pilotErrors.WithAppliesTo("environments.dev.ports.api"),
 	)
@@ -44,9 +46,9 @@ func TestTypeC_ChoiceRequired(t *testing.T) {
 	assert.Equal(t, "environments.dev.ports.api", err.AppliesTo)
 }
 
-// TypeC sans options — invalide : RequiresChoice vrai mais Options vide.
+// TypeC sans options — RequiresChoice vrai mais Options vide.
 func TestTypeC_WithoutOptions_OptionsEmpty(t *testing.T) {
-	err := pilotErrors.NewTypeC("PILOT-NET-002", "No available ports")
+	err := pilotErrors.NewTypeC("PILOT-NET-002", "No available ports", pilotErrors.ExitGeneral)
 
 	assert.True(t, err.RequiresChoice())
 	assert.Empty(t, err.Options)
@@ -55,9 +57,12 @@ func TestTypeC_WithoutOptions_OptionsEmpty(t *testing.T) {
 // TypeD — stop complet, instructions exactes pour l'humain.
 func TestTypeD_StopWithInstructions(t *testing.T) {
 	err := pilotErrors.NewTypeD("PILOT-SECRET-001", "DATABASE_URL is not set",
-		"Add DATABASE_URL to .env.prod then run: pilot deploy")
+		"Add DATABASE_URL to .env.prod then run: pilot deploy",
+		pilotErrors.ExitSecrets,
+	)
 
 	assert.Equal(t, pilotErrors.TypeD, err.Type)
+	assert.Equal(t, pilotErrors.ExitSecrets, err.Exit)
 	assert.True(t, err.RequiresHuman())
 	assert.False(t, err.RequiresChoice())
 	assert.Equal(t, "Add DATABASE_URL to .env.prod then run: pilot deploy", err.Instructions)
@@ -65,14 +70,14 @@ func TestTypeD_StopWithInstructions(t *testing.T) {
 
 // Tous les types satisfont l'interface error standard.
 func TestAllTypes_SatisfyErrorInterface(t *testing.T) {
-	errors := []error{
+	errs := []error{
 		pilotErrors.NewTypeA("PILOT-A-001", "msg a"),
-		pilotErrors.NewTypeB("PILOT-B-001", "msg b"),
-		pilotErrors.NewTypeC("PILOT-C-001", "msg c"),
-		pilotErrors.NewTypeD("PILOT-D-001", "msg d", "do this"),
+		pilotErrors.NewTypeB("PILOT-B-001", "msg b", pilotErrors.ExitGeneral),
+		pilotErrors.NewTypeC("PILOT-C-001", "msg c", pilotErrors.ExitGeneral),
+		pilotErrors.NewTypeD("PILOT-D-001", "msg d", "do this", pilotErrors.ExitGeneral),
 	}
 
-	for _, err := range errors {
+	for _, err := range errs {
 		assert.NotNil(t, err)
 		assert.NotEmpty(t, err.Error())
 	}
@@ -84,4 +89,13 @@ func TestError_MessageContainsCode(t *testing.T) {
 
 	assert.Contains(t, err.Error(), "PILOT-SSH-001")
 	assert.Contains(t, err.Error(), "bad permissions")
+}
+
+// ExitCodeOf extrait le bon code depuis un PilotError.
+func TestExitCodeOf(t *testing.T) {
+	assert.Equal(t, pilotErrors.ExitSSH, pilotErrors.ExitCodeOf(
+		pilotErrors.NewTypeD("PILOT-SSH-001", "connect failed", "check key", pilotErrors.ExitSSH),
+	))
+	assert.Equal(t, pilotErrors.ExitOK, pilotErrors.ExitCodeOf(nil))
+	assert.Equal(t, pilotErrors.ExitGeneral, pilotErrors.ExitCodeOf(assert.AnError))
 }

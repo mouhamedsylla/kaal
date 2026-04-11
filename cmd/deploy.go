@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -8,11 +9,13 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/mouhamedsylla/pilot/internal/app/deploy"
+	"github.com/mouhamedsylla/pilot/internal/app/resume"
 	"github.com/mouhamedsylla/pilot/internal/app/runtime"
 	"github.com/mouhamedsylla/pilot/internal/config"
+	domain "github.com/mouhamedsylla/pilot/internal/domain"
+	pilotErr "github.com/mouhamedsylla/pilot/internal/domain/errors"
 	"github.com/mouhamedsylla/pilot/internal/env"
 	"github.com/mouhamedsylla/pilot/internal/gitutil"
-	domain "github.com/mouhamedsylla/pilot/internal/domain"
 	"github.com/mouhamedsylla/pilot/pkg/ui"
 )
 
@@ -123,6 +126,17 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 		SkipLockCheck: skipLock,
 	})
 	if err != nil {
+		// TypeC — save suspension context so "pilot resume" can retry.
+		var pe *pilotErr.PilotError
+		if errors.As(err, &pe) && pe.RequiresChoice() {
+			_ = resume.SaveSuspension(resume.SuspendedOp{
+				ErrorCode:   pe.Code,
+				Command:     fmt.Sprintf("deploy --env %s --tag %s", activeEnv, tag),
+				Args:        map[string]string{"env": activeEnv, "tag": tag, "dry_run": fmt.Sprint(dryRun), "skip_lock": fmt.Sprint(skipLock)},
+				Options:     pe.Options,
+				Recommended: pe.Recommended,
+			})
+		}
 		ui.Fatal(err)
 	}
 
