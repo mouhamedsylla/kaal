@@ -1,9 +1,15 @@
 package cmd
 
 import (
-	"github.com/mouhamedsylla/pilot/internal/app/logs"
-	"github.com/mouhamedsylla/pilot/pkg/ui"
+	"fmt"
+
 	"github.com/spf13/cobra"
+
+	pilotLogs "github.com/mouhamedsylla/pilot/internal/app/logs"
+	"github.com/mouhamedsylla/pilot/internal/app/runtime"
+	"github.com/mouhamedsylla/pilot/internal/config"
+	pilotenv "github.com/mouhamedsylla/pilot/internal/env"
+	"github.com/mouhamedsylla/pilot/pkg/ui"
 )
 
 var logsCmd = &cobra.Command{
@@ -25,7 +31,7 @@ Examples:
 
 func init() {
 	logsCmd.Flags().BoolP("follow", "f", false, "stream logs in real time")
-	logsCmd.Flags().String("since", "", "show logs since duration or timestamp (e.g. 5m, 1h, 2024-01-15T10:00:00)")
+	logsCmd.Flags().String("since", "", "show logs since duration or timestamp (e.g. 5m, 1h)")
 	logsCmd.Flags().IntP("lines", "n", 100, "number of lines to show")
 }
 
@@ -39,14 +45,60 @@ func runLogs(cmd *cobra.Command, args []string) error {
 		service = args[0]
 	}
 
-	if err := logs.Run(cmd.Context(), logs.Options{
-		Env:     currentEnv,
+	cfg, err := config.Load(".")
+	if err != nil {
+		ui.Fatal(err)
+	}
+
+	activeEnv := pilotenv.Active(currentEnv)
+	envCfg, ok := cfg.Environments[activeEnv]
+	if !ok {
+		ui.Fatal(fmt.Errorf("environment %q not defined in pilot.yaml", activeEnv))
+	}
+
+	in := pilotLogs.Input{
+		Env:     activeEnv,
 		Service: service,
 		Follow:  follow,
 		Since:   since,
 		Lines:   lines,
-	}); err != nil {
+		Config:  cfg,
+	}
+
+	var uc *pilotLogs.LogsUseCase
+	if envCfg.Target != "" {
+		target := cfg.Targets[envCfg.Target]
+		if service != "" {
+			ui.Dim(fmt.Sprintf("Logs: %s/%s → %s (%s)", activeEnv, service, envCfg.Target, target.Host))
+		} else {
+			ui.Dim(fmt.Sprintf("Logs: %s (all) → %s (%s)", activeEnv, envCfg.Target, target.Host))
+		}
+		provider, pErr := runtime.NewDeployProvider(cfg, envCfg.Target)
+		if pErr != nil {
+			ui.Fatal(pErr)
+		}
+		uc = pilotLogs.NewRemote(provider)
+	} else {
+		if service != "" {
+			ui.Dim(fmt.Sprintf("Logs: %s/%s", activeEnv, service))
+		} else {
+			ui.Dim(fmt.Sprintf("Logs: %s (all services)", activeEnv))
+		}
+		provider, pErr := runtime.NewExecutionProvider(cfg, activeEnv)
+		if pErr != nil {
+			ui.Fatal(pErr)
+		}
+		uc = pilotLogs.New(provider)
+	}
+	fmt.Println()
+
+	out, err := uc.Execute(cmd.Context(), in)
+	if err != nil {
 		ui.Fatal(err)
+	}
+
+	for line := range out.Lines {
+		fmt.Println(line)
 	}
 	return nil
 }

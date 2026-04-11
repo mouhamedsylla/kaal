@@ -43,6 +43,10 @@ func (m *mockDeployProvider) Status(ctx context.Context, env string) ([]domain.S
 	return m.statuses, m.statusErr
 }
 
+func (m *mockDeployProvider) Logs(_ context.Context, _, _ string, _ domain.LogOptions) (<-chan string, error) {
+	return nil, nil
+}
+
 type mockSecretManager struct {
 	resolved map[string]string
 	err      error

@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mouhamedsylla/pilot/internal/app/logs"
+	"github.com/mouhamedsylla/pilot/internal/app/runtime"
+	"github.com/mouhamedsylla/pilot/internal/app/status"
 	"github.com/mouhamedsylla/pilot/internal/config"
 	pilotenv "github.com/mouhamedsylla/pilot/internal/env"
-	"github.com/mouhamedsylla/pilot/internal/orchestrator"
-	"github.com/mouhamedsylla/pilot/internal/providers"
-	"github.com/mouhamedsylla/pilot/internal/app/runtime"
 )
 
 // HandleStatus returns the complete project state as structured JSON.
@@ -27,52 +27,52 @@ func HandleStatus(ctx context.Context, params map[string]any) (any, error) {
 		return nil, fmt.Errorf("environment %q not defined", activeEnv)
 	}
 
-	result := map[string]any{
-		"env":     activeEnv,
-		"project": cfg.Project.Name,
-	}
+	in := status.Input{Env: activeEnv, Config: cfg}
+	var out status.Output
 
-	// Remote target
 	if envCfg.Target != "" {
-		provider, err := runtime.NewProvider(cfg, envCfg.Target)
-		if err != nil {
-			return nil, err
+		provider, pErr := runtime.NewDeployProvider(cfg, envCfg.Target)
+		if pErr != nil {
+			return nil, pErr
 		}
-		statuses, err := provider.Status(ctx, activeEnv)
-		if err != nil {
-			result["remote_error"] = err.Error()
-		} else {
-			result["remote"] = statusesToMap(statuses)
+		uc := status.NewRemote(provider)
+		out, err = uc.Execute(ctx, in)
+	} else {
+		provider, pErr := runtime.NewExecutionProvider(cfg, activeEnv)
+		if pErr != nil {
+			return nil, pErr
 		}
-		return result, nil
+		uc := status.New(provider)
+		out, err = uc.Execute(ctx, in)
+	}
+	if err != nil {
+		return map[string]any{"env": activeEnv, "error": err.Error()}, nil
 	}
 
-	// Local orchestrator
-	orch, err := runtime.NewOrchestrator(cfg, activeEnv)
-	if err != nil {
-		return nil, err
-	}
-	orchStatuses, err := orch.Status(ctx)
-	if err != nil {
-		result["local_error"] = err.Error()
-	} else {
-		rows := make([]map[string]any, len(orchStatuses))
-		for i, s := range orchStatuses {
-			rows[i] = map[string]any{
-				"name":   s.Name,
-				"state":  s.State,
-				"health": s.Health,
-				"image":  s.Image,
-				"ports":  s.Ports,
-			}
+	rows := make([]map[string]any, len(out.Statuses))
+	for i, s := range out.Statuses {
+		rows[i] = map[string]any{
+			"name":   s.Name,
+			"state":  s.State,
+			"health": s.Health,
 		}
-		result["local"] = rows
+	}
+
+	result := map[string]any{
+		"env":      activeEnv,
+		"project":  cfg.Project.Name,
+		"remote":   out.Remote,
+		"services": rows,
+	}
+	if out.Remote {
+		result["target"] = out.Target
+		result["host"] = out.Host
 	}
 	return result, nil
 }
 
 // HandleLogs collects log lines from a service and returns them as a string.
-// MCP is synchronous so streaming is not possible — we collect for up to 3s
+// MCP is synchronous so streaming is not possible — we collect for up to 5s
 // or until `lines` lines are received.
 func HandleLogs(ctx context.Context, params map[string]any) (any, error) {
 	cfg, err := config.Load(".")
@@ -82,52 +82,54 @@ func HandleLogs(ctx context.Context, params map[string]any) (any, error) {
 
 	activeEnv := pilotenv.Active(strParam(params, "env"))
 	service := strParam(params, "service")
-	lines := 100
+	nLines := 100
 	if l := strParam(params, "lines"); l != "" {
 		if n, err := strconv.Atoi(l); err == nil && n > 0 {
-			lines = n
+			nLines = n
 		}
 	}
 	since := strParam(params, "since")
 
-	envCfg := cfg.Environments[activeEnv]
+	envCfg, ok := cfg.Environments[activeEnv]
+	if !ok {
+		return nil, fmt.Errorf("environment %q not defined", activeEnv)
+	}
 
-	var ch <-chan string
+	in := logs.Input{
+		Env:     activeEnv,
+		Service: service,
+		Follow:  false,
+		Lines:   nLines,
+		Since:   since,
+		Config:  cfg,
+	}
+
+	var uc *logs.LogsUseCase
 	if envCfg.Target != "" {
-		provider, err := runtime.NewProvider(cfg, envCfg.Target)
-		if err != nil {
-			return nil, err
+		provider, pErr := runtime.NewDeployProvider(cfg, envCfg.Target)
+		if pErr != nil {
+			return nil, pErr
 		}
-		ch, err = provider.Logs(ctx, activeEnv, providers.LogOptions{
-			Service: service,
-			Follow:  false,
-			Lines:   lines,
-			Since:   since,
-		})
-		if err != nil {
-			return nil, err
-		}
+		uc = logs.NewRemote(provider)
 	} else {
-		orch, err := runtime.NewOrchestrator(cfg, activeEnv)
-		if err != nil {
-			return nil, err
+		provider, pErr := runtime.NewExecutionProvider(cfg, activeEnv)
+		if pErr != nil {
+			return nil, pErr
 		}
-		ch, err = orch.Logs(ctx, service, orchestrator.LogOptions{
-			Follow: false,
-			Lines:  lines,
-			Since:  since,
-		})
-		if err != nil {
-			return nil, err
-		}
+		uc = logs.New(provider)
+	}
+
+	out, err := uc.Execute(ctx, in)
+	if err != nil {
+		return nil, err
 	}
 
 	// Collect lines with a 5s deadline to avoid hanging forever.
 	deadline := time.After(5 * time.Second)
 	var collected []string
-	for len(collected) < lines {
+	for len(collected) < nLines {
 		select {
-		case line, ok := <-ch:
+		case line, ok := <-out.Lines:
 			if !ok {
 				goto done
 			}
@@ -187,7 +189,6 @@ func HandleSecretsInject(ctx context.Context, params map[string]any) (any, error
 		return nil, fmt.Errorf("inject secrets: %w", err)
 	}
 
-	// Redact values for safety — only return key names unless explicitly requested.
 	keys := make([]string, 0, len(injected))
 	for k := range injected {
 		keys = append(keys, k)
@@ -200,20 +201,3 @@ func HandleSecretsInject(ctx context.Context, params map[string]any) (any, error
 		"message":  fmt.Sprintf("%d secrets resolved from %s", len(keys), provider),
 	}, nil
 }
-
-// ── helpers ─────────────────────────────────────────────────────────────────
-
-func statusesToMap(ss []providers.ServiceStatus) []map[string]any {
-	out := make([]map[string]any, len(ss))
-	for i, s := range ss {
-		out[i] = map[string]any{
-			"name":    s.Name,
-			"state":   s.State,
-			"health":  s.Health,
-			"version": s.Version,
-		}
-	}
-	return out
-}
-
-

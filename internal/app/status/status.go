@@ -1,151 +1,89 @@
-// Package status implements the pilot status command logic.
+// Package status implements the pilot status use case.
+//
+// StatusUseCase queries either the local runtime (ExecutionProvider) or the
+// remote deployment target (DeployProvider), depending on which one is
+// injected. cmd/ selects the right provider based on the env config.
 package status
 
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/mouhamedsylla/pilot/internal/config"
-	"github.com/mouhamedsylla/pilot/internal/env"
-	"github.com/mouhamedsylla/pilot/internal/app/runtime"
-	"github.com/mouhamedsylla/pilot/pkg/ui"
+	domain "github.com/mouhamedsylla/pilot/internal/domain"
 )
 
-// Options controls pilot status behaviour.
-type Options struct {
-	Env     string
-	JSONOut bool
+// Input is the data required to query service status.
+type Input struct {
+	Env    string
+	Config *config.Config
 }
 
-// serviceRow is a display-agnostic summary of one service.
-type serviceRow struct {
-	Name   string
-	State  string
-	Health string
-	Info   string // ports (local) or image version (remote)
+// Output is the result of a status query.
+type Output struct {
+	Env      string
+	Remote   bool   // true when querying a remote target
+	Target   string // non-empty when Remote is true
+	Host     string // non-empty when Remote is true
+	Statuses []domain.ServiceStatus
 }
 
-// Run executes pilot status.
-func Run(ctx context.Context, opts Options) error {
-	cfg, err := config.Load(".")
-	if err != nil {
-		return err
-	}
-
-	activeEnv := env.Active(opts.Env)
-	envCfg, ok := cfg.Environments[activeEnv]
-	if !ok {
-		return fmt.Errorf("environment %q not defined in pilot.yaml", activeEnv)
-	}
-
-	fmt.Println()
-	ui.Bold(fmt.Sprintf("Environment: %s", activeEnv))
-	fmt.Println()
-
-	if envCfg.Target != "" {
-		return runRemoteStatus(ctx, cfg, activeEnv, envCfg.Target, opts)
-	}
-	return runLocalStatus(ctx, cfg, activeEnv, opts)
+// StatusUseCase queries service status from local or remote providers.
+// Exactly one of local or remote must be non-nil.
+type StatusUseCase struct {
+	local  domain.ExecutionProvider // nil for remote envs
+	remote domain.DeployProvider   // nil for local envs
 }
 
-func runLocalStatus(ctx context.Context, cfg *config.Config, activeEnv string, opts Options) error {
-	orch, err := runtime.NewOrchestrator(cfg, activeEnv)
-	if err != nil {
-		return err
-	}
-
-	statuses, err := orch.Status(ctx)
-	if err != nil {
-		return fmt.Errorf("local status: %w\n  Is the environment running? Try 'pilot up'", err)
-	}
-
-	if len(statuses) == 0 {
-		ui.Dim("  No services running — try 'pilot up'")
-		fmt.Println()
-		return nil
-	}
-
-	var rows []serviceRow
-	for _, s := range statuses {
-		ports := strings.Join(s.Ports, ", ")
-		if ports == "" {
-			ports = "—"
-		}
-		rows = append(rows, serviceRow{
-			Name:   s.Name,
-			State:  s.State,
-			Health: s.Health,
-			Info:   ports,
-		})
-	}
-
-	if opts.JSONOut {
-		return ui.JSON(statuses)
-	}
-	printTable(rows, "PORTS")
-	return nil
+// New constructs a StatusUseCase for a local environment.
+func New(local domain.ExecutionProvider) *StatusUseCase {
+	return &StatusUseCase{local: local}
 }
 
-func runRemoteStatus(ctx context.Context, cfg *config.Config, activeEnv, targetName string, opts Options) error {
-	target := cfg.Targets[targetName]
-	ui.Dim(fmt.Sprintf("Target: %s (%s@%s)", targetName, target.User, target.Host))
-	fmt.Println()
-
-	provider, err := runtime.NewProvider(cfg, targetName)
-	if err != nil {
-		return err
-	}
-
-	statuses, err := provider.Status(ctx, activeEnv)
-	if err != nil {
-		return fmt.Errorf("remote status: %w", err)
-	}
-
-	if len(statuses) == 0 {
-		ui.Dim("  No services found — have you deployed? Try 'pilot deploy'")
-		fmt.Println()
-		return nil
-	}
-
-	var rows []serviceRow
-	for _, s := range statuses {
-		rows = append(rows, serviceRow{
-			Name:   s.Name,
-			State:  s.State,
-			Health: s.Health,
-			Info:   s.Version,
-		})
-	}
-
-	if opts.JSONOut {
-		return ui.JSON(statuses)
-	}
-	printTable(rows, "VERSION")
-	return nil
+// NewRemote constructs a StatusUseCase for a remote environment.
+func NewRemote(remote domain.DeployProvider) *StatusUseCase {
+	return &StatusUseCase{remote: remote}
 }
 
-func printTable(rows []serviceRow, infoHeader string) {
-	ui.Dim(fmt.Sprintf("  %-20s %-12s %-12s %s", "SERVICE", "STATE", "HEALTH", infoHeader))
-	ui.Dim("  " + strings.Repeat("─", 62))
-	for _, r := range rows {
-		health := r.Health
-		if health == "" {
-			health = "—"
-		}
-		info := r.Info
-		if info == "" {
-			info = "—"
-		}
-		line := fmt.Sprintf("  %-20s %-12s %-12s %s", r.Name, r.State, health, info)
-		switch {
-		case r.State == "running" && r.Health != "unhealthy":
-			ui.Success(line)
-		case r.State == "exited" || r.Health == "unhealthy":
-			ui.Error(line)
-		default:
-			ui.Warn(line)
-		}
+// Execute queries service status.
+func (uc *StatusUseCase) Execute(ctx context.Context, in Input) (Output, error) {
+	if _, ok := in.Config.Environments[in.Env]; !ok {
+		return Output{}, fmt.Errorf("environment %q not defined in pilot.yaml", in.Env)
 	}
-	fmt.Println()
+
+	if uc.remote != nil {
+		return uc.remoteStatus(ctx, in)
+	}
+	return uc.localStatus(ctx, in)
+}
+
+func (uc *StatusUseCase) localStatus(ctx context.Context, in Input) (Output, error) {
+	statuses, err := uc.local.Status(ctx, in.Env)
+	if err != nil {
+		return Output{}, fmt.Errorf("local status: %w\n  Is the environment running? Try 'pilot up'", err)
+	}
+	return Output{Env: in.Env, Remote: false, Statuses: statuses}, nil
+}
+
+func (uc *StatusUseCase) remoteStatus(ctx context.Context, in Input) (Output, error) {
+	envCfg := in.Config.Environments[in.Env]
+	targetName := envCfg.Target
+
+	statuses, err := uc.remote.Status(ctx, in.Env)
+	if err != nil {
+		return Output{}, fmt.Errorf("remote status: %w", err)
+	}
+
+	targetHost := ""
+	if t, ok := in.Config.Targets[targetName]; ok {
+		targetHost = t.Host
+	}
+
+	return Output{
+		Env:      in.Env,
+		Remote:   true,
+		Target:   targetName,
+		Host:     targetHost,
+		Statuses: statuses,
+	}, nil
 }

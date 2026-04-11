@@ -135,6 +135,86 @@ func (a *deployProviderAdapter) Status(ctx context.Context, env string) ([]domai
 	return out, nil
 }
 
+func (a *deployProviderAdapter) Logs(ctx context.Context, env string, service string, opts domain.LogOptions) (<-chan string, error) {
+	return a.inner.Logs(ctx, env, providers.LogOptions{
+		Service: service,
+		Follow:  opts.Follow,
+		Since:   opts.Since,
+		Lines:   opts.Lines,
+	})
+}
+
+// NewExecutionProvider wraps an Orchestrator as a domain.ExecutionProvider.
+func NewExecutionProvider(cfg *config.Config, env string) (domain.ExecutionProvider, error) {
+	orch, err := NewOrchestrator(cfg, env)
+	if err != nil {
+		return nil, err
+	}
+	return &executionProviderAdapter{inner: orch}, nil
+}
+
+// executionProviderAdapter adapts orchestrator.Orchestrator → domain.ExecutionProvider.
+type executionProviderAdapter struct{ inner orchestrator.Orchestrator }
+
+func (a *executionProviderAdapter) Up(ctx context.Context, env string, services []string) error {
+	return a.inner.Up(ctx, env, services)
+}
+
+func (a *executionProviderAdapter) Down(ctx context.Context, env string) error {
+	return a.inner.Down(ctx, env)
+}
+
+func (a *executionProviderAdapter) Status(ctx context.Context, _ string) ([]domain.ServiceStatus, error) {
+	raw, err := a.inner.Status(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]domain.ServiceStatus, len(raw))
+	for i, s := range raw {
+		out[i] = domain.ServiceStatus{Name: s.Name, State: s.State, Health: s.Health}
+	}
+	return out, nil
+}
+
+func (a *executionProviderAdapter) Logs(ctx context.Context, _ string, service string, opts domain.LogOptions) (<-chan string, error) {
+	return a.inner.Logs(ctx, service, orchestrator.LogOptions{
+		Follow: opts.Follow,
+		Since:  opts.Since,
+		Lines:  opts.Lines,
+	})
+}
+
+// NewRegistryProvider wraps a Registry as a domain.RegistryProvider.
+func NewRegistryProvider(cfg *config.Config) (domain.RegistryProvider, error) {
+	r, err := NewRegistry(cfg)
+	if err != nil {
+		return nil, err
+	}
+	return &registryProviderAdapter{inner: r}, nil
+}
+
+// registryProviderAdapter adapts registry.Registry → domain.RegistryProvider.
+type registryProviderAdapter struct{ inner registry.Registry }
+
+func (a *registryProviderAdapter) Login(ctx context.Context) error {
+	return a.inner.Login(ctx)
+}
+
+func (a *registryProviderAdapter) Build(ctx context.Context, opts domain.BuildOptions) error {
+	return a.inner.Build(ctx, registry.BuildOptions{
+		Tag:        opts.Tag,
+		Dockerfile: opts.Dockerfile,
+		Context:    opts.Context,
+		Platforms:  opts.Platforms,
+		BuildArgs:  opts.BuildArgs,
+		NoCache:    opts.NoCache,
+	})
+}
+
+func (a *registryProviderAdapter) Push(ctx context.Context, tag string) error {
+	return a.inner.Push(ctx, tag)
+}
+
 // NewSecretManager returns the correct SecretManager for the given provider name.
 func NewSecretManager(provider string) (secrets.SecretManager, error) {
 	switch provider {

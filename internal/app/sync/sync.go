@@ -1,4 +1,4 @@
-// Package sync implements the pilot sync command logic.
+// Package sync implements the pilot sync use case.
 package sync
 
 import (
@@ -6,57 +6,58 @@ import (
 	"fmt"
 
 	"github.com/mouhamedsylla/pilot/internal/config"
-	"github.com/mouhamedsylla/pilot/internal/env"
-	"github.com/mouhamedsylla/pilot/internal/app/runtime"
-	"github.com/mouhamedsylla/pilot/pkg/ui"
+	domain "github.com/mouhamedsylla/pilot/internal/domain"
 )
 
-// Options controls pilot sync behaviour.
-type Options struct {
-	Env    string
-	Target string // override target from pilot.yaml
+// Input is the data required to sync config to a remote target.
+type Input struct {
+	Env            string
+	TargetOverride string // override target from pilot.yaml; empty = use env config
+	Config         *config.Config
 }
 
-// Run executes pilot sync: copy pilot.yaml + compose files to the remote target.
-func Run(ctx context.Context, opts Options) error {
-	cfg, err := config.Load(".")
-	if err != nil {
-		return err
-	}
+// Output is the result of a successful sync.
+type Output struct {
+	TargetName string
+	TargetHost string
+}
 
-	activeEnv := env.Active(opts.Env)
-	envCfg, ok := cfg.Environments[activeEnv]
+// SyncUseCase copies config files to a remote target.
+type SyncUseCase struct {
+	provider domain.DeployProvider
+}
+
+// New constructs a SyncUseCase.
+func New(provider domain.DeployProvider) *SyncUseCase {
+	return &SyncUseCase{provider: provider}
+}
+
+// Execute runs pilot sync.
+func (uc *SyncUseCase) Execute(ctx context.Context, in Input) (Output, error) {
+	envCfg, ok := in.Config.Environments[in.Env]
 	if !ok {
-		return fmt.Errorf("environment %q not defined in pilot.yaml", activeEnv)
+		return Output{}, fmt.Errorf("environment %q not defined in pilot.yaml", in.Env)
 	}
 
-	targetName := opts.Target
+	targetName := in.TargetOverride
 	if targetName == "" {
 		targetName = envCfg.Target
 	}
 	if targetName == "" {
-		return fmt.Errorf(
+		return Output{}, fmt.Errorf(
 			"no deploy target for environment %q\n  pilot sync only applies to remote environments",
-			activeEnv,
+			in.Env,
 		)
 	}
 
-	target := cfg.Targets[targetName]
-	ui.Info(fmt.Sprintf("Syncing config to %s (%s@%s)", targetName, target.User, target.Host))
-
-	provider, err := runtime.NewProvider(cfg, targetName)
-	if err != nil {
-		return err
+	if err := uc.provider.Sync(ctx, in.Env); err != nil {
+		return Output{}, fmt.Errorf("sync: %w", err)
 	}
 
-	if err := provider.Sync(ctx, activeEnv); err != nil {
-		return fmt.Errorf("sync: %w", err)
+	targetHost := ""
+	if t, ok := in.Config.Targets[targetName]; ok {
+		targetHost = t.Host
 	}
 
-	fmt.Println()
-	ui.Success(fmt.Sprintf("Config synced to %s", targetName))
-	ui.Dim("  pilot.yaml, compose files, env files and bind-mount config files copied to ~/pilot/")
-	fmt.Println()
-
-	return nil
+	return Output{TargetName: targetName, TargetHost: targetHost}, nil
 }

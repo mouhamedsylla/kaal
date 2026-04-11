@@ -1,4 +1,4 @@
-// Package rollback implements the pilot rollback command logic.
+// Package rollback implements the pilot rollback use case.
 package rollback
 
 import (
@@ -6,66 +6,65 @@ import (
 	"fmt"
 
 	"github.com/mouhamedsylla/pilot/internal/config"
-	"github.com/mouhamedsylla/pilot/internal/env"
-	"github.com/mouhamedsylla/pilot/internal/app/runtime"
-	"github.com/mouhamedsylla/pilot/pkg/ui"
+	domain "github.com/mouhamedsylla/pilot/internal/domain"
 )
 
-// Options controls pilot rollback behaviour.
-type Options struct {
-	Env     string
-	Version string // empty = previous deployment (read from VPS state)
-	Target  string // override target from pilot.yaml
+// Input is the data required to roll back a deployment.
+type Input struct {
+	Env        string
+	Version    string // explicit tag to roll back to; empty = previous deployment
+	TargetName string // override target from pilot.yaml; empty = use env config
+	Config     *config.Config
 }
 
-// Run executes pilot rollback.
-func Run(ctx context.Context, opts Options) error {
-	cfg, err := config.Load(".")
-	if err != nil {
-		return err
-	}
+// Output is the result of a successful rollback.
+type Output struct {
+	RestoredTag string
+	TargetName  string
+	TargetHost  string
+}
 
-	activeEnv := env.Active(opts.Env)
-	envCfg, ok := cfg.Environments[activeEnv]
+// RollbackUseCase rolls back to a previous deployment.
+type RollbackUseCase struct {
+	provider domain.DeployProvider
+}
+
+// New constructs a RollbackUseCase.
+func New(provider domain.DeployProvider) *RollbackUseCase {
+	return &RollbackUseCase{provider: provider}
+}
+
+// Execute runs the rollback.
+func (uc *RollbackUseCase) Execute(ctx context.Context, in Input) (Output, error) {
+	envCfg, ok := in.Config.Environments[in.Env]
 	if !ok {
-		return fmt.Errorf("environment %q not defined in pilot.yaml", activeEnv)
+		return Output{}, fmt.Errorf("environment %q not defined in pilot.yaml", in.Env)
 	}
 
-	targetName := opts.Target
+	targetName := in.TargetName
 	if targetName == "" {
 		targetName = envCfg.Target
 	}
 	if targetName == "" {
-		return fmt.Errorf(
+		return Output{}, fmt.Errorf(
 			"no deploy target for environment %q\n  pilot rollback only applies to remote environments",
-			activeEnv,
+			in.Env,
 		)
 	}
 
-	target := cfg.Targets[targetName]
-
-	if opts.Version != "" {
-		ui.Info(fmt.Sprintf("Rolling back %s → %s (tag: %s)", activeEnv, targetName, opts.Version))
-	} else {
-		ui.Info(fmt.Sprintf("Rolling back %s → %s (previous deployment)", activeEnv, targetName))
-	}
-
-	provider, err := runtime.NewProvider(cfg, targetName)
+	restoredTag, err := uc.provider.Rollback(ctx, in.Env, in.Version)
 	if err != nil {
-		return err
+		return Output{}, fmt.Errorf("rollback: %w", err)
 	}
 
-	resolvedTag, err := provider.Rollback(ctx, activeEnv, opts.Version)
-	if err != nil {
-		return fmt.Errorf("rollback: %w", err)
+	targetHost := ""
+	if t, ok := in.Config.Targets[targetName]; ok {
+		targetHost = t.Host
 	}
 
-	fmt.Println()
-	ui.Success(fmt.Sprintf("Rolled back to %s:%s → %s (%s)", cfg.Registry.Image, resolvedTag, targetName, target.Host))
-	fmt.Println()
-	ui.Dim(fmt.Sprintf("  pilot status --env %s", activeEnv))
-	ui.Dim(fmt.Sprintf("  pilot logs --env %s --follow", activeEnv))
-	fmt.Println()
-
-	return nil
+	return Output{
+		RestoredTag: restoredTag,
+		TargetName:  targetName,
+		TargetHost:  targetHost,
+	}, nil
 }

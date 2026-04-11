@@ -1,4 +1,8 @@
-// Package logs implements the pilot logs command logic.
+// Package logs implements the pilot logs use case.
+//
+// LogsUseCase streams log lines from either the local runtime (ExecutionProvider)
+// or the remote deployment target (DeployProvider). cmd/ selects the right
+// provider based on the env config.
 package logs
 
 import (
@@ -6,99 +10,65 @@ import (
 	"fmt"
 
 	"github.com/mouhamedsylla/pilot/internal/config"
-	"github.com/mouhamedsylla/pilot/internal/env"
-	"github.com/mouhamedsylla/pilot/internal/orchestrator"
-	"github.com/mouhamedsylla/pilot/internal/providers"
-	"github.com/mouhamedsylla/pilot/internal/app/runtime"
-	"github.com/mouhamedsylla/pilot/pkg/ui"
+	domain "github.com/mouhamedsylla/pilot/internal/domain"
 )
 
-// Options controls pilot logs behaviour.
-type Options struct {
+// Input is the data required to stream logs.
+type Input struct {
 	Env     string
 	Service string // empty = all services
 	Follow  bool
 	Since   string
 	Lines   int
+	Config  *config.Config
 }
 
-// Run executes pilot logs — streams to stdout until the channel closes or ctx is cancelled.
-func Run(ctx context.Context, opts Options) error {
-	cfg, err := config.Load(".")
-	if err != nil {
-		return err
-	}
-
-	activeEnv := env.Active(opts.Env)
-	envCfg, ok := cfg.Environments[activeEnv]
-	if !ok {
-		return fmt.Errorf("environment %q not defined in pilot.yaml", activeEnv)
-	}
-
-	if envCfg.Target != "" {
-		return runRemoteLogs(ctx, cfg, activeEnv, envCfg.Target, opts)
-	}
-	return runLocalLogs(ctx, cfg, activeEnv, opts)
+// Output is the result of a successful logs call.
+type Output struct {
+	Lines <-chan string
 }
 
-func runLocalLogs(ctx context.Context, cfg *config.Config, activeEnv string, opts Options) error {
-	orch, err := runtime.NewOrchestrator(cfg, activeEnv)
-	if err != nil {
-		return err
-	}
-
-	if opts.Service != "" {
-		ui.Dim(fmt.Sprintf("Logs: %s/%s", activeEnv, opts.Service))
-	} else {
-		ui.Dim(fmt.Sprintf("Logs: %s (all services)", activeEnv))
-	}
-	fmt.Println()
-
-	ch, err := orch.Logs(ctx, opts.Service, orchestrator.LogOptions{
-		Follow: opts.Follow,
-		Since:  opts.Since,
-		Lines:  opts.Lines,
-	})
-	if err != nil {
-		return fmt.Errorf("logs: %w\n  Is the environment running? Try 'pilot up'", err)
-	}
-
-	stream(ch)
-	return nil
+// LogsUseCase streams log output from local or remote providers.
+// Exactly one of local or remote must be non-nil.
+type LogsUseCase struct {
+	local  domain.ExecutionProvider
+	remote domain.DeployProvider
 }
 
-func runRemoteLogs(ctx context.Context, cfg *config.Config, activeEnv, targetName string, opts Options) error {
-	target := cfg.Targets[targetName]
-
-	if opts.Service != "" {
-		ui.Dim(fmt.Sprintf("Logs: %s/%s → %s (%s)", activeEnv, opts.Service, targetName, target.Host))
-	} else {
-		ui.Dim(fmt.Sprintf("Logs: %s (all) → %s (%s)", activeEnv, targetName, target.Host))
-	}
-	fmt.Println()
-
-	provider, err := runtime.NewProvider(cfg, targetName)
-	if err != nil {
-		return err
-	}
-
-	ch, err := provider.Logs(ctx, activeEnv, providers.LogOptions{
-		Service: opts.Service,
-		Follow:  opts.Follow,
-		Since:   opts.Since,
-		Lines:   opts.Lines,
-	})
-	if err != nil {
-		return fmt.Errorf("remote logs: %w", err)
-	}
-
-	stream(ch)
-	return nil
+// New constructs a LogsUseCase for a local environment.
+func New(local domain.ExecutionProvider) *LogsUseCase {
+	return &LogsUseCase{local: local}
 }
 
-// stream drains a log channel to stdout until it closes.
-func stream(ch <-chan string) {
-	for line := range ch {
-		fmt.Println(line)
+// NewRemote constructs a LogsUseCase for a remote environment.
+func NewRemote(remote domain.DeployProvider) *LogsUseCase {
+	return &LogsUseCase{remote: remote}
+}
+
+// Execute starts streaming logs and returns a channel of log lines.
+// The channel is closed when streaming ends or ctx is cancelled.
+func (uc *LogsUseCase) Execute(ctx context.Context, in Input) (Output, error) {
+	if _, ok := in.Config.Environments[in.Env]; !ok {
+		return Output{}, fmt.Errorf("environment %q not defined in pilot.yaml", in.Env)
 	}
+
+	opts := domain.LogOptions{
+		Follow: in.Follow,
+		Since:  in.Since,
+		Lines:  in.Lines,
+	}
+
+	if uc.remote != nil {
+		ch, err := uc.remote.Logs(ctx, in.Env, in.Service, opts)
+		if err != nil {
+			return Output{}, fmt.Errorf("remote logs: %w", err)
+		}
+		return Output{Lines: ch}, nil
+	}
+
+	ch, err := uc.local.Logs(ctx, in.Env, in.Service, opts)
+	if err != nil {
+		return Output{}, fmt.Errorf("logs: %w\n  Is the environment running? Try 'pilot up'", err)
+	}
+	return Output{Lines: ch}, nil
 }

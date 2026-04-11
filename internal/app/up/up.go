@@ -1,202 +1,138 @@
-// Package up implements the pilot up and pilot down command logic.
+// Package up implements the pilot up / pilot down use cases.
 package up
 
 import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 
-	pilotctx "github.com/mouhamedsylla/pilot/internal/mcp/context"
 	"github.com/mouhamedsylla/pilot/internal/config"
-	"github.com/mouhamedsylla/pilot/internal/env"
-	"github.com/mouhamedsylla/pilot/internal/app/runtime"
-	"github.com/mouhamedsylla/pilot/pkg/ui"
+	domain "github.com/mouhamedsylla/pilot/internal/domain"
 )
 
-// Options controls pilot up behaviour.
-type Options struct {
-	Env      string   // override active env
-	Services []string // empty = all services
-	Build    bool     // force image rebuild
+// ── Up ────────────────────────────────────────────────────────────────────────
+
+// Input is the data required to start an environment.
+type Input struct {
+	Env        string
+	Services   []string
+	Config     *config.Config
+	ProjectDir string // root dir for compose file lookup; empty → "."
 }
 
-// Run executes pilot up.
-func Run(ctx context.Context, opts Options) error {
-	cfg, err := config.Load(".")
-	if err != nil {
-		return err
+// Output is the result of a successful pilot up.
+type Output struct {
+	Env            string
+	IsRemoteEnv    bool   // env has a remote target — cmd/ should warn the user
+	TargetName     string // non-empty when IsRemoteEnv is true
+	MissingEnvFile string // non-empty if the env file is absent (non-blocking)
+}
+
+// MissingComposeError is returned when the compose file doesn't exist.
+type MissingComposeError struct {
+	ComposePath string
+	Env         string
+}
+
+func (e *MissingComposeError) Error() string {
+	return fmt.Sprintf("compose file not found: %s\n  Ask your AI agent: \"Generate the missing infrastructure files for this project\"", e.ComposePath)
+}
+
+// UpUseCase starts the local environment.
+type UpUseCase struct {
+	provider domain.ExecutionProvider
+}
+
+// New constructs an UpUseCase.
+func New(provider domain.ExecutionProvider) *UpUseCase {
+	return &UpUseCase{provider: provider}
+}
+
+// Execute runs pilot up.
+func (uc *UpUseCase) Execute(ctx context.Context, in Input) (Output, error) {
+	projectDir := in.ProjectDir
+	if projectDir == "" {
+		projectDir = "."
 	}
 
-	activeEnv := env.Active(opts.Env)
-
-	if _, ok := cfg.Environments[activeEnv]; !ok {
-		return fmt.Errorf("environment %q not defined in pilot.yaml\n  Run 'pilot env use <env>' or add it to pilot.yaml", activeEnv)
+	envCfg, ok := in.Config.Environments[in.Env]
+	if !ok {
+		return Output{}, fmt.Errorf("environment %q not defined in pilot.yaml", in.Env)
 	}
 
-	ui.Info(fmt.Sprintf("Starting environment %q", activeEnv))
-
-	// Collect full project context — used to check what's missing
-	// and to surface context to the agent if generation is needed
-	projCtx, err := pilotctx.Collect(activeEnv)
-	if err != nil {
-		return err
+	// Compose file must exist before calling the runtime.
+	composeFile := fmt.Sprintf("docker-compose.%s.yml", in.Env)
+	composePath := filepath.Join(projectDir, composeFile)
+	if _, err := os.Stat(composePath); os.IsNotExist(err) {
+		return Output{}, &MissingComposeError{ComposePath: composePath, Env: in.Env}
 	}
 
-	// Guard: if required files are missing, stop and ask the agent
-	if projCtx.MissingDockerfile || projCtx.MissingCompose {
-		return missingFilesError(projCtx)
-	}
+	out := Output{Env: in.Env}
 
-	envCfg := cfg.Environments[activeEnv]
-
-	// Warn when running a remote-deploy environment locally.
-	// These environments use pre-built registry images (no build: section)
-	// that must be pulled from the registry — pilot push must have run first.
 	if envCfg.Target != "" {
-		ui.Warn(fmt.Sprintf(
-			"Environment %q is configured for remote deployment (target: %s)",
-			activeEnv, envCfg.Target,
-		))
-		ui.Dim("  Running it locally requires the image to already exist in the registry.")
-		ui.Dim(fmt.Sprintf("  If you haven't pushed yet: pilot push --env %s", activeEnv))
-		ui.Dim("  To develop locally, use the dev environment: pilot env use dev && pilot up")
-		fmt.Println()
+		out.IsRemoteEnv = true
+		out.TargetName = envCfg.Target
 	}
 
-	// Warn if env file is missing (non-blocking — compose can still start)
 	if envCfg.EnvFile != "" {
 		if _, err := os.Stat(envCfg.EnvFile); os.IsNotExist(err) {
-			ui.Warn(fmt.Sprintf("%s not found — services may fail to start without required variables", envCfg.EnvFile))
+			out.MissingEnvFile = envCfg.EnvFile
 		}
 	}
 
-	// Start via orchestrator
-	orch, err := runtime.NewOrchestrator(cfg, activeEnv)
-	if err != nil {
-		return err
-	}
-
-	if err := orch.Up(ctx, activeEnv, opts.Services); err != nil {
-		// compose output was already streamed — give a short actionable hint
-		return fmt.Errorf(
+	if err := uc.provider.Up(ctx, in.Env, in.Services); err != nil {
+		envFile := envCfg.EnvFile
+		if envFile == "" {
+			envFile = ".env"
+		}
+		return Output{}, fmt.Errorf(
 			"docker compose up failed for environment %q\n\n"+
 				"  Common causes:\n"+
 				"  • Image not found in registry → pilot push --env %s first\n"+
 				"  • Port already in use → check what's running on the configured ports\n"+
 				"  • Missing env variable → check %s\n"+
-				"  • Syntax error in compose file → ask your AI agent to fix it",
-			activeEnv, activeEnv, envCfg.EnvFile,
+				"  • Syntax error in compose file → ask your AI agent to fix it\n\n"+
+				"  Cause: %w",
+			in.Env, in.Env, envFile, err,
 		)
 	}
 
-	fmt.Println()
-	ui.Success(fmt.Sprintf("Environment %q is up", activeEnv))
-	printServiceURLs(cfg)
-	return nil
+	return out, nil
 }
 
-// missingFilesError returns a rich error that tells the developer exactly
-// what to ask their AI agent to generate.
-func missingFilesError(projCtx *pilotctx.ProjectContext) error {
-	var missing []string
-	if projCtx.MissingDockerfile {
-		missing = append(missing, "Dockerfile")
-	}
-	if projCtx.MissingCompose {
-		missing = append(missing, fmt.Sprintf("docker-compose.%s.yml", projCtx.ActiveEnv))
-	}
+// ── Down ──────────────────────────────────────────────────────────────────────
 
-	fmt.Println()
-	ui.Error(fmt.Sprintf("Missing: %v", missing))
-	fmt.Println()
-
-	ui.Bold("Ask your AI agent to generate them.")
-	fmt.Println()
-	ui.Dim("  Option 1 — via MCP (Claude Code, Cursor):")
-	ui.Dim("    pilot mcp serve is already configured in .mcp.json")
-	ui.Dim("    Ask Claude: \"Generate the missing infrastructure files for this project\"")
-	ui.Dim("    Claude will call pilot_context to get the full project details,")
-	ui.Dim("    then write the files directly.")
-	fmt.Println()
-	ui.Dim("  Option 2 — paste this context into any AI chat:")
-	fmt.Println()
-
-	// Print the agent prompt (truncated for terminal display)
-	prompt := projCtx.AgentPrompt()
-	lines := splitLines(prompt)
-	for i, line := range lines {
-		if i >= 40 {
-			ui.Dim(fmt.Sprintf("  ... (%d more lines — use 'pilot context' to get the full prompt)", len(lines)-40))
-			break
-		}
-		ui.Dim("  " + line)
-	}
-
-	fmt.Println()
-	ui.Dim("  Run 'pilot context' to print the full agent prompt")
-	ui.Dim("  Then re-run 'pilot up' once the files are created")
-	fmt.Println()
-
-	return fmt.Errorf("infrastructure files missing — see above")
+// DownInput is the data required to stop an environment.
+type DownInput struct {
+	Env    string
+	Config *config.Config
 }
 
-// DownOptions controls pilot down behaviour.
-type DownOptions struct {
-	Env     string
-	Volumes bool
+// DownOutput is the result of a successful pilot down.
+type DownOutput struct {
+	Env string
 }
 
-// RunDown executes pilot down.
-func RunDown(ctx context.Context, opts DownOptions) error {
-	cfg, err := config.Load(".")
-	if err != nil {
-		return err
-	}
-
-	activeEnv := env.Active(opts.Env)
-	if _, ok := cfg.Environments[activeEnv]; !ok {
-		return fmt.Errorf("environment %q not defined in pilot.yaml", activeEnv)
-	}
-
-	ui.Info(fmt.Sprintf("Stopping environment %q", activeEnv))
-
-	orch, err := runtime.NewOrchestrator(cfg, activeEnv)
-	if err != nil {
-		return err
-	}
-
-	if err := orch.Down(ctx, activeEnv); err != nil {
-		return fmt.Errorf("docker compose down failed: %w", err)
-	}
-
-	ui.Success(fmt.Sprintf("Environment %q stopped", activeEnv))
-	return nil
+// DownUseCase stops the local environment.
+type DownUseCase struct {
+	provider domain.ExecutionProvider
 }
 
-func printServiceURLs(cfg *config.Config) {
-	fmt.Println()
-	for name, svc := range cfg.Services {
-		if svc.Port > 0 {
-			ui.Dim(fmt.Sprintf("  %-14s http://localhost:%d", name, svc.Port))
-		}
-	}
-	fmt.Println()
-	ui.Dim("pilot logs --follow   stream logs")
-	ui.Dim("pilot down            stop services")
-	ui.Dim("pilot status          inspect services")
+// NewDown constructs a DownUseCase.
+func NewDown(provider domain.ExecutionProvider) *DownUseCase {
+	return &DownUseCase{provider: provider}
 }
 
-func splitLines(s string) []string {
-	var lines []string
-	start := 0
-	for i, c := range s {
-		if c == '\n' {
-			lines = append(lines, s[start:i])
-			start = i + 1
-		}
+// Execute runs pilot down.
+func (uc *DownUseCase) Execute(ctx context.Context, in DownInput) (DownOutput, error) {
+	if _, ok := in.Config.Environments[in.Env]; !ok {
+		return DownOutput{}, fmt.Errorf("environment %q not defined in pilot.yaml", in.Env)
 	}
-	if start < len(s) {
-		lines = append(lines, s[start:])
+
+	if err := uc.provider.Down(ctx, in.Env); err != nil {
+		return DownOutput{}, fmt.Errorf("docker compose down: %w", err)
 	}
-	return lines
+
+	return DownOutput{Env: in.Env}, nil
 }

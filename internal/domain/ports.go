@@ -31,22 +31,30 @@ type BuildOptions struct {
 	NoCache    bool
 }
 
+// LogOptions controls log streaming behaviour.
+type LogOptions struct {
+	Follow bool
+	Since  string
+	Lines  int
+}
+
 // ExecutionProvider abstracts the local runtime (Docker Compose, Podman, ...).
 // Used by pilot up / down / status / logs.
 type ExecutionProvider interface {
-	Up(ctx context.Context, env string) error
+	Up(ctx context.Context, env string, services []string) error
 	Down(ctx context.Context, env string) error
 	Status(ctx context.Context, env string) ([]ServiceStatus, error)
-	Logs(ctx context.Context, env string, service string) (<-chan string, error)
+	Logs(ctx context.Context, env string, service string, opts LogOptions) (<-chan string, error)
 }
 
 // DeployProvider abstracts the remote deployment target (VPS, AWS, ...).
-// Used by pilot deploy / rollback / sync.
+// Used by pilot deploy / rollback / sync / status / logs.
 type DeployProvider interface {
 	Sync(ctx context.Context, env string) error
 	Deploy(ctx context.Context, env string, opts DeployOptions) error
 	Rollback(ctx context.Context, env string, toTag string) (restoredTag string, err error)
 	Status(ctx context.Context, env string) ([]ServiceStatus, error)
+	Logs(ctx context.Context, env string, service string, opts LogOptions) (<-chan string, error)
 }
 
 // RegistryProvider abstracts image build and push (GHCR, Docker Hub, ECR, ...).

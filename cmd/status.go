@@ -3,14 +3,17 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"strings"
 
-	"github.com/mouhamedsylla/pilot/internal/config"
-	pilotenv "github.com/mouhamedsylla/pilot/internal/env"
+	"github.com/spf13/cobra"
+
 	"github.com/mouhamedsylla/pilot/internal/adapters/vps"
 	"github.com/mouhamedsylla/pilot/internal/app/runtime"
 	"github.com/mouhamedsylla/pilot/internal/app/status"
+	"github.com/mouhamedsylla/pilot/internal/config"
+	pilotenv "github.com/mouhamedsylla/pilot/internal/env"
 	"github.com/mouhamedsylla/pilot/pkg/ui"
-	"github.com/spf13/cobra"
+	domain "github.com/mouhamedsylla/pilot/internal/domain"
 )
 
 var statusCmd = &cobra.Command{
@@ -35,13 +38,88 @@ func runStatus(cmd *cobra.Command, _ []string) error {
 	if statusHistoryFlag {
 		return runStatusHistory(cmd.Context())
 	}
-	if err := status.Run(cmd.Context(), status.Options{
-		Env:     currentEnv,
-		JSONOut: jsonOutput,
-	}); err != nil {
+
+	cfg, err := config.Load(".")
+	if err != nil {
 		ui.Fatal(err)
 	}
+
+	activeEnv := pilotenv.Active(currentEnv)
+	envCfg, ok := cfg.Environments[activeEnv]
+	if !ok {
+		ui.Fatal(fmt.Errorf("environment %q not defined in pilot.yaml", activeEnv))
+	}
+
+	fmt.Println()
+	ui.Bold(fmt.Sprintf("Environment: %s", activeEnv))
+	fmt.Println()
+
+	in := status.Input{Env: activeEnv, Config: cfg}
+
+	var out status.Output
+	if envCfg.Target != "" {
+		provider, pErr := runtime.NewDeployProvider(cfg, envCfg.Target)
+		if pErr != nil {
+			ui.Fatal(pErr)
+		}
+		target := cfg.Targets[envCfg.Target]
+		ui.Dim(fmt.Sprintf("Target: %s (%s@%s)", envCfg.Target, target.User, target.Host))
+		fmt.Println()
+		uc := status.NewRemote(provider)
+		out, err = uc.Execute(cmd.Context(), in)
+	} else {
+		provider, pErr := runtime.NewExecutionProvider(cfg, activeEnv)
+		if pErr != nil {
+			ui.Fatal(pErr)
+		}
+		uc := status.New(provider)
+		out, err = uc.Execute(cmd.Context(), in)
+	}
+	if err != nil {
+		ui.Fatal(err)
+	}
+
+	if len(out.Statuses) == 0 {
+		if out.Remote {
+			ui.Dim("  No services found — have you deployed? Try 'pilot deploy'")
+		} else {
+			ui.Dim("  No services running — try 'pilot up'")
+		}
+		fmt.Println()
+		return nil
+	}
+
+	if jsonOutput {
+		return ui.JSON(out.Statuses)
+	}
+
+	if out.Remote {
+		printStatusTable(out.Statuses, "VERSION")
+	} else {
+		printStatusTable(out.Statuses, "PORTS")
+	}
 	return nil
+}
+
+func printStatusTable(statuses []domain.ServiceStatus, infoHeader string) {
+	ui.Dim(fmt.Sprintf("  %-20s %-12s %-12s %s", "SERVICE", "STATE", "HEALTH", infoHeader))
+	ui.Dim("  " + strings.Repeat("─", 62))
+	for _, s := range statuses {
+		health := s.Health
+		if health == "" {
+			health = "—"
+		}
+		line := fmt.Sprintf("  %-20s %-12s %-12s", s.Name, s.State, health)
+		switch {
+		case s.State == "running" && s.Health != "unhealthy":
+			ui.Success(line)
+		case s.State == "exited" || s.Health == "unhealthy":
+			ui.Error(line)
+		default:
+			ui.Warn(line)
+		}
+	}
+	fmt.Println()
 }
 
 func runStatusHistory(ctx context.Context) error {
