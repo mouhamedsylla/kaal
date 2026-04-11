@@ -137,7 +137,7 @@ func runStatusHistory(ctx context.Context) error {
 		return fmt.Errorf("pilot status --history only applies to remote environments (no target for %q)", activeEnv)
 	}
 
-	provider, err := runtime.NewProvider(cfg, envCfg.Target)
+	provider, err := runtime.NewDeployProvider(cfg, envCfg.Target)
 	if err != nil {
 		return err
 	}

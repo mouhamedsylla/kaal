@@ -95,11 +95,14 @@ type Input struct {
 	Env        string
 	Config     *config.Config
 	ProjectDir string // base dir for compose / Dockerfile checks; "" = "."
+	LockDir    string // dir where pilot.lock is written; "" = ProjectDir (or ".")
 }
 
 // Output of PreflightUseCase.Execute.
 type Output struct {
-	Report *Report
+	Report      *Report
+	LockWritten bool   // true when pilot.lock was generated and written
+	LockPath    string // path of the written lock file (non-empty when LockWritten)
 }
 
 // ── use case ──────────────────────────────────────────────────────────────────
@@ -223,7 +226,28 @@ func (uc *PreflightUseCase) Execute(ctx context.Context, in Input) (Output, erro
 	}
 
 	r.finalize()
-	return Output{Report: r}, nil
+	out := Output{Report: r}
+
+	// ── 7. Generate pilot.lock when all deploy checks pass ─────────────────
+	if in.Target == TargetDeploy && r.AllOK {
+		lockDir := in.LockDir
+		if lockDir == "" {
+			lockDir = in.ProjectDir
+		}
+		if lockDir == "" {
+			lockDir = "."
+		}
+		l, genErr := GenerateLock(cfg, in.ProjectDir, in.Env)
+		if genErr == nil {
+			if writeErr := l.Write(lockDir); writeErr == nil {
+				out.LockWritten = true
+				out.LockPath = lockDir + "/pilot.lock"
+			}
+		}
+		// Lock generation failure is non-fatal — report is still valid.
+	}
+
+	return out, nil
 }
 
 // remoteChecks runs SSH-based verifications for deploy targets.

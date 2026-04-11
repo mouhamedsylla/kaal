@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/mouhamedsylla/pilot/internal/providers"
+	domain "github.com/mouhamedsylla/pilot/internal/domain"
 )
 
 type remoteServiceEntry struct {
@@ -14,8 +14,8 @@ type remoteServiceEntry struct {
 	Image  string `json:"Image"`
 }
 
-func parseRemotePS(output string) []providers.ServiceStatus {
-	var statuses []providers.ServiceStatus
+func parseRemotePS(output string) []domain.ServiceStatus {
+	var statuses []domain.ServiceStatus
 	for _, line := range strings.Split(strings.TrimSpace(output), "\n") {
 		if line == "" {
 			continue
@@ -24,11 +24,10 @@ func parseRemotePS(output string) []providers.ServiceStatus {
 		if err := json.Unmarshal([]byte(line), &entry); err != nil {
 			continue
 		}
-		statuses = append(statuses, providers.ServiceStatus{
-			Name:    entry.Name,
-			State:   entry.State,
-			Health:  entry.Health,
-			Version: entry.Image,
+		statuses = append(statuses, domain.ServiceStatus{
+			Name:   entry.Name,
+			State:  entry.State,
+			Health: entry.Health,
 		})
 	}
 	return statuses

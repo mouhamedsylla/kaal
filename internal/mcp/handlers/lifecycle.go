@@ -178,7 +178,23 @@ func HandleDeploy(ctx context.Context, params map[string]any) (any, error) {
 		}
 	}
 
-	uc := deploy.New(provider, secrets, ".pilot")
+	hooks, err := runtime.NewHookRunner(cfg, targetName)
+	if err != nil {
+		return nil, fmt.Errorf("pilot deploy: hooks: %w", err)
+	}
+	migrations, err := runtime.NewMigrationRunner(cfg, targetName)
+	if err != nil {
+		return nil, fmt.Errorf("pilot deploy: migrations: %w", err)
+	}
+
+	uc := deploy.New(deploy.Config{
+		Provider:   provider,
+		Secrets:    secrets,
+		Hooks:      hooks,
+		Migrations: migrations,
+		StateDir:   ".pilot",
+		ProjectDir: ".",
+	})
 	out, err := uc.Execute(ctx, deploy.Input{
 		Env:        activeEnv,
 		Tag:        tag,

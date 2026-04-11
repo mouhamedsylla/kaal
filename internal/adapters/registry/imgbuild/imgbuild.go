@@ -1,4 +1,5 @@
-package registry
+// Package imgbuild wraps docker build / buildx build for all registry adapters.
+package imgbuild
 
 import (
 	"context"
@@ -6,10 +7,11 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+
+	domain "github.com/mouhamedsylla/pilot/internal/domain"
 )
 
-// BuildImage runs docker build (or docker buildx build for multi-platform).
-// All registry implementations delegate their Build method here.
+// Build runs docker build (or docker buildx build for multi-platform).
 //
 // Single platform (e.g. linux/amd64):
 //
@@ -19,21 +21,15 @@ import (
 //
 //	docker buildx build --platform ... --push -t <tag> .
 //	(buildx pushes directly — the subsequent Push() call is a no-op)
-func BuildImage(ctx context.Context, opts BuildOptions) error {
+func Build(ctx context.Context, opts domain.BuildOptions) error {
 	var args []string
 
 	switch len(opts.Platforms) {
 	case 0:
-		// No platform specified — plain build for current machine arch.
 		args = []string{"build", "-t", opts.Tag}
-
 	case 1:
-		// Single target platform: use plain docker build with --platform.
-		// Works with Docker Desktop on macOS ARM64 to produce linux/amd64 images.
 		args = []string{"build", "--platform", opts.Platforms[0], "-t", opts.Tag}
-
 	default:
-		// Multi-platform: requires buildx and pushes directly to the registry.
 		args = []string{"buildx", "build",
 			"--platform", strings.Join(opts.Platforms, ","),
 			"--push",

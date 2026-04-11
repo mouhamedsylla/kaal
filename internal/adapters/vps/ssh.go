@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/mouhamedsylla/pilot/internal/config"
+	domain "github.com/mouhamedsylla/pilot/internal/domain"
 	"github.com/mouhamedsylla/pilot/internal/piloterr"
-	"github.com/mouhamedsylla/pilot/internal/providers"
 	pilotSSH "github.com/mouhamedsylla/pilot/pkg/ssh"
 	"github.com/mouhamedsylla/pilot/pkg/ui"
 	"gopkg.in/yaml.v3"
@@ -26,7 +26,7 @@ func New(cfg *config.Config, target config.Target) *Provider {
 	return &Provider{cfg: cfg, target: target}
 }
 
-func (p *Provider) Deploy(ctx context.Context, env string, opts providers.DeployOptions) error {
+func (p *Provider) Deploy(ctx context.Context, env string, opts domain.DeployOptions) error {
 	client, err := p.connect()
 	if err != nil {
 		return err
@@ -302,7 +302,7 @@ func parseComposeMounts(composeFile string) ([]string, error) {
 	return mounts, nil
 }
 
-func (p *Provider) Status(ctx context.Context, env string) ([]providers.ServiceStatus, error) {
+func (p *Provider) Status(ctx context.Context, env string) ([]domain.ServiceStatus, error) {
 	client, err := p.connect()
 	if err != nil {
 		return nil, err
@@ -316,7 +316,7 @@ func (p *Provider) Status(ctx context.Context, env string) ([]providers.ServiceS
 	return parseRemotePS(out), nil
 }
 
-func (p *Provider) Logs(ctx context.Context, env string, opts providers.LogOptions) (<-chan string, error) {
+func (p *Provider) Logs(ctx context.Context, env string, service string, opts domain.LogOptions) (<-chan string, error) {
 	client, err := p.connect()
 	if err != nil {
 		return nil, err
@@ -333,8 +333,8 @@ func (p *Provider) Logs(ctx context.Context, env string, opts providers.LogOptio
 	if opts.Lines > 0 {
 		args += fmt.Sprintf(" --tail %d", opts.Lines)
 	}
-	if opts.Service != "" {
-		args += " " + opts.Service
+	if service != "" {
+		args += " " + service
 	}
 
 	ch, err := client.Stream(ctx, args)
@@ -505,6 +505,64 @@ func isDockerPermissionError(output string) bool {
 	lower := strings.ToLower(output)
 	return (strings.Contains(lower, "permission denied") && strings.Contains(lower, "docker")) ||
 		strings.Contains(lower, "got permission denied while trying to connect to the docker daemon socket")
+}
+
+// RunHooks executes a list of shell commands on the remote VPS via SSH.
+// Commands run sequentially; the first failure stops execution.
+func (p *Provider) RunHooks(ctx context.Context, commands []string) error {
+	if len(commands) == 0 {
+		return nil
+	}
+	client, err := p.connect()
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+
+	for _, cmd := range commands {
+		var buf strings.Builder
+		if err := client.RunWithOutput(ctx, cmd, remoteOutputWriter(&buf)); err != nil {
+			return fmt.Errorf("hook %q failed: %w\n%s", cmd, err, buf.String())
+		}
+	}
+	return nil
+}
+
+// RunMigrations runs the migration command on the remote VPS via SSH.
+// The command runs from ~/pilot/ where the compose files and env files live.
+func (p *Provider) RunMigrations(ctx context.Context, tool, command string) error {
+	client, err := p.connect()
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+
+	// cd to ~/pilot/ so relative paths (e.g. prisma/schema.prisma) resolve correctly.
+	fullCmd := fmt.Sprintf("cd ~/pilot && %s", command)
+	var buf strings.Builder
+	if err := client.RunWithOutput(ctx, fullCmd, remoteOutputWriter(&buf)); err != nil {
+		return fmt.Errorf("migrations (%s): %w\n%s", tool, err, buf.String())
+	}
+	return nil
+}
+
+// RollbackMigrations runs the migration rollback command on the remote VPS via SSH.
+func (p *Provider) RollbackMigrations(ctx context.Context, tool, rollbackCommand string) error {
+	if rollbackCommand == "" {
+		return fmt.Errorf("migrations (%s): no rollback_command configured — cannot compensate", tool)
+	}
+	client, err := p.connect()
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+
+	fullCmd := fmt.Sprintf("cd ~/pilot && %s", rollbackCommand)
+	var buf strings.Builder
+	if err := client.RunWithOutput(ctx, fullCmd, remoteOutputWriter(&buf)); err != nil {
+		return fmt.Errorf("migration rollback (%s): %w\n%s", tool, err, buf.String())
+	}
+	return nil
 }
 
 // SetupDockerGroup adds the SSH user to the docker group on the remote VPS.

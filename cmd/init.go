@@ -48,7 +48,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 	// Non-blocking — failure is a warning, not an error.
 	cfg, err := config.Load(".")
 	if err == nil && cfg.Registry.Provider != "" {
-		reg, err := runtime.NewRegistry(cfg)
+		reg, err := runtime.NewRegistryProvider(cfg)
 		if err == nil {
 			ui.Info("Authenticating to " + cfg.Registry.Provider + "...")
 			if err := reg.Login(cmd.Context()); err != nil {

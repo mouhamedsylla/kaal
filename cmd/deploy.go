@@ -22,9 +22,8 @@ var deployCmd = &cobra.Command{
 	Long: `Sync the compose file, pull the image, and restart services on the remote target.
 
 The target is read from pilot.yaml (environments.<env>.target).
-Use 'pilot push' first to build and push the image, then 'pilot deploy' to
-deploy that exact version. The same image can be deployed multiple times
-(e.g. staging then prod) without rebuilding.`,
+pilot.lock must exist — run 'pilot preflight --target deploy' first.
+Use 'pilot push' to build and push the image, then 'pilot deploy' to deploy it.`,
 	RunE: runDeploy,
 }
 
@@ -33,7 +32,7 @@ func init() {
 	deployCmd.Flags().String("target", "", "override target from pilot.yaml")
 	deployCmd.Flags().StringP("strategy", "s", "rolling", "deployment strategy (rolling)")
 	deployCmd.Flags().Bool("dry-run", false, "show what would happen without executing")
-	deployCmd.Flags().Bool("no-rollback", false, "skip auto-rollback on healthcheck failure")
+	deployCmd.Flags().Bool("skip-lock", false, "skip pilot.lock staleness check (dev/debug only)")
 }
 
 func runDeploy(cmd *cobra.Command, _ []string) error {
@@ -41,6 +40,7 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 	targetOverride, _ := cmd.Flags().GetString("target")
 	strategy, _ := cmd.Flags().GetString("strategy")
 	dryRun, _ := cmd.Flags().GetBool("dry-run")
+	skipLock, _ := cmd.Flags().GetBool("skip-lock")
 
 	if strategy != "" && strategy != "rolling" {
 		ui.Warn(fmt.Sprintf("Strategy %q not yet implemented — falling back to rolling update", strategy))
@@ -74,13 +74,13 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 		))
 	}
 
-	// Wire provider (domain.DeployProvider).
+	// Wire provider.
 	provider, err := runtime.NewDeployProvider(cfg, targetName)
 	if err != nil {
 		ui.Fatal(err)
 	}
 
-	// Wire secret manager (optional — satisfies domain.SecretManager).
+	// Wire secret manager (optional).
 	var secretRefs map[string]string
 	var secrets domain.SecretManager
 	if envCfg, ok := cfg.Environments[activeEnv]; ok && envCfg.Secrets != nil && len(envCfg.Secrets.Refs) > 0 {
@@ -91,16 +91,36 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 		}
 	}
 
+	// Wire hook runner (optional — nil if provider doesn't support it).
+	hooks, err := runtime.NewHookRunner(cfg, targetName)
+	if err != nil {
+		ui.Fatal(err)
+	}
+
+	// Wire migration runner (optional — nil if provider doesn't support it).
+	migrations, err := runtime.NewMigrationRunner(cfg, targetName)
+	if err != nil {
+		ui.Fatal(err)
+	}
+
 	stateDir := filepath.Join(".", ".pilot")
 	_ = os.MkdirAll(stateDir, 0755)
 
-	uc := deploy.New(provider, secrets, stateDir)
+	uc := deploy.New(deploy.Config{
+		Provider:   provider,
+		Secrets:    secrets,
+		Hooks:      hooks,
+		Migrations: migrations,
+		StateDir:   stateDir,
+		ProjectDir: ".",
+	})
 
 	out, err := uc.Execute(cmd.Context(), deploy.Input{
-		Env:        activeEnv,
-		Tag:        tag,
-		SecretRefs: secretRefs,
-		DryRun:     dryRun,
+		Env:           activeEnv,
+		Tag:           tag,
+		SecretRefs:    secretRefs,
+		DryRun:        dryRun,
+		SkipLockCheck: skipLock,
 	})
 	if err != nil {
 		ui.Fatal(err)

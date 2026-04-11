@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mouhamedsylla/pilot/internal/orchestrator"
+	domain "github.com/mouhamedsylla/pilot/internal/domain"
 )
 
 // composePSEntry maps docker compose ps --format json output.
 type composePSEntry struct {
-	Name    string `json:"Name"`
-	Image   string `json:"Image"`
-	State   string `json:"State"`
-	Health  string `json:"Health"`
+	Name   string `json:"Name"`
+	Image  string `json:"Image"`
+	State  string `json:"State"`
+	Health string `json:"Health"`
 	Publishers []struct {
 		PublishedPort int    `json:"PublishedPort"`
 		Protocol      string `json:"Protocol"`
@@ -22,9 +22,9 @@ type composePSEntry struct {
 	CreatedAt string `json:"CreatedAt"`
 }
 
-func parseComposePS(data []byte) ([]orchestrator.ServiceStatus, error) {
+func parseComposePS(data []byte) ([]domain.ServiceStatus, error) {
 	// docker compose ps --format json outputs one JSON object per line (NDJSON)
-	var statuses []orchestrator.ServiceStatus
+	var statuses []domain.ServiceStatus
 	for _, line := range strings.Split(strings.TrimSpace(string(data)), "\n") {
 		if line == "" {
 			continue
@@ -47,14 +47,12 @@ func parseComposePS(data []byte) ([]orchestrator.ServiceStatus, error) {
 				ports = append(ports, fmt.Sprintf("%s:%d", host, p.PublishedPort))
 			}
 		}
-		statuses = append(statuses, orchestrator.ServiceStatus{
-			Name:    entry.Name,
-			Image:   entry.Image,
-			State:   entry.State,
-			Health:  entry.Health,
-			Ports:   ports,
-			Created: entry.CreatedAt,
+		statuses = append(statuses, domain.ServiceStatus{
+			Name:  entry.Name,
+			State: entry.State,
+			Health: entry.Health,
 		})
+		_ = ports // ports not in domain.ServiceStatus — kept for future extension
 	}
 	return statuses, nil
 }

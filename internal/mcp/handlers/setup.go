@@ -47,7 +47,7 @@ func HandleSetup(ctx context.Context, params map[string]any) (any, error) {
 		)
 	}
 
-	provider, err := runtime.NewProvider(cfg, targetName)
+	provider, err := runtime.NewDeployProvider(cfg, targetName)
 	if err != nil {
 		return nil, err
 	}

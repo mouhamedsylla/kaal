@@ -1,6 +1,6 @@
-// Package runtime is the only package that imports both interface packages
-// and their implementations. It wires everything together based on pilot.yaml.
-// cmd/ packages import runtime — never the implementation packages directly.
+// Package runtime is the wiring layer: it reads pilot.yaml and constructs the
+// correct domain port implementations. cmd/ and mcp/ import runtime — never
+// the adapter packages directly (except for VPS-specific features like history).
 package runtime
 
 import (
@@ -25,56 +25,42 @@ import (
 	"github.com/mouhamedsylla/pilot/internal/adapters/vps"
 	"github.com/mouhamedsylla/pilot/internal/config"
 	domain "github.com/mouhamedsylla/pilot/internal/domain"
-	"github.com/mouhamedsylla/pilot/internal/orchestrator"
-	"github.com/mouhamedsylla/pilot/internal/providers"
-	"github.com/mouhamedsylla/pilot/internal/registry"
-	"github.com/mouhamedsylla/pilot/internal/secrets"
 )
 
-// NewOrchestrator returns the correct Orchestrator for the given environment.
-func NewOrchestrator(cfg *config.Config, env string) (orchestrator.Orchestrator, error) {
+// NewExecutionProvider returns the local runtime (compose, k8s) for the given env.
+// The returned value directly implements domain.ExecutionProvider.
+func NewExecutionProvider(cfg *config.Config, env string) (domain.ExecutionProvider, error) {
 	envCfg, ok := cfg.Environments[env]
 	if !ok {
 		return nil, fmt.Errorf("environment %q not defined in pilot.yaml", env)
 	}
-	runtime := envCfg.Runtime
-	if runtime == "" {
-		runtime = config.RuntimeCompose
+	rt := envCfg.Runtime
+	if rt == "" {
+		rt = config.RuntimeCompose
 	}
-	switch runtime {
+	switch rt {
 	case config.RuntimeCompose:
 		return compose.New(cfg, env), nil
 	case config.RuntimeK3d, config.RuntimeLima:
 		return k8s.New(cfg, env), nil
 	default:
-		return nil, fmt.Errorf("unknown runtime %q", runtime)
+		return nil, fmt.Errorf("unknown runtime %q", rt)
 	}
 }
 
-// NewProvider returns the correct Provider for the given target name.
-func NewProvider(cfg *config.Config, targetName string) (providers.Provider, error) {
-	target, ok := cfg.Targets[targetName]
-	if !ok {
-		return nil, fmt.Errorf("target %q not defined in pilot.yaml", targetName)
+// NewDeployProvider returns the deployment target for the given target name.
+// The returned value directly implements domain.DeployProvider.
+func NewDeployProvider(cfg *config.Config, targetName string) (domain.DeployProvider, error) {
+	p, err := newRawProvider(cfg, targetName)
+	if err != nil {
+		return nil, err
 	}
-	switch target.Type {
-	case "vps", "hetzner":
-		return vps.New(cfg, target), nil
-	case "aws":
-		return aws.New(cfg, target), nil
-	case "gcp":
-		return gcp.New(cfg, target), nil
-	case "azure":
-		return azure.New(cfg, target), nil
-	case "do":
-		return do.New(cfg, target), nil
-	default:
-		return nil, fmt.Errorf("unknown provider type %q", target.Type)
-	}
+	return p, nil
 }
 
-// NewRegistry returns the correct Registry based on pilot.yaml registry config.
-func NewRegistry(cfg *config.Config) (registry.Registry, error) {
+// NewRegistryProvider returns the registry backend declared in pilot.yaml.
+// The returned value directly implements domain.RegistryProvider.
+func NewRegistryProvider(cfg *config.Config) (domain.RegistryProvider, error) {
 	r := cfg.Registry
 	switch r.Provider {
 	case "ghcr":
@@ -94,129 +80,8 @@ func NewRegistry(cfg *config.Config) (registry.Registry, error) {
 	}
 }
 
-// NewDeployProvider wraps a Provider as a domain.DeployProvider.
-// This adapter bridges the old providers.Provider interface to domain ports
-// during the incremental migration to the hexagonal architecture.
-func NewDeployProvider(cfg *config.Config, targetName string) (domain.DeployProvider, error) {
-	p, err := NewProvider(cfg, targetName)
-	if err != nil {
-		return nil, err
-	}
-	return &deployProviderAdapter{inner: p}, nil
-}
-
-// deployProviderAdapter adapts providers.Provider → domain.DeployProvider.
-type deployProviderAdapter struct{ inner providers.Provider }
-
-func (a *deployProviderAdapter) Sync(ctx context.Context, env string) error {
-	return a.inner.Sync(ctx, env)
-}
-
-func (a *deployProviderAdapter) Deploy(ctx context.Context, env string, opts domain.DeployOptions) error {
-	return a.inner.Deploy(ctx, env, providers.DeployOptions{
-		Tag:      opts.Tag,
-		EnvFiles: opts.EnvFiles,
-	})
-}
-
-func (a *deployProviderAdapter) Rollback(ctx context.Context, env string, tag string) (string, error) {
-	return a.inner.Rollback(ctx, env, tag)
-}
-
-func (a *deployProviderAdapter) Status(ctx context.Context, env string) ([]domain.ServiceStatus, error) {
-	raw, err := a.inner.Status(ctx, env)
-	if err != nil {
-		return nil, err
-	}
-	out := make([]domain.ServiceStatus, len(raw))
-	for i, s := range raw {
-		out[i] = domain.ServiceStatus{Name: s.Name, State: s.State, Health: s.Health}
-	}
-	return out, nil
-}
-
-func (a *deployProviderAdapter) Logs(ctx context.Context, env string, service string, opts domain.LogOptions) (<-chan string, error) {
-	return a.inner.Logs(ctx, env, providers.LogOptions{
-		Service: service,
-		Follow:  opts.Follow,
-		Since:   opts.Since,
-		Lines:   opts.Lines,
-	})
-}
-
-// NewExecutionProvider wraps an Orchestrator as a domain.ExecutionProvider.
-func NewExecutionProvider(cfg *config.Config, env string) (domain.ExecutionProvider, error) {
-	orch, err := NewOrchestrator(cfg, env)
-	if err != nil {
-		return nil, err
-	}
-	return &executionProviderAdapter{inner: orch}, nil
-}
-
-// executionProviderAdapter adapts orchestrator.Orchestrator → domain.ExecutionProvider.
-type executionProviderAdapter struct{ inner orchestrator.Orchestrator }
-
-func (a *executionProviderAdapter) Up(ctx context.Context, env string, services []string) error {
-	return a.inner.Up(ctx, env, services)
-}
-
-func (a *executionProviderAdapter) Down(ctx context.Context, env string) error {
-	return a.inner.Down(ctx, env)
-}
-
-func (a *executionProviderAdapter) Status(ctx context.Context, _ string) ([]domain.ServiceStatus, error) {
-	raw, err := a.inner.Status(ctx)
-	if err != nil {
-		return nil, err
-	}
-	out := make([]domain.ServiceStatus, len(raw))
-	for i, s := range raw {
-		out[i] = domain.ServiceStatus{Name: s.Name, State: s.State, Health: s.Health}
-	}
-	return out, nil
-}
-
-func (a *executionProviderAdapter) Logs(ctx context.Context, _ string, service string, opts domain.LogOptions) (<-chan string, error) {
-	return a.inner.Logs(ctx, service, orchestrator.LogOptions{
-		Follow: opts.Follow,
-		Since:  opts.Since,
-		Lines:  opts.Lines,
-	})
-}
-
-// NewRegistryProvider wraps a Registry as a domain.RegistryProvider.
-func NewRegistryProvider(cfg *config.Config) (domain.RegistryProvider, error) {
-	r, err := NewRegistry(cfg)
-	if err != nil {
-		return nil, err
-	}
-	return &registryProviderAdapter{inner: r}, nil
-}
-
-// registryProviderAdapter adapts registry.Registry → domain.RegistryProvider.
-type registryProviderAdapter struct{ inner registry.Registry }
-
-func (a *registryProviderAdapter) Login(ctx context.Context) error {
-	return a.inner.Login(ctx)
-}
-
-func (a *registryProviderAdapter) Build(ctx context.Context, opts domain.BuildOptions) error {
-	return a.inner.Build(ctx, registry.BuildOptions{
-		Tag:        opts.Tag,
-		Dockerfile: opts.Dockerfile,
-		Context:    opts.Context,
-		Platforms:  opts.Platforms,
-		BuildArgs:  opts.BuildArgs,
-		NoCache:    opts.NoCache,
-	})
-}
-
-func (a *registryProviderAdapter) Push(ctx context.Context, tag string) error {
-	return a.inner.Push(ctx, tag)
-}
-
-// NewSecretManager returns the correct SecretManager for the given provider name.
-func NewSecretManager(provider string) (secrets.SecretManager, error) {
+// NewSecretManager returns the secret backend for the given provider name.
+func NewSecretManager(provider string) (domain.SecretManager, error) {
 	switch provider {
 	case "local", "":
 		return local.New(), nil
@@ -226,5 +91,83 @@ func NewSecretManager(provider string) (secrets.SecretManager, error) {
 		return gcp_sm.New(), nil
 	default:
 		return nil, fmt.Errorf("unknown secret manager provider %q", provider)
+	}
+}
+
+// hookRunnerIface matches the RunHooks method on *vps.Provider.
+type hookRunnerIface interface {
+	RunHooks(ctx context.Context, commands []string) error
+}
+
+// migrationRunnerIface matches the RunMigrations/RollbackMigrations methods on *vps.Provider.
+type migrationRunnerIface interface {
+	RunMigrations(ctx context.Context, tool, command string) error
+	RollbackMigrations(ctx context.Context, tool, rollbackCommand string) error
+}
+
+// hookRunnerAdapter bridges vps.Provider → domain.HookRunner.
+type hookRunnerAdapter struct{ inner hookRunnerIface }
+
+func (a *hookRunnerAdapter) RunHooks(ctx context.Context, commands []string) error {
+	return a.inner.RunHooks(ctx, commands)
+}
+
+// migrationRunnerAdapter bridges vps.Provider → domain.MigrationRunner.
+type migrationRunnerAdapter struct{ inner migrationRunnerIface }
+
+func (a *migrationRunnerAdapter) RunMigrations(ctx context.Context, cfg domain.MigrationConfig) error {
+	return a.inner.RunMigrations(ctx, cfg.Tool, cfg.Command)
+}
+
+func (a *migrationRunnerAdapter) RollbackMigrations(ctx context.Context, cfg domain.MigrationConfig) error {
+	return a.inner.RollbackMigrations(ctx, cfg.Tool, cfg.RollbackCommand)
+}
+
+// NewHookRunner returns a domain.HookRunner for the given target, or nil if unsupported.
+func NewHookRunner(cfg *config.Config, targetName string) (domain.HookRunner, error) {
+	p, err := newRawProvider(cfg, targetName)
+	if err != nil {
+		return nil, err
+	}
+	hr, ok := p.(hookRunnerIface)
+	if !ok {
+		return nil, nil // hooks silently skipped for non-VPS targets
+	}
+	return &hookRunnerAdapter{inner: hr}, nil
+}
+
+// NewMigrationRunner returns a domain.MigrationRunner for the given target, or nil if unsupported.
+func NewMigrationRunner(cfg *config.Config, targetName string) (domain.MigrationRunner, error) {
+	p, err := newRawProvider(cfg, targetName)
+	if err != nil {
+		return nil, err
+	}
+	mr, ok := p.(migrationRunnerIface)
+	if !ok {
+		return nil, nil // migrations silently skipped for non-VPS targets
+	}
+	return &migrationRunnerAdapter{inner: mr}, nil
+}
+
+// newRawProvider instantiates the concrete provider for the given target.
+// Returns domain.DeployProvider (all providers implement it directly).
+func newRawProvider(cfg *config.Config, targetName string) (domain.DeployProvider, error) {
+	target, ok := cfg.Targets[targetName]
+	if !ok {
+		return nil, fmt.Errorf("target %q not defined in pilot.yaml", targetName)
+	}
+	switch target.Type {
+	case "vps", "hetzner":
+		return vps.New(cfg, target), nil
+	case "aws":
+		return aws.New(cfg, target), nil
+	case "gcp":
+		return gcp.New(cfg, target), nil
+	case "azure":
+		return azure.New(cfg, target), nil
+	case "do":
+		return do.New(cfg, target), nil
+	default:
+		return nil, fmt.Errorf("unknown provider type %q", target.Type)
 	}
 }

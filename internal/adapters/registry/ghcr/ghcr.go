@@ -7,11 +7,11 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/mouhamedsylla/pilot/internal/registry"
+	domain "github.com/mouhamedsylla/pilot/internal/domain"
+	"github.com/mouhamedsylla/pilot/internal/adapters/registry/imgbuild"
 )
 
-
-// Registry implements registry.Registry for GitHub Container Registry.
+// Registry implements domain.RegistryProvider for GitHub Container Registry.
 type Registry struct {
 	image string
 }
@@ -37,19 +37,12 @@ func (r *Registry) Login(ctx context.Context) error {
 	return nil
 }
 
-func (r *Registry) Build(ctx context.Context, opts registry.BuildOptions) error {
-	return registry.BuildImage(ctx, opts)
+func (r *Registry) Build(ctx context.Context, opts domain.BuildOptions) error {
+	return imgbuild.Build(ctx, opts)
 }
 
 func (r *Registry) Push(ctx context.Context, tag string) error {
 	cmd := exec.CommandContext(ctx, "docker", "push", tag)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
-}
-
-func (r *Registry) Pull(ctx context.Context, tag string) error {
-	cmd := exec.CommandContext(ctx, "docker", "pull", tag)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()

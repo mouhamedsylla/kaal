@@ -8,15 +8,15 @@ import (
 	"strings"
 
 	"github.com/mouhamedsylla/pilot/internal/config"
-	"github.com/mouhamedsylla/pilot/internal/orchestrator"
+	domain "github.com/mouhamedsylla/pilot/internal/domain"
 )
 
-// Orchestrator implements orchestrator.Orchestrator using docker compose.
+// Orchestrator implements domain.ExecutionProvider using docker compose.
 type Orchestrator struct {
-	cfg        *config.Config
-	env        string
+	cfg         *config.Config
+	env         string
 	composeFile string
-	envFile    string
+	envFile     string
 	projectName string
 }
 
@@ -32,7 +32,6 @@ func New(cfg *config.Config, env string) *Orchestrator {
 }
 
 // composeFileForEnv returns the conventional compose filename for an environment.
-// pilot up generates this file if it doesn't already exist.
 func composeFileForEnv(env string) string {
 	return fmt.Sprintf("docker-compose.%s.yml", env)
 }
@@ -50,7 +49,9 @@ func (o *Orchestrator) Down(ctx context.Context, env string) error {
 	return o.run(ctx, args...)
 }
 
-func (o *Orchestrator) Logs(ctx context.Context, service string, opts orchestrator.LogOptions) (<-chan string, error) {
+// Logs streams log output for a specific service.
+// The env parameter is unused — compose uses the env set at construction time.
+func (o *Orchestrator) Logs(ctx context.Context, _ string, service string, opts domain.LogOptions) (<-chan string, error) {
 	args := o.baseArgs()
 	args = append(args, "logs")
 	if opts.Follow {
@@ -98,7 +99,9 @@ func (o *Orchestrator) Logs(ctx context.Context, service string, opts orchestrat
 	return ch, nil
 }
 
-func (o *Orchestrator) Status(ctx context.Context) ([]orchestrator.ServiceStatus, error) {
+// Status returns the current state of all services.
+// The env parameter is unused — compose uses the env set at construction time.
+func (o *Orchestrator) Status(ctx context.Context, _ string) ([]domain.ServiceStatus, error) {
 	args := o.baseArgs()
 	args = append(args, "ps", "--format", "json")
 	cmd := exec.CommandContext(ctx, "docker", args...)
@@ -121,12 +124,9 @@ func (o *Orchestrator) baseArgs() []string {
 func (o *Orchestrator) run(ctx context.Context, args ...string) error {
 	cmd := exec.CommandContext(ctx, "docker", args...)
 	// Always stream docker compose output to the terminal.
-	// The user needs to see what compose is doing — pulling images,
-	// starting containers, health checks, error messages.
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
-		// The output was already printed above — just signal failure.
 		return fmt.Errorf("exit status 1")
 	}
 	return nil

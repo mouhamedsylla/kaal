@@ -29,11 +29,35 @@ type Service struct {
 
 // Environment describes how a set of services runs in a specific context.
 type Environment struct {
-	Runtime   string     `yaml:"runtime,omitempty"`   // compose | lima | k3d
-	EnvFile   string     `yaml:"env_file,omitempty"`
-	Target    string     `yaml:"target,omitempty"`    // reference to Targets key (non-dev envs)
-	Resources *Resources `yaml:"resources,omitempty"` // local resource constraints mirroring prod
-	Secrets   *SecretsRef `yaml:"secrets,omitempty"`
+	Runtime    string      `yaml:"runtime,omitempty"`    // compose | lima | k3d
+	EnvFile    string      `yaml:"env_file,omitempty"`
+	Target     string      `yaml:"target,omitempty"`     // reference to Targets key (non-dev envs)
+	Resources  *Resources  `yaml:"resources,omitempty"`  // local resource constraints mirroring prod
+	Secrets    *SecretsRef `yaml:"secrets,omitempty"`
+	Hooks      *Hooks      `yaml:"hooks,omitempty"`
+	Migrations *Migrations `yaml:"migrations,omitempty"`
+}
+
+// Hooks declares shell commands to run before and after a deploy.
+// Commands run on the remote target via SSH (for remote envs) or locally (for local envs).
+type Hooks struct {
+	PreDeploy  []HookCommand `yaml:"pre_deploy,omitempty"`
+	PostDeploy []HookCommand `yaml:"post_deploy,omitempty"`
+}
+
+// HookCommand is one hook step.
+type HookCommand struct {
+	Command     string `yaml:"command"`
+	Description string `yaml:"description,omitempty"`
+}
+
+// Migrations describes how to apply and (optionally) roll back database schema changes.
+// If nil, pilot auto-detects from well-known project files (prisma, alembic, goose, flyway).
+type Migrations struct {
+	Tool            string `yaml:"tool"`                       // prisma | alembic | goose | flyway | sql-migrate
+	Command         string `yaml:"command"`                    // command to apply migrations
+	RollbackCommand string `yaml:"rollback_command,omitempty"` // required when reversible: true
+	Reversible      bool   `yaml:"reversible"`                 // false by default
 }
 
 // Resources describes compute constraints — used to mirror production locally.

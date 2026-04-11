@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/mouhamedsylla/pilot/internal/config"
-	"github.com/mouhamedsylla/pilot/internal/providers"
+	domain "github.com/mouhamedsylla/pilot/internal/domain"
 )
 
 // Provider is a stub — AWS support is not yet implemented.
@@ -18,7 +18,7 @@ func New(cfg *config.Config, target config.Target) *Provider {
 	return &Provider{cfg: cfg, target: target}
 }
 
-func (p *Provider) Deploy(_ context.Context, _ string, _ providers.DeployOptions) error {
+func (p *Provider) Deploy(_ context.Context, _ string, _ domain.DeployOptions) error {
 	return fmt.Errorf("aws provider: not yet implemented")
 }
 
@@ -26,7 +26,7 @@ func (p *Provider) Sync(_ context.Context, _ string) error {
 	return fmt.Errorf("aws provider: not yet implemented")
 }
 
-func (p *Provider) Status(_ context.Context, _ string) ([]providers.ServiceStatus, error) {
+func (p *Provider) Status(_ context.Context, _ string) ([]domain.ServiceStatus, error) {
 	return nil, fmt.Errorf("aws provider: not yet implemented")
 }
 
@@ -34,6 +34,6 @@ func (p *Provider) Rollback(_ context.Context, _ string, _ string) (string, erro
 	return "", fmt.Errorf("aws provider: not yet implemented")
 }
 
-func (p *Provider) Logs(_ context.Context, _ string, _ providers.LogOptions) (<-chan string, error) {
+func (p *Provider) Logs(_ context.Context, _ string, _ string, _ domain.LogOptions) (<-chan string, error) {
 	return nil, fmt.Errorf("aws provider: not yet implemented")
 }

@@ -70,3 +70,26 @@ type RegistryProvider interface {
 type SecretManager interface {
 	Inject(ctx context.Context, env string, refs map[string]string) (map[string]string, error)
 }
+
+// MigrationConfig describes how to run and (optionally) roll back database migrations.
+// This mirrors config.Migrations and lock.MigrationConfig — kept here so domain
+// packages never import config/ or domain/lock.
+type MigrationConfig struct {
+	Tool            string // prisma | alembic | goose | flyway | sql-migrate
+	Command         string // e.g. "npx prisma migrate deploy"
+	RollbackCommand string // only used when Reversible is true
+	Reversible      bool
+}
+
+// HookRunner executes shell commands on the deployment target (remote or local).
+// Used by pilot deploy to run pre/post-deploy hooks.
+type HookRunner interface {
+	RunHooks(ctx context.Context, commands []string) error
+}
+
+// MigrationRunner applies and optionally rolls back database schema changes.
+// The command runs on the remote target (via SSH for VPS targets).
+type MigrationRunner interface {
+	RunMigrations(ctx context.Context, cfg MigrationConfig) error
+	RollbackMigrations(ctx context.Context, cfg MigrationConfig) error
+}
