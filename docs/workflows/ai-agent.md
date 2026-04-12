@@ -15,7 +15,10 @@ pilot up           →    docker compose up -d ✓
 
 "déploie en prod" →    pilot_preflight      ──► plan d'action structuré
                        pilot_push               build + push image
-                       pilot_deploy             sync + restart services
+                       pilot_deploy         ──► pipeline 8 étapes
+                                               lock → secrets → sync
+                                               hooks → migrations → deploy
+                                               hooks → healthcheck
                                           ◄─── ✓ Deployed
 ```
 
@@ -65,17 +68,24 @@ Agent: pilot_preflight {"target": "deploy", "env": "prod"}
 Toi:   (configures le token)
 
 Agent: pilot_preflight {"target": "deploy", "env": "prod"}
-       → all_ok: true
+       → all_ok: true : pilot.lock generated
 
 Agent: pilot_push {"env": "prod", "tag": "v2.3"}
-       → Injecte VITE_*, patch Dockerfile, build linux/amd64, push
+       → Détecte macOS ARM64 → build linux/amd64
+       → Injecte VITE_*, patche Dockerfile, push
 
 Agent: pilot_deploy {"env": "prod", "tag": "v2.3"}
-       → Sync compose + env + nginx/prod.conf → ~/pilot/
-       → docker pull + docker compose up -d
+       → [1] lock check     pilot.lock OK
+       → [2] secrets        resolved → .pilot/env.tmp
+       → [3] sync           compose + env + nginx/prod.conf → ~/pilot/
+       → [4] pre_hooks      echo 'starting deploy'
+       → [5] migrations     npx prisma migrate deploy
+       → [6] deploy         v2.3 pulled, services restarted
+       → [7] post_hooks     curl -X POST $WEBHOOK_URL
+       → [8] healthcheck    all services healthy
 
 Agent: pilot_status {"env": "prod"}
-       → {"services": [{"name": "app", "status": "running", "health": "healthy"}]}
+       → {"services": [{"name": "api", "state": "running", "health": "healthy"}]}
 
 Agent: "✓ v2.3 déployée en prod. Tous les services sont healthy."
 ```
@@ -98,6 +108,23 @@ Tu n'as pas ouvert un terminal. Tu n'as pas tapé une commande.
 → Agent: pilot_context → pilot_generate_compose (met à jour le service db)
 ```
 
+### Gestion des erreurs TypeC par l'agent
+
+Si `pilot_deploy` suspend avec une erreur TypeC (ex: user pas dans le groupe docker), la réponse JSON contient tout le nécessaire :
+
+```json
+{
+  "status": "awaiting_choice",
+  "code": "PILOT-DEPLOY-003",
+  "message": "user 'deploy' is not in the docker group on 1.2.3.4",
+  "options": ["pilot setup --env prod", "ssh deploy@1.2.3.4 '...'"],
+  "recommended": "pilot setup --env prod",
+  "resume_with": "pilot resume --answer 0"
+}
+```
+
+L'agent exécute `pilot_setup`, puis `pilot resume --answer 0` : sans demander l'intervention humaine pour ce cas précis.
+
 ---
 
 ## Option 2 : Coller dans n'importe quel chat AI
@@ -110,31 +137,19 @@ Copie le output et colle-le dans ChatGPT, Gemini, Claude.ai, ou n'importe quel L
 
 ```markdown
 ## pilot.yaml
-
-```yaml
-apiVersion: pilot/v1
-project:
-  name: taskflow
-  stack: go
-  language_version: "1.23"
 ...
-```
 
-## Structure du projet
-
-```
+## Project structure
 go.mod
 go.sum
 main.go
 internal/
   api/
   db/
-```
 
 ## Ce qui manque
-
-- **Dockerfile** manquant. Génère un Dockerfile production-ready pour ce projet.
-- **docker-compose.dev.yml** manquant. Génère le fichier compose pour cet environnement.
+- Dockerfile manquant. Génère un Dockerfile production-ready pour ce projet.
+- docker-compose.dev.yml manquant. Génère le fichier compose pour cet environnement.
 ```
 
 ### `pilot context --summary`
@@ -177,36 +192,25 @@ Réponse (JSON) :
   "missing_dockerfile": true,
   "missing_compose": true,
   "active_env": "dev",
-  "agent_prompt": "...",
-  "services": {...},
-  "environments": {...}
+  "agent_prompt": "..."
 }
 ```
 
 ### `pilot_generate_dockerfile`
 
-Écrit un Dockerfile sur disque.
+Écrit un Dockerfile sur disque. L'outil encode des contraintes strictes dans sa description : multi-stage, image finale minimale, utilisateur non-root, healthcheck, pattern ARG-only pour les vars compile-time (jamais `ARG` suivi de `ENV`).
 
-Paramètres :
-- `content` (requis) : contenu complet du Dockerfile
-- `path` (optionnel) : chemin de destination (défaut : `Dockerfile`)
-
-**Exigences de génération :** multi-stage build, image finale minimale (distroless ou alpine), utilisateur non-root, healthcheck, COPY sélectif (pas `COPY . .` en final), binaire strippé pour Go.
+Paramètres : `content` (requis), `path` (optionnel)
 
 ### `pilot_generate_compose`
 
-Écrit un `docker-compose.<env>.yml` sur disque.
+Écrit un `docker-compose.<env>.yml` sur disque. Contraintes encodées : `env_file` sur tous les services applicatifs (obligatoire), healthchecks, `depends_on: condition: service_healthy`, limites de ressources, commande `--mode <env>` pour Vite/Next.
 
-Paramètres :
-- `content` (requis) : contenu complet du fichier compose
-- `env` (optionnel) : nom de l'environnement (défaut : env actif)
-- `path` (optionnel) : chemin custom
-
-**Exigences de génération :** `env_file` depuis `pilot.yaml`, healthchecks sur tous les services, limites de ressources (cpus/memory), volumes nommés pour les données, `depends_on` avec `condition: service_healthy`. Pour stack node avec `VITE_*` : commande avec `--mode <env>`.
+Paramètres : `content` (requis), `env` (optionnel), `path` (optionnel)
 
 ### `pilot_preflight`
 
-Lance la checklist pré-déploiement.
+Lance la checklist pré-déploiement. Génère `pilot.lock` quand tout passe avec `target=deploy`.
 
 Paramètres : `target` (`push` ou `deploy`), `env` (optionnel)
 
@@ -215,54 +219,44 @@ Réponse :
 {
   "all_ok": false,
   "checks": [
-    {"name": "registry_creds", "ok": false, "message": "GITHUB_TOKEN not set"},
+    {"name": "registry_creds", "ok": false, "message": "GITHUB_TOKEN not set", "fix_type": "human"},
     {"name": "vps_docker_group", "ok": true}
   ],
   "next_steps": [
     {"type": "HUMAN", "action": "export GITHUB_TOKEN=<token>"},
     {"type": "AGENT", "tool": "pilot_push"}
-  ]
+  ],
+  "lock_generated": false
 }
 ```
 
-L'agent suit `next_steps[]` dans l'ordre. Les étapes `[HUMAN]` bloquent : l'agent demande l'action à l'utilisateur. Les étapes `[AGENT]` sont exécutées automatiquement.
-
 ### `pilot_push`
 
-Build + push de l'image.
+Build + push de l'image. Injecte automatiquement les `VITE_*`/`NEXT_PUBLIC_*`/`REACT_APP_*`.
 
 Paramètres : `tag` (optionnel), `env` (optionnel), `no_cache` (optionnel), `platform` (optionnel)
 
-Comportement automatique :
-- Détecte macOS ARM64 → build `linux/amd64`
-- Stack node : injecte `VITE_*`/`NEXT_PUBLIC_*`/`REACT_APP_*` depuis l'env file en `--build-arg`
-- Patch transparent du Dockerfile si des `ARG` manquent
-
 ### `pilot_deploy`
 
-Déploie sur la cible configurée.
+Pipeline de déploiement complet en 8 étapes avec compensation LIFO automatique en cas d'échec.
 
-Paramètres : `env` (optionnel), `tag` (optionnel)
-
-Sync automatique vers `~/pilot/` : compose files, env files, fichiers bind-mount.
+Paramètres : `env` (optionnel), `tag` (optionnel), `dry_run` (optionnel)
 
 ### `pilot_rollback`
 
 Revient à la version précédente (ou une version explicite).
 
-Paramètres : `env` (optionnel), `version` (optionnel)
+Paramètres : `env` (requis), `version` (optionnel)
 
 ### `pilot_setup`
 
-Ajoute le user deploy au groupe docker sur le VPS.
+Ajoute le user deploy au groupe docker sur le VPS. À appeler quand `pilot_preflight` retourne `vps_docker_group: false` ou quand `pilot_deploy` retourne une erreur TypeC `PILOT-DEPLOY-003`.
 
 Paramètres : `env` (optionnel)
 
-À appeler quand `pilot_preflight` retourne `vps_docker_group: false`.
-
 ### `pilot_sync`
 
-Pousse les fichiers de config vers le VPS sans redéployer.
+Pousse les fichiers de config vers le VPS sans redéployer (compose, env, bind-mounts).
 
 Paramètres : `env` (optionnel)
 

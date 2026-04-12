@@ -3,6 +3,8 @@ package scaffold
 import (
 	"os"
 	"path/filepath"
+
+	"github.com/mouhamedsylla/pilot/internal/scaffold/analyze"
 )
 
 // DetectedProject holds information inferred from an existing codebase.
@@ -12,6 +14,11 @@ type DetectedProject struct {
 	LanguageVersion string
 	HasKaalYAML     bool
 	IsExisting      bool // true if a known project file was found
+
+	// Hints contains inferred service and hosting information.
+	// Populated only for existing projects (IsExisting == true).
+	// Used by the wizard to pre-fill the managed-services step.
+	Hints *analyze.Hints
 }
 
 // Detect inspects dir for known project files and returns what it finds.
@@ -24,7 +31,7 @@ func Detect(dir string) DetectedProject {
 		d.HasKaalYAML = true
 	}
 
-	// Detect stack from project files
+	// Detect stack from project files.
 	switch {
 	case exists(dir, "go.mod"):
 		d.Stack = "go"
@@ -44,6 +51,13 @@ func Detect(dir string) DetectedProject {
 	case exists(dir, "pom.xml"), exists(dir, "build.gradle"):
 		d.Stack = "java"
 		d.IsExisting = true
+	}
+
+	// Run dependency and env analysis for existing projects.
+	// For new (empty) directories this is a no-op — analyze.Analyze() skips
+	// missing files silently.
+	if d.IsExisting {
+		d.Hints = analyze.Analyze(dir)
 	}
 
 	return d

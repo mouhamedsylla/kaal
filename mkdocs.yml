@@ -1,60 +1,107 @@
 site_name: pilot Documentation
-site_description: Dev Environment as Code
+site_description: Dev Environment as Code - de l'init au déploiement, sans friction.
 site_author: Mouhamed SYLLA
+repo_name: mouhamedsylla/pilot
+repo_url: https://github.com/mouhamedsylla/pilot
 
 theme:
   name: material
-  palette:
-    - scheme: default
-      primary: black
-      accent: indigo
-    - scheme: slate
-      primary: black
-      accent: indigo
+  font:
+    text: Roboto
+    code: Roboto Mono
+  icon:
+    repo: fontawesome/brands/github
   features:
     - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.sections
+    - navigation.top
+    - navigation.tracking
     - search.suggest
     - search.highlight
-
-nav:
-  - Concept:
-    - Accueil: README.md
-    - Architecture: architecture.md
-    - Concepts clés: concepts.md
-    - pilot.yaml: pilot-yaml.md
-  - Commandes CLI:
-    - context: commands/context.md
-    - deploy: commands/deploy.md
-    - env: commands/env.md
-    - history: commands/history.md
-    - logs: commands/logs.md
-    - mcp: commands/mcp.md
-    - preflight: commands/preflight.md
-    - push: commands/push.md
-    - rollback: commands/rollback.md
-    - setup: commands/setup.md
-    - status: commands/status.md
-    - sync: commands/sync.md
-    - up / down: commands/up-down.md
-  - Workflows:
-    - AI Agent: workflows/ai-agent.md
-    - CI/CD: workflows/ci-cd.md
-    - Déploiement VPS: workflows/deploy-vps.md
-    - Dév Local: workflows/local-dev.md
-  - Internes:
-    - Moteur de context: internals/context-engine.md
-    - Serveur MCP: internals/mcp-server.md
-    - Orchestrateurs: internals/orchestrators.md
-    - Fournisseurs (Providers): internals/providers.md
-    - Modèle de résilience: resilience.md
-  - Dépannage:
-    - Variables vides en container: troubleshooting/env-vars-empty-in-container.md
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - toc.follow
+  palette:
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: black
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
 
 markdown_extensions:
   - admonition
+  - attr_list
+  - md_in_html
   - pymdownx.details
-  - pymdownx.superfences
-  - pymdownx.highlight
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
   - pymdownx.inlinehilite
   - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true 
+
+nav:
+  - Introduction:
+    - Accueil: README.md
+    - Concepts clés: concepts.md
+    - Architecture: architecture.md
+    - Modèle de résilience: resilience.md
+  - Guide:
+    - Pour commencer: guide/getting-started.md
+    - Ajouter des services: guide/adding-services.md
+  - Commandes CLI:
+    - init: commands/init.md
+    - add: commands/add.md
+    - env: commands/env.md
+    - up / down: commands/up-down.md
+    - push: commands/push.md
+    - plan: commands/plan.md
+    - preflight: commands/preflight.md
+    - deploy: commands/deploy.md
+    - status: commands/status.md
+    - history: commands/history.md
+    - rollback: commands/rollback.md
+    - logs: commands/logs.md
+    - sync: commands/sync.md
+    - setup: commands/setup.md
+    - secrets: commands/secrets.md
+    - diagnose: commands/diagnose.md
+    - resume: commands/resume.md
+    - update: commands/update.md
+    - context: commands/context.md
+    - mcp: commands/mcp.md
+  - Workflows:
+    - Dév Local: workflows/local-dev.md
+    - AI Agent: workflows/ai-agent.md
+    - CI/CD: workflows/ci-cd.md
+    - Déploiement VPS: workflows/deploy-vps.md
+  - Référence:
+    - pilot.yaml: reference/pilot-yaml.md
+  - Internes:
+    - Moteur de context: internals/context-engine.md
+    - Orchestrateurs: internals/orchestrators.md
+    - Fournisseurs (Providers): internals/providers.md
+    - Serveur MCP: internals/mcp-server.md
+  - Dépannage:
+    - Diagnostic Compose: troubleshooting/stale-compose.md
+    - Variables vides en container: troubleshooting/env-vars-empty-in-container.md

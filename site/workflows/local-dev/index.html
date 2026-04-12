@@ -6,17 +6,17 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Dev Environment as Code">
+        <meta name="description" content="Dev Environment as Code - de l'init au déploiement, sans friction.">
       
       
         <meta name="author" content="Mouhamed SYLLA">
       
       
       
-        <link rel="prev" href="../deploy-vps/">
+        <link rel="prev" href="../../commands/mcp/">
       
       
-        <link rel="next" href="../../internals/context-engine/">
+        <link rel="next" href="../ai-agent/">
       
       
         
@@ -90,7 +90,9 @@
     
       
 
-<header class="md-header" data-md-component="header">
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="pilot Documentation" class="md-header__button md-logo" aria-label="pilot Documentation" data-md-component="logo">
       
@@ -125,13 +127,21 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
     
   
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_1">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
     
   
 </form>
@@ -161,6 +171,11 @@
       </label>
       <nav class="md-search__options" aria-label="Search">
         
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
         <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
@@ -185,16 +200,22 @@
       
     
     
+      <div class="md-header__source">
+        <a href="https://github.com/mouhamedsylla/pilot" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    mouhamedsylla/pilot
+  </div>
+</a>
+      </div>
+    
   </nav>
   
-</header>
     
-    <div class="md-container" data-md-component="container">
       
-      
-        
-          
-            
 <nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
@@ -211,7 +232,7 @@
           
   
   
-  Concept
+  Introduction
 
         </a>
       </li>
@@ -227,7 +248,27 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../commands/context/" class="md-tabs__link">
+        <a href="../../guide/getting-started/" class="md-tabs__link">
+          
+  
+  
+  Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../commands/init/" class="md-tabs__link">
           
   
   
@@ -249,11 +290,31 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../ai-agent/" class="md-tabs__link">
+        <a href="./" class="md-tabs__link">
           
   
   
   Workflows
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/pilot-yaml/" class="md-tabs__link">
+          
+  
+  
+  Référence
 
         </a>
       </li>
@@ -289,7 +350,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../troubleshooting/env-vars-empty-in-container/" class="md-tabs__link">
+        <a href="../../troubleshooting/stale-compose/" class="md-tabs__link">
           
   
   
@@ -304,7 +365,13 @@
     </ul>
   </div>
 </nav>
-          
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
         
       
       <main class="md-main" data-md-component="main">
@@ -331,6 +398,18 @@
     </a>
     pilot Documentation
   </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/mouhamedsylla/pilot" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    mouhamedsylla/pilot
+  </div>
+</a>
+    </div>
   
   <ul class="md-nav__list" data-md-scrollfix>
     
@@ -364,7 +443,7 @@
   <span class="md-ellipsis">
     
   
-    Concept
+    Introduction
   
 
     
@@ -380,7 +459,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Concept
+    Introduction
   
 
           </label>
@@ -401,34 +480,6 @@
     
   
     Accueil
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../architecture/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Architecture
   
 
     
@@ -477,14 +528,42 @@
   
   
     <li class="md-nav__item">
-      <a href="../../pilot-yaml/" class="md-nav__link">
+      <a href="../../architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    pilot.yaml
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../resilience/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Modèle de résilience
   
 
     
@@ -535,7 +614,7 @@
   <span class="md-ellipsis">
     
   
-    Commandes CLI
+    Guide
   
 
     
@@ -551,7 +630,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Commandes CLI
+    Guide
   
 
           </label>
@@ -564,14 +643,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../commands/context/" class="md-nav__link">
+      <a href="../../guide/getting-started/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    context
+    Pour commencer
   
 
     
@@ -592,14 +671,129 @@
   
   
     <li class="md-nav__item">
-      <a href="../../commands/deploy/" class="md-nav__link">
+      <a href="../../guide/adding-services/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    deploy
+    Ajouter des services
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Commandes CLI
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Commandes CLI
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/init/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    init
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/add/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    add
   
 
     
@@ -648,98 +842,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../commands/history/" class="md-nav__link">
+      <a href="../../commands/up-down/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    history
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../commands/logs/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    logs
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../commands/mcp/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    mcp
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../commands/preflight/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    preflight
+    up / down
   
 
     
@@ -788,14 +898,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../commands/rollback/" class="md-nav__link">
+      <a href="../../commands/plan/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    rollback
+    plan
   
 
     
@@ -816,14 +926,42 @@
   
   
     <li class="md-nav__item">
-      <a href="../../commands/setup/" class="md-nav__link">
+      <a href="../../commands/preflight/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    setup
+    preflight
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/deploy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    deploy
   
 
     
@@ -872,6 +1010,90 @@
   
   
     <li class="md-nav__item">
+      <a href="../../commands/history/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    history
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/rollback/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    rollback
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/logs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    logs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../commands/sync/" class="md-nav__link">
         
   
@@ -900,14 +1122,182 @@
   
   
     <li class="md-nav__item">
-      <a href="../../commands/up-down/" class="md-nav__link">
+      <a href="../../commands/setup/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    up / down
+    setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/secrets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    secrets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/diagnose/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    diagnose
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/resume/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    resume
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/update/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    update
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    context
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../commands/mcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    mcp
   
 
     
@@ -953,10 +1343,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
             
   
   
@@ -974,8 +1364,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_3">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -984,90 +1374,6 @@
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../ai-agent/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    AI Agent
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../ci-cd/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    CI/CD
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../deploy-vps/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Déploiement VPS
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
             
               
                 
@@ -1305,6 +1611,90 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ai-agent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI Agent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ci-cd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CI/CD
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deploy-vps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Déploiement VPS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1332,10 +1722,97 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Référence
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Référence
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/pilot-yaml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pilot.yaml
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
             
   
   
@@ -1353,8 +1830,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1379,34 +1856,6 @@
     
   
     Moteur de context
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../internals/mcp-server/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Serveur MCP
   
 
     
@@ -1483,14 +1932,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../resilience/" class="md-nav__link">
+      <a href="../../internals/mcp-server/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Modèle de résilience
+    Serveur MCP
   
 
     
@@ -1531,10 +1980,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
             
   
   
@@ -1552,8 +2001,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1562,6 +2011,34 @@
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troubleshooting/stale-compose/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diagnostic Compose
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -1801,45 +2278,50 @@
                   
 
 
+  
+  
+
 
 <h1 id="workflow-developpement-local">Workflow : Développement local</h1>
 <p>Ce document décrit pas à pas ce qui se passe quand tu travailles sur un projet avec pilot, de l'initialisation jusqu'au premier <code>pilot up</code>.</p>
 <hr />
 <h2 id="etape-1-initialiser-le-projet">Étape 1 : Initialiser le projet</h2>
-<div class="highlight"><pre><span></span><code><span class="c1"># Dans un nouveau dossier vide</span>
-mkdir<span class="w"> </span>my-app<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>my-app
-pilot<span class="w"> </span>init<span class="w"> </span>my-app
-</code></pre></div>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Dans un nouveau dossier vide</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>mkdir<span class="w"> </span>my-app<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>my-app
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>pilot<span class="w"> </span>init<span class="w"> </span>my-app
+</span></code></pre></div>
 <p>Le wizard TUI démarre. Il te demande :</p>
 <ol>
 <li><strong>Nom du projet</strong> (pré-rempli avec <code>my-app</code>)</li>
-<li><strong>Services</strong> : multi-select : <code>app</code> (toujours présent), <code>postgres</code>, <code>redis</code>, <code>rabbitmq</code>, <code>nats</code>, <code>nginx</code>, <code>mongodb</code>, <code>mysql</code></li>
+<li><strong>Services</strong> : multi-select depuis le catalogue complet (<code>app</code>, <code>postgres</code>, <code>redis</code>, <code>rabbitmq</code>, <code>kafka</code>, <code>mongodb</code>, <code>storage</code>, <code>nginx</code>, <code>traefik</code>…)</li>
+<li><strong>Services managés</strong> : pour chaque service pouvant être hébergé en externe, choix du mode (<code>container</code>, <code>managed</code>, <code>local-only</code>) et du fournisseur cloud (Neon, Supabase, Upstash, Cloudflare R2…). Si pilot trouve des indices dans tes <code>.env*</code> existants (ex: <code>neon.tech</code> dans <code>DATABASE_URL</code>), il pré-sélectionne automatiquement.</li>
 <li><strong>Environnements</strong> : multi-select : <code>dev</code> (toujours présent), <code>staging</code>, <code>prod</code>, <code>test</code></li>
 <li><strong>Target de déploiement</strong> : <code>none</code>, <code>vps</code>, <code>k8s</code>, <code>aws</code>, <code>gcp</code></li>
 <li><strong>Registry</strong> : <code>ghcr</code>, <code>dockerhub</code>, <code>custom</code>, <code>none</code></li>
-<li><strong>Confirmation</strong> : résumé avant écriture</li>
+<li><strong>Credentials du registry</strong> : si les variables requises (<code>GITHUB_TOKEN</code>, <code>DOCKER_USERNAME</code>…) ne sont pas dans l'environnement, pilot les demande maintenant (écrits dans <code>.env.local</code> mode 600, gitignored)</li>
+<li><strong>Confirmation</strong> : résumé avant écriture : <code>n</code> annule sans modifier quoi que ce soit</li>
 </ol>
-<p>Résultat : <code>pilot.yaml</code> créé à la racine.</p>
+<p>Résultat : <code>pilot.yaml</code>, <code>.mcp.json</code>, <code>.env.example</code> créés à la racine.</p>
 <h3 id="initialiser-dans-un-projet-existant">Initialiser dans un projet existant</h3>
-<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>mon-projet-existant
-pilot<span class="w"> </span>init
-</code></pre></div>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">cd</span><span class="w"> </span>mon-projet-existant
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>pilot<span class="w"> </span>init
+</span></code></pre></div>
 <p>pilot détecte le stack depuis <code>go.mod</code>, <code>package.json</code>, <code>Cargo.toml</code>, etc. et pré-remplit le wizard. Il ne modifie aucun fichier existant sauf <code>pilot.yaml</code>.</p>
 <hr />
 <h2 id="etape-2-generer-les-fichiers-dinfra">Étape 2 : Générer les fichiers d'infra</h2>
 <p>À ce stade tu as <code>pilot.yaml</code> mais pas de <code>Dockerfile</code> ni de <code>docker-compose.dev.yml</code>.</p>
 <h3 id="option-a-via-mcp-recommande-avec-claude-code-cursor">Option A : Via MCP (recommandé avec Claude Code / Cursor)</h3>
 <p>Le serveur MCP est automatiquement disponible si <code>.mcp.json</code> est présent à la racine :</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;mcpServers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;pilot&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pilot&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;mcp&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;serve&quot;</span><span class="p">],</span>
-<span class="w">      </span><span class="nt">&quot;cwd&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${workspaceFolder}&quot;</span>
-<span class="w">    </span><span class="p">}</span>
-<span class="w">  </span><span class="p">}</span>
-<span class="p">}</span>
-</code></pre></div>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">&quot;mcpServers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nt">&quot;pilot&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pilot&quot;</span><span class="p">,</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;mcp&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;serve&quot;</span><span class="p">],</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">      </span><span class="nt">&quot;cwd&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${workspaceFolder}&quot;</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="p">}</span>
+</span></code></pre></div>
 <p>Dans Claude Code, dis simplement :</p>
 <blockquote>
 <p>"Génère les fichiers d'infrastructure manquants pour ce projet"</p>
@@ -1847,79 +2329,82 @@ pilot<span class="w"> </span>init
 <p>Claude appelle automatiquement <code>pilot_context</code> pour obtenir le contexte, génère le Dockerfile et le docker-compose adaptés à ton projet spécifique, puis les écrit via <code>pilot_generate_dockerfile</code> et <code>pilot_generate_compose</code>.</p>
 <p><strong>Ce que l'agent reçoit via <code>pilot_context</code> :</strong>
 - Contenu complet de <code>pilot.yaml</code>
-- Arbre de fichiers du projet (3 niveaux)
+- Arbre de fichiers du projet (3 niveaux, bruit filtré)
 - Fichiers clés détectés (<code>go.mod</code>, <code>package.json</code>...)
 - Dockerfiles existants (avec leur contenu)
 - Liste précise de ce qui manque
 - Stack et version détectés</p>
 <h3 id="option-b-coller-le-contexte-dans-nimporte-quel-ai-chat">Option B : Coller le contexte dans n'importe quel AI chat</h3>
-<div class="highlight"><pre><span></span><code>pilot<span class="w"> </span>context
-</code></pre></div>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pilot<span class="w"> </span>context
+</span></code></pre></div>
 <p>Copie le output et colle-le dans ChatGPT, Claude.ai, Gemini, etc. Demande de générer le Dockerfile et le docker-compose. Crée les fichiers manuellement avec le contenu généré.</p>
 <h3 id="option-c-pilot-up-tindique-quoi-faire">Option C : <code>pilot up</code> t'indique quoi faire</h3>
-<div class="highlight"><pre><span></span><code>pilot<span class="w"> </span>up
-</code></pre></div>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>pilot<span class="w"> </span>up
+</span></code></pre></div>
 <p>Si les fichiers manquent, pilot arrête et affiche exactement ce qui manque + les instructions pour les deux options ci-dessus.</p>
 <hr />
 <h2 id="etape-3-demarrer-lenvironnement">Étape 3 : Démarrer l'environnement</h2>
-<div class="highlight"><pre><span></span><code>pilot<span class="w"> </span>up
-</code></pre></div>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>pilot<span class="w"> </span>up
+</span></code></pre></div>
 <p><strong>Ce qui se passe en détail :</strong></p>
 <ol>
 <li><code>config.Load(".")</code> : cherche <code>pilot.yaml</code> dans le dossier courant, puis remonte</li>
 <li><code>env.Active("")</code> : lit <code>.pilot-current-env</code> ou utilise <code>dev</code> par défaut</li>
-<li><code>pilotctx.Collect(env)</code> : collecte le contexte (pour vérifier les fichiers manquants)</li>
-<li>Vérifie que <code>Dockerfile</code> existe (ou qu'un <code>dockerfile:</code> custom est défini)</li>
+<li>Collecte le contexte depuis <code>internal/mcp/context</code> (pour vérifier les fichiers manquants)</li>
+<li>Vérifie que <code>Dockerfile</code> existe</li>
 <li>Vérifie que <code>docker-compose.dev.yml</code> existe</li>
 <li>Si tout est OK : <code>docker compose -f docker-compose.dev.yml up -d</code></li>
 <li>Affiche les URLs des services</li>
 </ol>
-<div class="highlight"><pre><span></span><code>✓ Environment &quot;dev&quot; is up
-
-  api            http://localhost:8080
-  db             (interne, pas exposé)
-  cache          (interne, pas exposé)
-
-pilot logs --follow   stream logs
-pilot down            stop services
-pilot status          inspect services
-</code></pre></div>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>✓ Environment &quot;dev&quot; is up
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>  api            http://localhost:8080
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>  db             (interne, pas exposé)
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>  cache          (interne, pas exposé)
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>pilot logs --follow   stream logs
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>pilot down            stop services
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>pilot status          inspect services
+</span></code></pre></div>
 <h3 id="demarrer-seulement-certains-services">Démarrer seulement certains services</h3>
-<div class="highlight"><pre><span></span><code>pilot<span class="w"> </span>up<span class="w"> </span>api<span class="w"> </span>db<span class="w">       </span><span class="c1"># Démarre uniquement api et db</span>
-</code></pre></div>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>pilot<span class="w"> </span>up<span class="w"> </span>api<span class="w"> </span>db<span class="w">       </span><span class="c1"># Démarre uniquement api et db</span>
+</span></code></pre></div>
 <h3 id="forcer-le-rebuild-de-limage">Forcer le rebuild de l'image</h3>
-<div class="highlight"><pre><span></span><code>pilot<span class="w"> </span>up<span class="w"> </span>--build<span class="w">      </span><span class="c1"># Rebuild avant de démarrer</span>
-</code></pre></div>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>pilot<span class="w"> </span>up<span class="w"> </span>--build<span class="w">      </span><span class="c1"># Rebuild avant de démarrer</span>
+</span></code></pre></div>
 <hr />
 <h2 id="etape-4-travailler">Étape 4 : Travailler</h2>
-<div class="highlight"><pre><span></span><code><span class="c1"># Voir les logs en temps réel</span>
-pilot<span class="w"> </span>logs<span class="w"> </span>--follow
-pilot<span class="w"> </span>logs<span class="w"> </span>api<span class="w"> </span>--follow
-
-<span class="c1"># Vérifier l&#39;état des services</span>
-pilot<span class="w"> </span>status
-
-<span class="c1"># Switcher d&#39;environnement</span>
-pilot<span class="w"> </span>env<span class="w"> </span>use<span class="w"> </span>staging
-pilot<span class="w"> </span>up<span class="w">               </span><span class="c1"># Démarre l&#39;environnement staging</span>
-</code></pre></div>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Voir les logs en temps réel</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>pilot<span class="w"> </span>logs<span class="w"> </span>--follow
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>pilot<span class="w"> </span>logs<span class="w"> </span>api<span class="w"> </span>--follow
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="c1"># Vérifier l&#39;état des services</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>pilot<span class="w"> </span>status
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="c1"># Comparer les environnements avant de déployer</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>pilot<span class="w"> </span>env<span class="w"> </span>diff<span class="w"> </span>dev<span class="w"> </span>prod
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="c1"># Switcher d&#39;environnement</span>
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>pilot<span class="w"> </span>env<span class="w"> </span>use<span class="w"> </span>staging
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>pilot<span class="w"> </span>up<span class="w">               </span><span class="c1"># Démarre l&#39;environnement staging</span>
+</span></code></pre></div>
 <hr />
 <h2 id="etape-5-arreter">Étape 5 : Arrêter</h2>
-<div class="highlight"><pre><span></span><code>pilot<span class="w"> </span>down<span class="w">             </span><span class="c1"># Arrête les conteneurs (données préservées)</span>
-pilot<span class="w"> </span>down<span class="w"> </span>--volumes<span class="w">   </span><span class="c1"># Arrête ET supprime les volumes (données perdues)</span>
-</code></pre></div>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>pilot<span class="w"> </span>down<span class="w">             </span><span class="c1"># Arrête les conteneurs (données préservées)</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>pilot<span class="w"> </span>down<span class="w"> </span>--volumes<span class="w">   </span><span class="c1"># Arrête ET supprime les volumes (données perdues)</span>
+</span></code></pre></div>
 <hr />
 <h2 id="gestion-des-variables-denvironnement">Gestion des variables d'environnement</h2>
 <p>pilot ne gère pas les secrets en local : il utilise les fichiers <code>.env</code> standard.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># pilot.yaml</span>
-environments:
-<span class="w">  </span>dev:
-<span class="w">    </span>env_file:<span class="w"> </span>.env.dev
-
-<span class="c1"># .env.dev</span>
-<span class="nv">DATABASE_URL</span><span class="o">=</span>postgresql://postgres:postgres@db:5432/dev_db
-<span class="nv">SECRET_KEY</span><span class="o">=</span>dev-secret-key-not-for-prod
-</code></pre></div>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># pilot.yaml</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="nt">environments</span><span class="p">:</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">  </span><span class="nt">dev</span><span class="p">:</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">    </span><span class="nt">env_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.env.dev</span>
+</span></code></pre></div>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># .env.dev</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="nv">DATABASE_URL</span><span class="o">=</span>postgresql://postgres:postgres@db:5432/dev_db
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="nv">SECRET_KEY</span><span class="o">=</span>dev-secret-key-not-for-prod
+</span></code></pre></div>
 <p>Si <code>.env.dev</code> est absent au moment de <code>pilot up</code>, pilot affiche un avertissement mais démarre quand même. Les services peuvent échouer s'ils ont besoin de variables définies dans ce fichier.</p>
 <hr />
 <h2 id="convention-de-nommage-des-fichiers">Convention de nommage des fichiers</h2>
@@ -1933,7 +2418,19 @@ environments:
 <tbody>
 <tr>
 <td><code>pilot.yaml</code></td>
-<td>Source de vérité du projet</td>
+<td>Source de vérité du projet : commiter</td>
+</tr>
+<tr>
+<td><code>pilot.lock</code></td>
+<td>Plan de déploiement validé : commiter</td>
+</tr>
+<tr>
+<td><code>.mcp.json</code></td>
+<td>Config agent AI : commiter</td>
+</tr>
+<tr>
+<td><code>.env.example</code></td>
+<td>Variables requises documentées : commiter</td>
 </tr>
 <tr>
 <td><code>docker-compose.&lt;env&gt;.yml</code></td>
@@ -1945,11 +2442,19 @@ environments:
 </tr>
 <tr>
 <td><code>.env.&lt;env&gt;</code></td>
-<td>Variables d'environnement locales (jamais commité)</td>
+<td>Variables d'environnement locales : <strong>ne pas commiter</strong></td>
+</tr>
+<tr>
+<td><code>.env.local</code></td>
+<td>Credentials de registry (créé par le wizard, mode 600) : <strong>ne pas commiter</strong></td>
 </tr>
 <tr>
 <td><code>.pilot-current-env</code></td>
-<td>Environnement actif persisté (committé ou non, selon préférence)</td>
+<td>Environnement actif persisté : <strong>ne pas commiter</strong></td>
+</tr>
+<tr>
+<td><code>.pilot/</code></td>
+<td>État runtime (compose-meta.json, suspended.json) : <strong>ne pas commiter</strong></td>
 </tr>
 </tbody>
 </table>
@@ -1972,6 +2477,12 @@ environments:
           
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
         </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
         
       </main>
       
@@ -2002,7 +2513,7 @@ environments:
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.top", "navigation.tracking", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

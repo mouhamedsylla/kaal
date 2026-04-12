@@ -88,4 +88,4 @@ L'agent exécute `resume_with` après avoir pris l'action recommandée.
 ## Voir aussi
 
 - [`pilot diagnose`](diagnose.md) : vérifier s'il y a une suspension en cours
-- [Architecture — cycle TypeC](../architecture.md#typec-suspension--resume-cycle)
+- [Architecture : cycle TypeC](../architecture.md#typec-suspension--resume-cycle)

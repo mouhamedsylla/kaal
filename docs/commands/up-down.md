@@ -48,6 +48,21 @@ Demande à ton agent AI de les générer.
   Puis relance 'pilot up' une fois les fichiers créés
 ```
 
+### Détection de staleness
+
+Si `pilot.yaml` a été modifié depuis la dernière génération du compose (ex: après `pilot add`),
+`pilot up` refuse de démarrer :
+
+```
+✗ docker-compose.dev.yml is stale : pilot.yaml has changed since it was generated
+
+  Regenerate it:
+    Ask your AI agent: "Regenerate the compose file for the dev environment"
+```
+
+Cette protection évite de démarrer avec un compose qui ne reflète plus l'infrastructure
+décrite dans `pilot.yaml`. Voir [Compose désynchronisé](../troubleshooting/stale-compose.md).
+
 ### Exemples
 
 ```bash

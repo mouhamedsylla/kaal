@@ -116,6 +116,7 @@ func init() {
 
 	rootCmd.AddCommand(
 		initCmd,
+		addCmd,
 		envCmd,
 		upCmd,
 		downCmd,

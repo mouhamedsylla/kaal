@@ -19,7 +19,7 @@ pilot preflight [flags]
 `pilot preflight --target deploy` fait deux choses :
 
 1. **Vérifie** tous les prérequis (Docker, SSH, registry, clés, fichiers...)
-2. **Génère `pilot.lock`** si tout passe — le fichier qui autorise le prochain `pilot deploy`
+2. **Génère `pilot.lock`** si tout passe : le fichier qui autorise le prochain `pilot deploy`
 
 `pilot.lock` doit être **commité dans le dépôt**. C'est le contrat signé : ce qui a été validé par l'équipe est ce qui s'exécute en production.
 
@@ -86,7 +86,7 @@ Si `pilot.lock` est absent ou périmé, `pilot deploy` refuse de continuer.
 Quand `--target deploy` et que toutes les vérifications passent (ou n'ont que des avertissements), preflight génère `pilot.lock` :
 
 ```yaml
-# pilot.lock — generated automatically, commit this file.
+# pilot.lock : generated automatically, commit this file.
 schema_version: 1
 generated_at: 2026-04-11T14:00:00Z
 generated_from:
@@ -122,7 +122,7 @@ execution_provider: compose
 | `db/migrations/` | goose | `goose up` |
 | `migrations/` | goose | `goose -dir migrations up` |
 
-La détection auto ne définit pas `rollback_command` ni `reversible: true` — déclare-les explicitement dans `pilot.yaml` si tu veux le rollback de migration automatique.
+La détection auto ne définit pas `rollback_command` ni `reversible: true` : déclare-les explicitement dans `pilot.yaml` si tu veux le rollback de migration automatique.
 
 ---
 
@@ -152,7 +152,7 @@ La détection auto ne définit pas `rollback_command` ni `reversible: true` — 
 Quand tout passe :
 
 ```
-✓ All checks passed — pilot.lock generated
+✓ All checks passed : pilot.lock generated
 → Commit pilot.lock to your repository
 ```
 
@@ -187,8 +187,8 @@ Quand tout passe :
 
 | Code | Signification |
 |------|---------------|
-| `0` | Toutes les vérifications passent (ou seulement des avertissements) — `pilot.lock` généré |
-| `1` | Au moins un bloquant détecté — `pilot.lock` non généré |
+| `0` | Toutes les vérifications passent (ou seulement des avertissements) : `pilot.lock` généré |
+| `1` | Au moins un bloquant détecté : `pilot.lock` non généré |
 
 ---
 
@@ -216,4 +216,4 @@ Un agent bien conçu exécute `pilot_preflight` en premier, traite tous les `age
 
 - [`pilot plan`](plan.md) : afficher le plan issu de `pilot.lock` sans déployer
 - [`pilot deploy`](deploy.md) : exécuter le plan validé
-- [Architecture — pilot.lock](../architecture.md#pilotlock)
+- [Architecture : pilot.lock](../architecture.md#pilotlock)

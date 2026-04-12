@@ -105,20 +105,19 @@ Note : les erreurs d'outil retournent un `result` avec `isError: true`, pas un c
 | `pilot_context` | `handlers.HandleContext` | ✅ |
 | `pilot_generate_dockerfile` | `handlers.HandleGenerateDockerfile` | ✅ |
 | `pilot_generate_compose` | `handlers.HandleGenerateCompose` | ✅ |
+| `pilot_init` | `handlers.HandleInit` | ✅ |
+| `pilot_env_switch` | `handlers.HandleEnvSwitch` | ✅ |
+| `pilot_up` | `handlers.HandleUp` | ✅ |
+| `pilot_down` | `handlers.HandleDown` | ✅ |
 | `pilot_push` | `handlers.HandlePush` | ✅ |
 | `pilot_deploy` | `handlers.HandleDeploy` | ✅ |
 | `pilot_rollback` | `handlers.HandleRollback` | ✅ |
 | `pilot_sync` | `handlers.HandleSync` | ✅ |
-| `pilot_up` | `handlers.HandleUp` | ✅ |
-| `pilot_down` | `handlers.HandleDown` | ✅ |
 | `pilot_status` | `handlers.HandleStatus` | ✅ |
 | `pilot_logs` | `handlers.HandleLogs` | ✅ |
-| `pilot_preflight` | `handlers.HandlePreflight` | ✅ |
+| `pilot_secrets_inject` | `handlers.HandleSecretsInject` | ✅ |
 | `pilot_setup` | `handlers.HandleSetup` | ✅ |
-| `pilot_init` | stub | 🔲 |
-| `pilot_env_switch` | stub | 🔲 |
-| `pilot_config_get` | stub | 🔲 |
-| `pilot_config_set` | stub | 🔲 |
+| `pilot_preflight` | `handlers.HandlePreflight` | ✅ |
 
 ---
 
@@ -126,49 +125,43 @@ Note : les erreurs d'outil retournent un `result` avec `isError: true`, pas un c
 
 ### `pilot_context`
 
-Retourne le contexte complet du projet : stack, services, fichiers existants/manquants, prompt agent, env_file paths, targets non configurés. **Premier outil à appeler avant toute génération.**
+Retourne le contexte complet du projet : stack, services, fichiers existants/manquants, prompt agent, env_file paths, targets. **Premier outil à appeler avant toute génération.**
 
 Paramètres : `env` (optionnel)
 
 ### `pilot_generate_dockerfile`
 
-Écrit un Dockerfile optimisé sur disque. L'agent doit générer un Dockerfile multi-stage, non-root, avec healthcheck, adapté au stack détecté dans `pilot_context`.
+Écrit un Dockerfile optimisé sur disque. L'agent génère le contenu selon des règles strictes encodées dans la description de l'outil : multi-stage, image minimale (distroless/alpine), utilisateur non-root, healthcheck, pas d'`ARG` suivis d'`ENV` (piège silencieux), COPY sélectif, tags épinglés.
 
 Paramètres : `content` (requis), `path` (optionnel, défaut : `Dockerfile`)
 
 ### `pilot_generate_compose`
 
-Écrit un `docker-compose.<env>.yml` sur disque. L'agent doit inclure : `env_file` depuis `pilot.yaml`, healthchecks, limites de ressources, commande `--mode <env>` pour Vite/Next.
+Écrit un `docker-compose.<env>.yml` sur disque. Règles encodées : volumes nommés, réseaux explicites, limites de ressources, healthchecks, `depends_on` avec `condition: service_healthy`, `env_file` obligatoire sur tous les services applicatifs, commandes de dev server adaptées au framework (`--mode <env>` pour Vite).
 
 Paramètres : `content` (requis), `env` (optionnel), `path` (optionnel)
 
 ### `pilot_preflight`
 
-Lance la checklist pré-déploiement. Retourne un plan d'action structuré avec `all_ok`, `checks[]`, `next_steps[]`. L'agent suit les `next_steps` dans l'ordre : actions `[HUMAN]` d'abord, puis `[AGENT]`.
+Lance la checklist pré-déploiement. Retourne un plan d'action structuré avec `all_ok`, `checks[]`, `next_steps[]`. **L'agent suit les `next_steps` dans l'ordre** : traite d'abord les `[HUMAN]` (demande confirmation), puis les `[AGENT]` (appelle l'outil indiqué). Génère `pilot.lock` si tout passe avec `--target deploy`.
 
-Paramètres : `target` (`push` ou `deploy`), `env` (optionnel)
+Paramètres : `target` (`up`, `push` ou `deploy`), `env` (optionnel)
 
 ### `pilot_push`
 
-Build + push de l'image. Injecte automatiquement les vars `VITE_*`/`NEXT_PUBLIC_*`/`REACT_APP_*` depuis l'env file. Patch le Dockerfile si des `ARG` manquent.
+Build + push de l'image. Injecte automatiquement les vars `VITE_*`/`NEXT_PUBLIC_*`/`REACT_APP_*` depuis l'env file. Patche le Dockerfile si des `ARG` manquent. Détecte macOS ARM64 → build `linux/amd64`.
 
 Paramètres : `tag` (optionnel), `env` (optionnel), `no_cache` (optionnel), `platform` (optionnel)
 
 ### `pilot_deploy`
 
-Déploie sur la cible configurée. Sync automatique des fichiers (compose, env, bind-mounts) vers `~/pilot/` sur le VPS avant chaque déploiement.
+Exécute le pipeline de déploiement complet en 8 étapes : lock check → secrets → sync → pre_hooks → migrations → deploy → post_hooks → healthcheck. En cas d'échec à partir de l'étape 4, compensation LIFO automatique.
 
-Paramètres : `env` (optionnel), `tag` (optionnel)
+Paramètres : `env` (optionnel), `tag` (optionnel), `dry_run` (optionnel)
 
 ### `pilot_setup`
 
-Ajoute le user deploy au groupe docker sur le VPS via SSH (`sudo usermod -aG docker <user>`). À appeler quand `pilot_preflight` retourne `vps_docker_group: false`.
-
-Paramètres : `env` (optionnel)
-
-### `pilot_sync`
-
-Copie les fichiers de config vers `~/pilot/` sur le VPS sans redéployer : compose files, env files, et tous les fichiers référencés en bind-mount dans le compose.
+Ajoute le user deploy au groupe docker sur le VPS via SSH. À appeler quand `pilot_preflight` retourne une erreur `vps_docker_group` ou quand `pilot_deploy` retourne une erreur TypeC `PILOT-DEPLOY-003`.
 
 Paramètres : `env` (optionnel)
 
@@ -182,11 +175,13 @@ internal/mcp/
 ├── tools.go           # Définitions Tool + registerAll()
 ├── handlers.go        # Wiring des vars HandlerFunc
 └── handlers/
-    ├── stub.go        # Stub générique (retourne "not yet implemented")
     ├── context.go     # HandleContext, HandleGenerateDockerfile, HandleGenerateCompose
-    └── lifecycle.go   # HandlePush, HandleDeploy, HandleRollback, HandleSync,
-                       # HandleUp, HandleDown, HandleStatus, HandleLogs,
-                       # HandlePreflight, HandleSetup
+    ├── lifecycle.go   # HandleUp, HandleDown, HandlePush, HandleDeploy, HandleRollback, HandleSync
+    ├── preflight.go   # HandlePreflight
+    ├── query.go       # HandleStatus, HandleLogs, HandleSecretsInject
+    ├── setup.go       # HandleSetup
+    ├── init.go        # HandleInit
+    └── capture.go     # Helpers partagés (capture stdout, JSON response)
 ```
 
 ### `HandlerFunc`
@@ -201,47 +196,27 @@ Chaque handler reçoit les arguments de l'outil et retourne n'importe quelle val
 
 1. Créer ou éditer `internal/mcp/handlers/<feature>.go`
 2. Implémenter la fonction avec la signature `HandlerFunc`
-3. Dans `handlers.go`, remplacer le stub :
+3. Déclarer le `Tool` dans `internal/mcp/tools.go`
+4. Dans `handlers.go`, câbler le handler :
    ```go
-   // Avant
-   var handleInit HandlerFunc = handlers.Stub("pilot_init")
-   // Après
-   var handleInit HandlerFunc = handlers.HandleInit
+   var handleMyTool HandlerFunc = handlers.HandleMyTool
+   ```
+5. Dans `tools.go`, enregistrer dans `registerAll()` :
+   ```go
+   s.Register(toolMyTool, handleMyTool)
    ```
 
 ---
 
 ## Workflow typique d'un agent AI
 
-```
-[initialize]
-→ pilot répond avec capabilities + liste des outils
-
-[tools/call: pilot_preflight {"target": "deploy"}]
-→ pilot vérifie tous les prérequis
-→ retourne next_steps[] avec actions [HUMAN] et [AGENT]
-
-[... l'agent suit les next_steps ...]
-
-[tools/call: pilot_push {"env": "prod"}]
-→ pilot build linux/amd64, injecte VITE_*, push
-
-[tools/call: pilot_deploy {"env": "prod", "tag": "abc1234"}]
-→ pilot sync + docker pull + docker compose up
-
-[tools/call: pilot_status {"env": "prod"}]
-→ pilot retourne l'état des services en JSON
-```
-
----
-
-## Workflow de génération d'infrastructure
+### Génération d'infrastructure
 
 ```
 [tools/call: pilot_context]
-→ pilot retourne stack, services, fichiers manquants, prompt complet
+→ retourne stack, services, fichiers manquants, prompt complet
 
-[... l'agent analyse, génère le Dockerfile et le compose ...]
+[... l'agent génère le Dockerfile et le compose ...]
 
 [tools/call: pilot_generate_dockerfile {"content": "FROM ..."}]
 → pilot écrit Dockerfile sur disque
@@ -251,4 +226,25 @@ Chaque handler reçoit les arguments de l'outil et retourne n'importe quelle val
 
 [tools/call: pilot_up]
 → pilot démarre les services
+```
+
+### Déploiement complet
+
+```
+[tools/call: pilot_preflight {"target": "deploy"}]
+→ all_ok: false
+→ [HUMAN] registry_creds: export GITHUB_TOKEN=...
+→ (agent demande à l'humain, attend confirmation)
+
+[tools/call: pilot_preflight {"target": "deploy"}]
+→ all_ok: true : pilot.lock generated
+
+[tools/call: pilot_push {"env": "prod", "tag": "abc1234"}]
+→ build linux/amd64, injecte VITE_*, push
+
+[tools/call: pilot_deploy {"env": "prod", "tag": "abc1234"}]
+→ pipeline 8 étapes : lock → secrets → sync → hooks → migrations → deploy → hooks → healthcheck
+
+[tools/call: pilot_status {"env": "prod"}]
+→ {"services": [{"name": "api", "state": "running", "health": "healthy"}]}
 ```

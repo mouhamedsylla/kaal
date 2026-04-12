@@ -70,6 +70,7 @@ func runWizard(detected DetectedProject, flags Flags) (Options, error) {
 		Stack:           detected.Stack,
 		LanguageVersion: detected.LanguageVersion,
 		IsExisting:      detected.IsExisting,
+		Hints:           detected.Hints,
 	})
 	if err != nil {
 		return Options{}, err
@@ -86,10 +87,11 @@ func runWizard(detected DetectedProject, flags Flags) (Options, error) {
 		TargetHost:    result.TargetHost,
 		Registry:      result.Registry,
 		RegistryImage: result.RegistryImage,
+		RegistryCreds: result.RegistryCreds,
 		OutputDir:     ".",
 	}
 
-	// Merge flag overrides
+	// Merge flag overrides.
 	if flags.Stack != "" {
 		opts.Stack = flags.Stack
 	}
@@ -97,13 +99,25 @@ func runWizard(detected DetectedProject, flags Flags) (Options, error) {
 		opts.Registry = flags.Registry
 	}
 
-	// Map wizard service choices to ServiceChoice
+	// Map wizard service choices to ServiceChoice, applying hosting + provider
+	// decisions made in stepManagedServices.
 	for _, svc := range result.Services {
+		hosting := result.ServiceHosting[svc.Key]
+		if hosting == "" {
+			hosting = "container" // default for services not in the managed step
+		}
+		provider := result.ServiceProvider[svc.Key]
+		if hosting == "container" {
+			provider = "container"
+		}
+
 		opts.Services = append(opts.Services, ServiceChoice{
-			Name:    svc.Key,
-			Type:    svc.Type,
-			Port:    defaultPortForService(svc.Key),
-			Version: defaultVersionForService(svc.Key),
+			Name:     svc.Key,
+			Type:     svc.Type,
+			Port:     defaultPortForService(svc.Key),
+			Version:  defaultVersionForService(svc.Key),
+			Hosting:  hosting,
+			Provider: provider,
 		})
 	}
 

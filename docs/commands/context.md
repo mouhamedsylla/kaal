@@ -1,10 +1,12 @@
-# pilot context
+# pilot mcp context
 
 Affiche le contexte complet du projet pour les agents AI.
 
 ```
-pilot context [flags]
+pilot mcp context [flags]
 ```
+
+---
 
 ## Flags
 
@@ -13,28 +15,31 @@ pilot context [flags]
 | `--summary` | Affiche un résumé court au lieu du prompt complet |
 | `--env`, `-e` | Environnement cible pour le contexte |
 
+---
+
 ## Utilisation
 
 ### Prompt complet (à coller dans un chat AI)
 
 ```bash
-pilot context
+pilot mcp context
 ```
 
 Affiche un document Markdown structuré avec :
 - Contenu de `pilot.yaml`
 - Arbre de fichiers du projet
-- Fichiers clés détectés (go.mod, package.json, requirements.txt, etc.)
+- Fichiers clés détectés (`go.mod`, `package.json`, `requirements.txt`, etc.)
 - Dockerfiles existants (avec leur contenu)
 - Stack, version et environnement actif
-- Services définis dans `pilot.yaml`
-- Ce qui manque (Dockerfile, compose files)
+- Services définis dans `pilot.yaml` (avec mode d'hébergement)
+- Services managés : section CRITICAL pour l'agent
+- Ce qui manque (Dockerfile, compose files, pour tous les environnements)
 - Prompt structuré indiquant à l'agent exactement quoi générer et avec quelles contraintes
 
 ### Résumé court
 
 ```bash
-pilot context --summary
+pilot mcp context --summary
 ```
 
 ```
@@ -43,46 +48,35 @@ Stack:    go 1.23
 Env:      dev
 
 Services:
-  api          type=app        port=8080
-  db           type=postgres
-  cache        type=redis
+  api          type=app        port=8080      hosting=container
+  db           type=postgres   hosting=managed   provider=neon
+  cache        type=redis      hosting=managed   provider=upstash
+  queue        type=rabbitmq   hosting=container
 ```
 
-## Ce que le prompt contient pour l'agent
+---
 
-Pour un projet Node avec des variables compile-time, le prompt inclut :
+## Relation avec `pilot up`
 
-```
-## Variables compile-time
+`pilot up` affiche automatiquement les 40 premières lignes du contexte quand des fichiers
+manquent, avec les instructions pour l'agent AI et un renvoi vers `pilot mcp context`
+pour le prompt complet.
 
-registry.build_args déclare : VITE_API_URL, VITE_APP_ENV
-Ces variables doivent être déclarées en ARG puis ENV dans le builder stage
-du Dockerfile, avant la commande RUN npm run build.
+---
 
-ARG VITE_API_URL
-ENV VITE_API_URL=$VITE_API_URL
-ARG VITE_APP_ENV
-ENV VITE_APP_ENV=$VITE_APP_ENV
-```
+## Relation avec le serveur MCP
 
-Et pour le compose :
+`pilot mcp context` est l'équivalent CLI de l'outil MCP `pilot_context`.
 
-```
-## Règles obligatoires pour le compose
+| Cas d'usage | Commande |
+|-------------|----------|
+| Chat AI manuel (ChatGPT, Claude.ai) | `pilot mcp context` → copier-coller |
+| Claude Code / Cursor (MCP) | `pilot_context` appelé automatiquement par l'agent |
 
-- Injecter env_file: .env.dev (depuis environments.dev.env_file dans pilot.yaml)
-- Pour les services Node : commande avec --mode dev (npm run dev -- --mode dev)
-```
-
-## Relation avec pilot up
-
-`pilot up` affiche automatiquement les 40 premières lignes du contexte quand des fichiers manquent, avec les instructions pour l'agent AI et un lien vers `pilot context` pour le prompt complet.
-
-## Relation avec le MCP
-
-`pilot context` est l'équivalent CLI de l'outil MCP `pilot_context`. Utilise `pilot context` pour les chats AI manuels (ChatGPT, Claude.ai), `pilot_context` via MCP pour Claude Code ou Cursor.
+---
 
 ## Voir aussi
 
-- [Workflow agent AI](../workflows/ai-agent.md) : comment l'agent utilise ce contexte
-- [`pilot_context` via MCP](../internals/mcp-server.md) : outil MCP correspondant
+- [Workflow agent IA](../workflows/ai-agent.md) : comment l'agent utilise ce contexte
+- [`pilot mcp`](mcp.md) : démarrer le serveur MCP
+- [Moteur de contexte](../internals/context-engine.md) : fonctionnement interne

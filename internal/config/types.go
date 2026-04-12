@@ -20,11 +20,14 @@ type Project struct {
 // Service describes one logical service in the application topology.
 // pilot does not generate Dockerfiles at init — it generates them at runtime (pilot up).
 type Service struct {
-	Type       string `yaml:"type"`                  // app | postgres | mysql | mongodb | redis | rabbitmq | nats | nginx | custom
-	Port       int    `yaml:"port,omitempty"`        // exposed port (app services)
-	Version    string `yaml:"version,omitempty"`     // image version for managed services (postgres:16, redis:7...)
-	Dockerfile string `yaml:"dockerfile,omitempty"`  // path to existing Dockerfile (optional, app services only)
+	Type       string `yaml:"type"`                  // app | worker | postgres | mysql | mongodb | redis | rabbitmq | nats | kafka | elasticsearch | storage | nginx | traefik | custom
+	Port       int    `yaml:"port,omitempty"`        // exposed port (app/worker services)
+	Version    string `yaml:"version,omitempty"`     // image version for self-hosted services (postgres:16, redis:7...)
+	Dockerfile string `yaml:"dockerfile,omitempty"`  // path to existing Dockerfile (optional, app/worker only)
 	Image      string `yaml:"image,omitempty"`       // custom image (optional override)
+	Command    string `yaml:"command,omitempty"`     // override container CMD (worker services)
+	Hosting    string `yaml:"hosting,omitempty"`     // container (default) | managed | local-only
+	Provider   string `yaml:"provider,omitempty"`    // for managed services: neon | supabase | upstash | atlas | planetscale | cloudamqp | confluent | elastic | r2 | s3 | ...
 }
 
 // Environment describes how a set of services runs in a specific context.
@@ -96,15 +99,32 @@ type RegistryConfig struct {
 
 // ServiceType constants.
 const (
-	ServiceTypeApp       = "app"
-	ServiceTypePostgres  = "postgres"
-	ServiceTypeMySQL     = "mysql"
-	ServiceTypeMongoDB   = "mongodb"
-	ServiceTypeRedis     = "redis"
-	ServiceTypeRabbitMQ  = "rabbitmq"
-	ServiceTypeNATS      = "nats"
-	ServiceTypeNginx     = "nginx"
-	ServiceTypeCustom    = "custom"
+	ServiceTypeApp           = "app"
+	ServiceTypeWorker        = "worker"
+	ServiceTypePostgres      = "postgres"
+	ServiceTypeMySQL         = "mysql"
+	ServiceTypeMongoDB       = "mongodb"
+	ServiceTypeRedis         = "redis"
+	ServiceTypeRabbitMQ      = "rabbitmq"
+	ServiceTypeNATS          = "nats"
+	ServiceTypeKafka         = "kafka"
+	ServiceTypeElasticsearch = "elasticsearch"
+	ServiceTypeStorage       = "storage"
+	ServiceTypeNginx         = "nginx"
+	ServiceTypeTraefik       = "traefik"
+	ServiceTypeCustom        = "custom"
+)
+
+// Hosting constants describe how a service is run.
+const (
+	// HostingContainer (default) — runs as a Docker container locally and in prod.
+	HostingContainer = "container"
+	// HostingManaged — external managed service (Supabase, Neon, Upstash...).
+	// No container is generated. The service connects via environment variables only.
+	HostingManaged = "managed"
+	// HostingLocalOnly — container in dev, not present in prod compose.
+	// Useful for: mailhog, fake SMTP, local-only test services.
+	HostingLocalOnly = "local-only"
 )
 
 // RuntimeType constants.

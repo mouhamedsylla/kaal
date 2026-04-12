@@ -48,7 +48,7 @@ pilot diagnose [flags]
   ✓  working tree                  clean
   ✓  last commit                   abc1234 feat: add nginx
 
-  11/13 checks passed — 2 issue(s) found
+  11/13 checks passed : 2 issue(s) found
 ```
 
 ## Catégories de vérifications

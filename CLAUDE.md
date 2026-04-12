@@ -186,3 +186,6 @@ go build -o pilot .
 ./pilot up
 ./pilot deploy --env prod
 ```
+
+---
+> Note: Ne remet plus ceci `Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>` en faisant un commit

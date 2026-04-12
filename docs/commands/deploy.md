@@ -71,7 +71,7 @@ En cas d'échec à partir de l'étape 4, pilot exécute automatiquement les comp
   (deploy n'a pas encore démarré, pas d'image à restaurer)
 ```
 
-## TypeC — choix requis
+## TypeC : choix requis
 
 Certaines erreurs suspendent le déploiement et présentent des options :
 
@@ -133,9 +133,9 @@ Après l'étape [6], pilot surveille la santé des containers :
 
 ```
 → Waiting for services to be healthy...
-✗ Service "api" is unhealthy — triggering automatic rollback
+✗ Service "api" is unhealthy : triggering automatic rollback
 → Rolling back to v1.1.0
-✓ Rollback complete — vps-prod is running v1.1.0
+✓ Rollback complete : vps-prod is running v1.1.0
 ```
 
 `--no-rollback` désactive ce comportement pour permettre d'inspecter les logs du container défaillant.

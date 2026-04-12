@@ -1,6 +1,7 @@
 package compose
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/mouhamedsylla/pilot/internal/config"
 	domain "github.com/mouhamedsylla/pilot/internal/domain"
+	"github.com/mouhamedsylla/pilot/pkg/ui"
 )
 
 // Orchestrator implements domain.ExecutionProvider using docker compose.
@@ -123,11 +125,28 @@ func (o *Orchestrator) baseArgs() []string {
 
 func (o *Orchestrator) run(ctx context.Context, args ...string) error {
 	cmd := exec.CommandContext(ctx, "docker", args...)
-	// Always stream docker compose output to the terminal.
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+
+	if ui.IsTerminal() {
+		// Interactive terminal: stream docker output directly so the user sees it in real time.
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("%w", err)
+		}
+		return nil
+	}
+
+	// MCP / non-interactive mode: capture output to include it in the error.
+	// Never write to os.Stdout in MCP mode — it is the JSON-RPC pipe.
+	var buf bytes.Buffer
+	cmd.Stdout = &buf
+	cmd.Stderr = &buf
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("exit status 1")
+		output := strings.TrimSpace(buf.String())
+		if output != "" {
+			return fmt.Errorf("%w\n\n%s", err, output)
+		}
+		return fmt.Errorf("%w", err)
 	}
 	return nil
 }

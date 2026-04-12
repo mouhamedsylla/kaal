@@ -20,22 +20,22 @@ pilot plan [flags]
 - Lesquelles sont compensables (rollback possible)
 - Le plan de compensation LIFO en cas d'échec
 
-Rien n'est exécuté. Requiert un `pilot.lock` valide — lancez `pilot preflight` d'abord.
+Rien n'est exécuté. Requiert un `pilot.lock` valide : lancez `pilot preflight` d'abord.
 
 ## Exemple
 
 ```
-  Execution plan — pilot deploy --env prod
+  Execution plan : pilot deploy --env prod
 
   Steps
   ──────────────────────────────────────────────────
   [1] preflight        verify config, secrets, SSH reachability
-  [2] migrations       run prisma migrations (npx prisma migrate deploy) — reversible  (compensable)
+  [2] migrations       run prisma migrations (npx prisma migrate deploy) : reversible  (compensable)
   [3] deploy           pull image + docker compose up  [provider: compose]  (compensable)
   [4] post_hooks       run post-deploy hooks on remote
   [5] healthcheck      wait for all services healthy
 
-  Compensation plan  (LIFO — executed on failure)
+  Compensation plan  (LIFO : executed on failure)
   ──────────────────────────────────────────────────
   [1] deploy           restore previous image tag
   [2] migrations       npx prisma migrate rollback
@@ -54,4 +54,4 @@ Rien n'est exécuté. Requiert un `pilot.lock` valide — lancez `pilot prefligh
 
 - [`pilot preflight`](preflight.md) : générer `pilot.lock`
 - [`pilot deploy --dry-run`](deploy.md) : même plan + confirmation d'exécution
-- [Architecture — pipeline de déploiement](../architecture.md#the-deploy-pipeline)
+- [Architecture : pipeline de déploiement](../architecture.md#the-deploy-pipeline)

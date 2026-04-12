@@ -12,6 +12,7 @@ import (
 
 	"github.com/mouhamedsylla/pilot/internal/config"
 	"github.com/mouhamedsylla/pilot/internal/scaffold"
+	"github.com/mouhamedsylla/pilot/internal/scaffold/catalog"
 	"gopkg.in/yaml.v3"
 )
 
@@ -22,23 +23,24 @@ type ProjectContext struct {
 	KaalYAML string `json:"pilot_yaml"`
 
 	// Detected project info
-	Stack           string `json:"stack"`
-	LanguageVersion string `json:"language_version"`
-	IsExistingProject bool `json:"is_existing_project"`
+	Stack             string `json:"stack"`
+	LanguageVersion   string `json:"language_version"`
+	IsExistingProject bool   `json:"is_existing_project"`
 
 	// File structure
-	FileTree    string   `json:"file_tree"`
-	KeyFiles    []string `json:"key_files"`   // files relevant to infra generation
+	FileTree string   `json:"file_tree"`
+	KeyFiles []string `json:"key_files"` // files relevant to infra generation
 
 	// Existing infra files
-	ExistingDockerfiles []string `json:"existing_dockerfiles"`
+	ExistingDockerfiles  []string `json:"existing_dockerfiles"`
 	ExistingComposeFiles []string `json:"existing_compose_files"`
-	ExistingEnvFiles    []string `json:"existing_env_files"`
+	ExistingEnvFiles     []string `json:"existing_env_files"`
 
-	// What's missing (populated by pilot up)
-	MissingDockerfile bool   `json:"missing_dockerfile"`
-	MissingCompose    bool   `json:"missing_compose"`
-	ActiveEnv         string `json:"active_env"`
+	// What's missing
+	MissingDockerfile  bool     `json:"missing_dockerfile"`
+	MissingCompose     bool     `json:"missing_compose"`      // active env only (legacy)
+	MissingComposeEnvs []string `json:"missing_compose_envs"` // all envs missing a compose file
+	ActiveEnv          string   `json:"active_env"`
 
 	// The parsed config (for structured access)
 	Config *config.Config `json:"config"`
@@ -68,26 +70,35 @@ func Collect(activeEnv string) (*ProjectContext, error) {
 		ctx.LanguageVersion = detected.LanguageVersion
 	}
 
-	// Read pilot.yaml as raw string
+	// Read pilot.yaml as raw string.
 	raw, err := os.ReadFile(config.FileName)
 	if err != nil {
 		return nil, err
 	}
 	ctx.KaalYAML = string(raw)
 
-	// File tree (max 3 levels deep, skip common noise)
+	// File tree (max 3 levels deep, skip common noise).
 	ctx.FileTree = buildFileTree(".", 0, 3)
 
-	// Scan for relevant files
+	// Scan for relevant files.
 	ctx.KeyFiles = scanKeyFiles(".")
 	ctx.ExistingDockerfiles = glob(".", "Dockerfile*")
 	ctx.ExistingComposeFiles = glob(".", "docker-compose*.yml")
 	ctx.ExistingEnvFiles = globEnvFiles(".")
 
-	// Determine what's missing for the active env
+	// Active env compose check (legacy field).
 	composeFile := fmt.Sprintf("docker-compose.%s.yml", activeEnv)
 	ctx.MissingDockerfile = !fileExists("Dockerfile") && !hasCustomDockerfile(cfg)
 	ctx.MissingCompose = !fileExists(composeFile)
+
+	// Check ALL configured environments for missing compose files.
+	for envName := range cfg.Environments {
+		f := fmt.Sprintf("docker-compose.%s.yml", envName)
+		if !fileExists(f) {
+			ctx.MissingComposeEnvs = append(ctx.MissingComposeEnvs, envName)
+		}
+	}
+	sort.Strings(ctx.MissingComposeEnvs)
 
 	return ctx, nil
 }
@@ -102,10 +113,16 @@ func (c *ProjectContext) Summary() string {
 
 	b.WriteString("\nServices:\n")
 	for name, svc := range c.Config.Services {
+		hosting := svc.Hosting
+		if hosting == "" {
+			hosting = "container"
+		}
 		if svc.Port > 0 {
-			b.WriteString(fmt.Sprintf("  %-12s type=%-10s port=%d\n", name, svc.Type, svc.Port))
+			b.WriteString(fmt.Sprintf("  %-12s type=%-12s hosting=%-10s port=%d\n",
+				name, svc.Type, hosting, svc.Port))
 		} else {
-			b.WriteString(fmt.Sprintf("  %-12s type=%s\n", name, svc.Type))
+			b.WriteString(fmt.Sprintf("  %-12s type=%-12s hosting=%s\n",
+				name, svc.Type, hosting))
 		}
 	}
 
@@ -157,100 +174,38 @@ func (c *ProjectContext) AgentPrompt() string {
 	b.WriteString("\n")
 
 	b.WriteString("## Services defined in pilot.yaml\n\n")
-	// Print services as YAML for clarity
 	data, _ := yaml.Marshal(c.Config.Services)
 	b.WriteString("```yaml\n")
 	b.WriteString(string(data))
 	b.WriteString("```\n\n")
 
-	if c.MissingDockerfile || c.MissingCompose {
+	// ── Managed services — critical section ───────────────────────────────────
+	// This must appear BEFORE the "What is needed" section so the agent
+	// knows which services to skip when generating compose files.
+	c.writeManagedServicesSection(&b)
+
+	// ── What is needed ────────────────────────────────────────────────────────
+	needsWork := c.MissingDockerfile || len(c.MissingComposeEnvs) > 0
+	if needsWork {
 		b.WriteString("## What is needed\n\n")
 	}
 
 	if c.MissingDockerfile {
-		b.WriteString("### Dockerfile\n\n")
-		b.WriteString("A Dockerfile is missing. Generate a **production-optimized** Dockerfile using these rules:\n\n")
-		b.WriteString("- **Multi-stage build**: builder stage (full SDK) → final stage (minimal image)\n")
-		b.WriteString("- **Minimal base image**: distroless/alpine/slim for the final stage\n")
-		b.WriteString("  - Go → `golang:<ver>-alpine` builder / `gcr.io/distroless/static` final\n")
-		b.WriteString("  - Node → `node:<ver>-alpine` builder / `node:<ver>-alpine` final\n")
-		b.WriteString("  - Python → `python:<ver>-slim` builder and final\n")
-		b.WriteString("  - Rust → `rust:<ver>-alpine` builder / `gcr.io/distroless/static` final\n")
-		b.WriteString("- **Non-root user**: create a dedicated user in the final stage (`USER nonroot`)\n")
-		b.WriteString("- **Layer caching**: copy dependency files first (`go.mod`, `package.json`, `requirements.txt`…)\n")
-		b.WriteString("  then run install, then copy source — maximises Docker layer cache reuse\n")
-		b.WriteString("- **Explicit WORKDIR**: e.g. `WORKDIR /app`\n")
-		b.WriteString("- **HEALTHCHECK**: HTTP or TCP probe appropriate for the stack\n")
-		b.WriteString("- **No secrets**: never COPY .env files into the image\n")
-		b.WriteString("- **Pinned tags**: no `:latest` base images\n")
-
-		// If build_args are declared, the Dockerfile MUST declare them as ARG + ENV
-		if len(c.Config.Registry.BuildArgs) > 0 {
-			b.WriteString("\n**IMPORTANT — build_args are declared in pilot.yaml:**\n\n")
-			b.WriteString("```yaml\nregistry:\n  build_args:\n")
-			for _, arg := range c.Config.Registry.BuildArgs {
-				b.WriteString(fmt.Sprintf("    - %s\n", arg))
-			}
-			b.WriteString("```\n\n")
-			b.WriteString("The Dockerfile builder stage MUST declare each one as `ARG` then `ENV` **before** the build step:\n\n")
-			b.WriteString("```dockerfile\n")
-			for _, arg := range c.Config.Registry.BuildArgs {
-				b.WriteString(fmt.Sprintf("ARG %s\n", arg))
-			}
-			for _, arg := range c.Config.Registry.BuildArgs {
-				b.WriteString(fmt.Sprintf("ENV %s=$%s\n", arg, arg))
-			}
-			b.WriteString("RUN npm run build   # or your build command\n")
-			b.WriteString("```\n\n")
-			b.WriteString("Without this, `pilot push --build-arg` will be passed but Vite/webpack will ignore it.\n")
-		}
-
-		b.WriteString("\nCall `pilot_generate_dockerfile` with the generated content.\n\n")
+		c.writeDockerfileSection(&b)
 	}
 
-	if c.MissingCompose {
-		b.WriteString(fmt.Sprintf("### docker-compose.%s.yml\n\n", c.ActiveEnv))
-		b.WriteString("A compose file is missing. Generate a **production-optimized** docker-compose file using these rules:\n\n")
-		b.WriteString("- **Named volumes** for all persistent data (databases, uploads)\n")
-		b.WriteString("- **Custom bridge network** — do not rely on the default network\n")
-		b.WriteString("- **Resource limits** (`mem_limit`, `cpus`) on every service\n")
-		b.WriteString("- **Restart policy**: `restart: unless-stopped` for all long-lived services\n")
-		b.WriteString("- **Health checks + ordered startup**: `healthcheck` blocks + `depends_on: condition: service_healthy`\n")
-
-		// Inject the env_file from pilot.yaml if declared for the active environment
-		if envCfg, ok := c.Config.Environments[c.ActiveEnv]; ok && envCfg.EnvFile != "" {
-			b.WriteString(fmt.Sprintf("- **env_file** (MANDATORY): add `env_file: [%s]` to every app service.\n", envCfg.EnvFile))
-			b.WriteString(fmt.Sprintf("  This is declared in pilot.yaml as `environments.%s.env_file`.\n", c.ActiveEnv))
-			b.WriteString("  Never hardcode secret values — they must come from this file.\n")
-		} else {
-			b.WriteString("- **No hardcoded secrets**: use `env_file: .env." + c.ActiveEnv + "` or `${VAR}` substitution\n")
-		}
-
-		// Vite/Node --mode alignment
-		if c.Stack == "node" {
-			b.WriteString(fmt.Sprintf("- **Vite/Node `--mode` flag**: the start command MUST include `--mode %s`\n", c.ActiveEnv))
-			b.WriteString(fmt.Sprintf("  e.g. `npx vite --host 0.0.0.0 --port 8080 --mode %s`\n", c.ActiveEnv))
-			b.WriteString("  Without `--mode`, Vite defaults to `.env.development` and ignores `.env." + c.ActiveEnv + "`.\n")
-		}
-
-		if c.ActiveEnv == "dev" {
-			b.WriteString("- **Dev mode**: `build: context` and source volume mounts for live reload are acceptable\n")
-		} else {
-			b.WriteString("- **Pre-built images only**: reference `image: <registry>/<name>:<tag>` — no `build:` blocks in non-dev compose\n")
-		}
-		b.WriteString("- **Logging limits**: `logging: driver: json-file` with `max-size: 10m, max-file: 3`\n")
-		b.WriteString("- **Pinned image tags**: never use `:latest` for external images\n")
-		b.WriteString("- **Service names**: use the exact names from the pilot.yaml `services:` section\n\n")
-		b.WriteString("Call `pilot_generate_compose` with the generated content.\n\n")
+	if len(c.MissingComposeEnvs) > 0 {
+		c.writeComposeSection(&b)
 	}
 
-	// Warn the agent about unconfigured deploy targets.
+	// ── Unconfigured targets warning ──────────────────────────────────────────
 	var unconfiguredTargets []string
 	for name, t := range c.Config.Targets {
 		if t.Host == "" {
 			unconfiguredTargets = append(unconfiguredTargets, name)
 		}
 	}
+	sort.Strings(unconfiguredTargets)
 	if len(unconfiguredTargets) > 0 {
 		b.WriteString("\n## ⚠ Unconfigured deploy targets\n\n")
 		b.WriteString("The following targets have no `host` set in pilot.yaml.\n")
@@ -264,7 +219,230 @@ func (c *ProjectContext) AgentPrompt() string {
 	return b.String()
 }
 
-// ──────────────────────── helpers ────────────────────────
+// ── Managed services section ──────────────────────────────────────────────────
+
+// writeManagedServicesSection emits the managed services table when at least
+// one service has hosting: managed. The agent MUST NOT generate compose blocks
+// for these — they connect via environment variables only.
+func (c *ProjectContext) writeManagedServicesSection(b *strings.Builder) {
+	managed := c.managedServices()
+	if len(managed) == 0 {
+		return
+	}
+
+	b.WriteString("## Managed external services\n\n")
+	b.WriteString("**CRITICAL** — the following services are hosted externally.\n")
+	b.WriteString("Do **NOT** generate a compose service block, volume, or healthcheck for them.\n")
+	b.WriteString("They connect via environment variables only.\n\n")
+
+	b.WriteString("| Service name | Type | Provider | Expected env vars |\n")
+	b.WriteString("|---|---|---|---|\n")
+	for _, entry := range managed {
+		envVarStr := strings.Join(entry.envVars, ", ")
+		if envVarStr == "" {
+			envVarStr = "—"
+		}
+		b.WriteString(fmt.Sprintf("| `%s` | %s | %s | `%s` |\n",
+			entry.name, entry.svcType, entry.provider, envVarStr))
+	}
+
+	b.WriteString("\n**Rules for managed services:**\n\n")
+	b.WriteString("1. Never add them to any `docker-compose.*.yml`.\n")
+	b.WriteString("2. The env vars listed above must be present in the `env_file` for each environment.\n")
+	b.WriteString("3. App services MUST declare `env_file` in the compose so these vars are injected at runtime.\n")
+	b.WriteString("4. Do not assume the service is on localhost — the connection URL comes from the env var.\n\n")
+}
+
+// managedServiceEntry holds resolved info about one managed service.
+type managedServiceEntry struct {
+	name     string
+	svcType  string
+	provider string
+	envVars  []string
+}
+
+// managedServices returns all services with hosting: managed, with their resolved
+// provider label and expected env vars from the catalog.
+func (c *ProjectContext) managedServices() []managedServiceEntry {
+	var entries []managedServiceEntry
+
+	// Sort by service name for deterministic output.
+	names := make([]string, 0, len(c.Config.Services))
+	for n := range c.Config.Services {
+		names = append(names, n)
+	}
+	sort.Strings(names)
+
+	for _, name := range names {
+		svc := c.Config.Services[name]
+		if svc.Hosting != config.HostingManaged {
+			continue
+		}
+
+		// Resolve provider label and env vars from the catalog.
+		providerLabel := svc.Provider
+		var envVars []string
+
+		if pDef, ok := catalog.GetProvider(svc.Type, svc.Provider); ok {
+			if pDef.Label != "" {
+				providerLabel = pDef.Label
+			}
+			envVars = pDef.EnvVars
+		}
+
+		// Fallback: use catalog env vars for the service type if provider unknown.
+		if len(envVars) == 0 {
+			envVars = catalog.EnvVarsFor(svc.Type, svc.Provider)
+		}
+
+		entries = append(entries, managedServiceEntry{
+			name:     name,
+			svcType:  svc.Type,
+			provider: providerLabel,
+			envVars:  envVars,
+		})
+	}
+	return entries
+}
+
+// ── Dockerfile section ────────────────────────────────────────────────────────
+
+func (c *ProjectContext) writeDockerfileSection(b *strings.Builder) {
+	b.WriteString("### Dockerfile\n\n")
+	b.WriteString("A Dockerfile is missing. Generate a **production-optimized** Dockerfile:\n\n")
+	b.WriteString("- **Multi-stage build**: builder stage (full SDK) → final stage (minimal image)\n")
+	b.WriteString("- **Minimal base image**: distroless/alpine/slim for the final stage\n")
+	b.WriteString("  - Go     → `golang:<ver>-alpine` builder / `gcr.io/distroless/static` final\n")
+	b.WriteString("  - Node   → `node:<ver>-alpine` builder / `node:<ver>-alpine` final (non-root)\n")
+	b.WriteString("  - Python → `python:<ver>-slim` for both stages\n")
+	b.WriteString("  - Rust   → `rust:<ver>-alpine` builder / `gcr.io/distroless/static` final\n")
+	b.WriteString("- **Non-root user**: create a dedicated user in the final stage\n")
+	b.WriteString("- **Layer caching**: copy dependency files first, then install, then copy source\n")
+	b.WriteString("- **Explicit WORKDIR**: e.g. `WORKDIR /app`\n")
+	b.WriteString("- **HEALTHCHECK**: HTTP or TCP probe appropriate for the stack\n")
+	b.WriteString("- **No secrets**: never COPY .env files into the image\n")
+	b.WriteString("- **Pinned tags**: no `:latest` base images\n\n")
+
+	// ARG/ENV rules — this is the fixed version of the previous bug.
+	c.writeBuildArgRules(b)
+
+	b.WriteString("Call `pilot_generate_dockerfile` with the generated content.\n\n")
+}
+
+// writeBuildArgRules emits the correct ARG/ENV instructions for build-time vars.
+//
+// BUG FIXED: the previous version told the agent to follow ARG with ENV VAR=$ARG.
+// That bakes an empty string into the image when --build-arg is not passed,
+// which silently breaks all runtime env injection (env_file, secrets).
+// The correct pattern is ARG only — the RUN command sees the ARG value directly.
+func (c *ProjectContext) writeBuildArgRules(b *strings.Builder) {
+	b.WriteString("**ARG vs ENV — build-time variables:**\n\n")
+	b.WriteString("Any variable needed only at build time (compile/bundle step) MUST be declared as `ARG` **only**.\n")
+	b.WriteString("**NEVER** follow a build-time `ARG` with `ENV VAR=$ARG`. Reason:\n\n")
+	b.WriteString("- Docker makes `ARG` values available as process env to every `RUN` command in the same stage.\n")
+	b.WriteString("  So `RUN npm run build`, `RUN go build`, `RUN cargo build` all see `ARG` values directly.\n")
+	b.WriteString("- If you also write `ENV VAR=$ARG`, Docker bakes the value (or `\"\"` when no `--build-arg` was\n")
+	b.WriteString("  passed) permanently into the image layer. That empty string then overrides every runtime\n")
+	b.WriteString("  source (env_file, .env files, secrets) because process env has the highest priority in\n")
+	b.WriteString("  every major framework (Vite, Next.js, CRA, SvelteKit, Django, Go, Rust, Python…).\n\n")
+	b.WriteString("✅ **CORRECT** — build-time only, nothing baked into the image:\n")
+	b.WriteString("```dockerfile\n")
+	b.WriteString("ARG NEXT_PUBLIC_API_URL\n")
+	b.WriteString("ARG VITE_APP_ENV\n")
+	b.WriteString("RUN npm run build   # ARG values are visible here as process env\n")
+	b.WriteString("```\n\n")
+	b.WriteString("❌ **WRONG** — bakes `\"\"` into the image, silently breaks all envs:\n")
+	b.WriteString("```dockerfile\n")
+	b.WriteString("ARG NEXT_PUBLIC_API_URL\n")
+	b.WriteString("ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL   # ← NEVER DO THIS\n")
+	b.WriteString("```\n\n")
+	b.WriteString("Exception: if a var is needed at container **runtime** (not build time),\n")
+	b.WriteString("declare it with `ENV` and a safe default, e.g. `ENV PORT=8080`.\n\n")
+
+	// If build_args are declared in pilot.yaml, list them explicitly.
+	if len(c.Config.Registry.BuildArgs) > 0 {
+		b.WriteString("**Build args declared in pilot.yaml** (declare as `ARG` only — no `ENV`):\n\n")
+		b.WriteString("```dockerfile\n")
+		for _, arg := range c.Config.Registry.BuildArgs {
+			b.WriteString(fmt.Sprintf("ARG %s\n", arg))
+		}
+		b.WriteString("RUN npm run build   # or your build command — ARGs are visible here\n")
+		b.WriteString("```\n\n")
+	}
+}
+
+// ── Compose section ───────────────────────────────────────────────────────────
+
+func (c *ProjectContext) writeComposeSection(b *strings.Builder) {
+	// If multiple envs are missing, ask the agent to generate all of them.
+	if len(c.MissingComposeEnvs) > 1 {
+		b.WriteString("### docker-compose files — all environments\n\n")
+		b.WriteString("The following compose files are **all missing**. Generate each one by calling\n")
+		b.WriteString("`pilot_generate_compose` once per environment:\n\n")
+		for _, env := range c.MissingComposeEnvs {
+			b.WriteString(fmt.Sprintf("- `docker-compose.%s.yml`  (env: `%s`)\n", env, env))
+		}
+		b.WriteString("\n")
+	} else {
+		env := c.MissingComposeEnvs[0]
+		b.WriteString(fmt.Sprintf("### docker-compose.%s.yml\n\n", env))
+	}
+
+	b.WriteString("Generate a **production-optimized** docker-compose file for each missing env.\n\n")
+
+	b.WriteString("**Rules:**\n\n")
+	b.WriteString("- **Named volumes** for all persistent data (databases, uploads)\n")
+	b.WriteString("- **Custom bridge network** — do not rely on the default network\n")
+	b.WriteString("- **Resource limits** (`mem_limit`, `cpus`) on every service\n")
+	b.WriteString("- **Restart policy**: `restart: unless-stopped` for all long-lived services\n")
+	b.WriteString("- **Health checks + ordered startup**: `healthcheck` blocks + `depends_on: condition: service_healthy`\n")
+
+	// Inject env_file hints for all configured environments.
+	c.writeEnvFileRules(b)
+
+	// Stack-specific commands.
+	if c.Stack == "node" {
+		b.WriteString("- **Node/Vite `--mode` flag**: the start command MUST include `--mode <env>`\n")
+		b.WriteString("  e.g. `npx vite --host 0.0.0.0 --port 8080 --mode dev`\n")
+		b.WriteString("  Without `--mode`, Vite defaults to `.env.development` and ignores `.env.<env>`.\n")
+	}
+
+	b.WriteString("- **Dev compose**: `build: context` + source mounts for live reload are acceptable\n")
+	b.WriteString("- **Non-dev compose**: pre-built images only — `image: <registry>/<name>:<tag>` — no `build:` blocks\n")
+	b.WriteString("- **Logging limits**: `logging: driver: json-file` with `max-size: 10m, max-file: 3`\n")
+	b.WriteString("- **Pinned image tags**: never use `:latest` for external images\n")
+	b.WriteString("- **Service names**: use the exact names from the pilot.yaml `services:` section\n\n")
+
+	// Remind agent about managed services.
+	if managed := c.managedServices(); len(managed) > 0 {
+		names := make([]string, 0, len(managed))
+		for _, m := range managed {
+			names = append(names, "`"+m.name+"`")
+		}
+		b.WriteString(fmt.Sprintf("**Reminder**: %s %s managed externally — skip them in the compose file entirely.\n",
+			strings.Join(names, ", "),
+			oneOrMany(len(names), "is", "are"),
+		))
+		b.WriteString("See the **Managed external services** section above.\n\n")
+	}
+
+	b.WriteString("Call `pilot_generate_compose` with the content and the `env` parameter set to the environment name.\n\n")
+}
+
+// writeEnvFileRules emits the env_file injection rules for all configured envs.
+func (c *ProjectContext) writeEnvFileRules(b *strings.Builder) {
+	b.WriteString("- **env_file (MANDATORY)**: add `env_file` to every app service — required for ALL stacks and ALL envs.\n")
+	b.WriteString("  Match the env_file to the environment:\n")
+	for _, envName := range sortedKeys(c.Config.Environments) {
+		envCfg := c.Config.Environments[envName]
+		if envCfg.EnvFile != "" {
+			b.WriteString(fmt.Sprintf("    - `%s` → `env_file: [%s]`\n", envName, envCfg.EnvFile))
+		}
+	}
+	b.WriteString("  Never hardcode secret values in the compose file.\n")
+}
+
+// ── helpers ───────────────────────────────────────────────────────────────────
 
 var skipDirs = map[string]bool{
 	".git": true, "node_modules": true, "vendor": true,
@@ -287,7 +465,7 @@ func buildFileTree(dir string, depth, maxDepth int) string {
 	for _, e := range entries {
 		name := e.Name()
 		if strings.HasPrefix(name, ".") && depth == 0 && name != ".env.example" {
-			continue // skip hidden at root except .env.example
+			continue
 		}
 		if skipDirs[name] {
 			continue
@@ -310,6 +488,7 @@ func scanKeyFiles(dir string) []string {
 		"go.mod", "go.sum", "package.json", "package-lock.json",
 		"Cargo.toml", "requirements.txt", "pyproject.toml",
 		"pom.xml", "build.gradle", "Makefile",
+		"prisma/schema.prisma", "drizzle.config.ts", "drizzle.config.js",
 	}
 	var found []string
 	for _, f := range candidates {
@@ -354,4 +533,20 @@ func hasCustomDockerfile(cfg *config.Config) bool {
 		}
 	}
 	return false
+}
+
+func sortedKeys(m map[string]config.Environment) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+func oneOrMany(n int, singular, plural string) string {
+	if n == 1 {
+		return singular
+	}
+	return plural
 }

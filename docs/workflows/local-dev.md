@@ -15,13 +15,15 @@ pilot init my-app
 Le wizard TUI démarre. Il te demande :
 
 1. **Nom du projet** (pré-rempli avec `my-app`)
-2. **Services** : multi-select : `app` (toujours présent), `postgres`, `redis`, `rabbitmq`, `nats`, `nginx`, `mongodb`, `mysql`
-3. **Environnements** : multi-select : `dev` (toujours présent), `staging`, `prod`, `test`
-4. **Target de déploiement** : `none`, `vps`, `k8s`, `aws`, `gcp`
-5. **Registry** : `ghcr`, `dockerhub`, `custom`, `none`
-6. **Confirmation** : résumé avant écriture
+2. **Services** : multi-select depuis le catalogue complet (`app`, `postgres`, `redis`, `rabbitmq`, `kafka`, `mongodb`, `storage`, `nginx`, `traefik`…)
+3. **Services managés** : pour chaque service pouvant être hébergé en externe, choix du mode (`container`, `managed`, `local-only`) et du fournisseur cloud (Neon, Supabase, Upstash, Cloudflare R2…). Si pilot trouve des indices dans tes `.env*` existants (ex: `neon.tech` dans `DATABASE_URL`), il pré-sélectionne automatiquement.
+4. **Environnements** : multi-select : `dev` (toujours présent), `staging`, `prod`, `test`
+5. **Target de déploiement** : `none`, `vps`, `k8s`, `aws`, `gcp`
+6. **Registry** : `ghcr`, `dockerhub`, `custom`, `none`
+7. **Credentials du registry** : si les variables requises (`GITHUB_TOKEN`, `DOCKER_USERNAME`…) ne sont pas dans l'environnement, pilot les demande maintenant (écrits dans `.env.local` mode 600, gitignored)
+8. **Confirmation** : résumé avant écriture : `n` annule sans modifier quoi que ce soit
 
-Résultat : `pilot.yaml` créé à la racine.
+Résultat : `pilot.yaml`, `.mcp.json`, `.env.example` créés à la racine.
 
 ### Initialiser dans un projet existant
 
@@ -61,7 +63,7 @@ Claude appelle automatiquement `pilot_context` pour obtenir le contexte, génèr
 
 **Ce que l'agent reçoit via `pilot_context` :**
 - Contenu complet de `pilot.yaml`
-- Arbre de fichiers du projet (3 niveaux)
+- Arbre de fichiers du projet (3 niveaux, bruit filtré)
 - Fichiers clés détectés (`go.mod`, `package.json`...)
 - Dockerfiles existants (avec leur contenu)
 - Liste précise de ce qui manque
@@ -95,8 +97,8 @@ pilot up
 
 1. `config.Load(".")` : cherche `pilot.yaml` dans le dossier courant, puis remonte
 2. `env.Active("")` : lit `.pilot-current-env` ou utilise `dev` par défaut
-3. `pilotctx.Collect(env)` : collecte le contexte (pour vérifier les fichiers manquants)
-4. Vérifie que `Dockerfile` existe (ou qu'un `dockerfile:` custom est défini)
+3. Collecte le contexte depuis `internal/mcp/context` (pour vérifier les fichiers manquants)
+4. Vérifie que `Dockerfile` existe
 5. Vérifie que `docker-compose.dev.yml` existe
 6. Si tout est OK : `docker compose -f docker-compose.dev.yml up -d`
 7. Affiche les URLs des services
@@ -137,6 +139,9 @@ pilot logs api --follow
 # Vérifier l'état des services
 pilot status
 
+# Comparer les environnements avant de déployer
+pilot env diff dev prod
+
 # Switcher d'environnement
 pilot env use staging
 pilot up               # Démarre l'environnement staging
@@ -157,12 +162,14 @@ pilot down --volumes   # Arrête ET supprime les volumes (données perdues)
 
 pilot ne gère pas les secrets en local : il utilise les fichiers `.env` standard.
 
-```bash
+```yaml
 # pilot.yaml
 environments:
   dev:
     env_file: .env.dev
+```
 
+```bash
 # .env.dev
 DATABASE_URL=postgresql://postgres:postgres@db:5432/dev_db
 SECRET_KEY=dev-secret-key-not-for-prod
@@ -176,8 +183,13 @@ Si `.env.dev` est absent au moment de `pilot up`, pilot affiche un avertissement
 
 | Fichier | Description |
 |---------|-------------|
-| `pilot.yaml` | Source de vérité du projet |
+| `pilot.yaml` | Source de vérité du projet : commiter |
+| `pilot.lock` | Plan de déploiement validé : commiter |
+| `.mcp.json` | Config agent AI : commiter |
+| `.env.example` | Variables requises documentées : commiter |
 | `docker-compose.<env>.yml` | Compose généré pour l'environnement `<env>` |
 | `Dockerfile` | Image de l'application (généré par l'agent AI) |
-| `.env.<env>` | Variables d'environnement locales (jamais commité) |
-| `.pilot-current-env` | Environnement actif persisté (committé ou non, selon préférence) |
+| `.env.<env>` | Variables d'environnement locales : **ne pas commiter** |
+| `.env.local` | Credentials de registry (créé par le wizard, mode 600) : **ne pas commiter** |
+| `.pilot-current-env` | Environnement actif persisté : **ne pas commiter** |
+| `.pilot/` | État runtime (compose-meta.json, suspended.json) : **ne pas commiter** |

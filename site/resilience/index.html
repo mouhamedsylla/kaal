@@ -6,17 +6,17 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Dev Environment as Code">
+        <meta name="description" content="Dev Environment as Code - de l'init au déploiement, sans friction.">
       
       
         <meta name="author" content="Mouhamed SYLLA">
       
       
       
-        <link rel="prev" href="../internals/providers/">
+        <link rel="prev" href="../architecture/">
       
       
-        <link rel="next" href="../troubleshooting/env-vars-empty-in-container/">
+        <link rel="next" href="../guide/getting-started/">
       
       
         
@@ -90,7 +90,9 @@
     
       
 
-<header class="md-header" data-md-component="header">
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href=".." title="pilot Documentation" class="md-header__button md-logo" aria-label="pilot Documentation" data-md-component="logo">
       
@@ -125,13 +127,21 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
     
   
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_1">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
     
   
 </form>
@@ -161,6 +171,11 @@
       </label>
       <nav class="md-search__options" aria-label="Search">
         
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
         <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
@@ -185,16 +200,22 @@
       
     
     
+      <div class="md-header__source">
+        <a href="https://github.com/mouhamedsylla/pilot" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    mouhamedsylla/pilot
+  </div>
+</a>
+      </div>
+    
   </nav>
   
-</header>
     
-    <div class="md-container" data-md-component="container">
       
-      
-        
-          
-            
 <nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
@@ -203,15 +224,17 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
+      <li class="md-tabs__item md-tabs__item--active">
         <a href=".." class="md-tabs__link">
           
   
   
-  Concept
+  Introduction
 
         </a>
       </li>
@@ -227,7 +250,27 @@
     
     
       <li class="md-tabs__item">
-        <a href="../commands/context/" class="md-tabs__link">
+        <a href="../guide/getting-started/" class="md-tabs__link">
+          
+  
+  
+  Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../commands/init/" class="md-tabs__link">
           
   
   
@@ -247,7 +290,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../workflows/ai-agent/" class="md-tabs__link">
+        <a href="../workflows/local-dev/" class="md-tabs__link">
           
   
   
@@ -263,12 +306,30 @@
   
   
   
+  
     
+    
+      <li class="md-tabs__item">
+        <a href="../reference/pilot-yaml/" class="md-tabs__link">
+          
+  
+  
+  Référence
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
   
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
+      <li class="md-tabs__item">
         <a href="../internals/context-engine/" class="md-tabs__link">
           
   
@@ -289,7 +350,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../troubleshooting/env-vars-empty-in-container/" class="md-tabs__link">
+        <a href="../troubleshooting/stale-compose/" class="md-tabs__link">
           
   
   
@@ -304,7 +365,13 @@
     </ul>
   </div>
 </nav>
-          
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
         
       
       <main class="md-main" data-md-component="main">
@@ -332,39 +399,56 @@
     pilot Documentation
   </label>
   
+    <div class="md-nav__source">
+      <a href="https://github.com/mouhamedsylla/pilot" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    mouhamedsylla/pilot
+  </div>
+</a>
+    </div>
+  
   <ul class="md-nav__list" data-md-scrollfix>
     
       
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
         
           
-          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
     
   
-    Concept
+    Introduction
   
 
     
@@ -375,12 +459,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_1">
             <span class="md-nav__icon md-icon"></span>
             
   
-    Concept
+    Introduction
   
 
           </label>
@@ -401,34 +485,6 @@
     
   
     Accueil
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../architecture/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Architecture
   
 
     
@@ -477,784 +533,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../pilot-yaml/" class="md-nav__link">
+      <a href="../architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    pilot.yaml
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
-        
-          
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Commandes CLI
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Commandes CLI
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../commands/context/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    context
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../commands/deploy/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    deploy
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../commands/env/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    env
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../commands/history/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    history
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../commands/logs/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    logs
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../commands/mcp/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    mcp
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../commands/preflight/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    preflight
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../commands/push/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    push
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../commands/rollback/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    rollback
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../commands/setup/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    setup
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../commands/status/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    status
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../commands/sync/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    sync
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../commands/up-down/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    up / down
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
-        
-          
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Workflows
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Workflows
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../workflows/ai-agent/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    AI Agent
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../workflows/ci-cd/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    CI/CD
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../workflows/deploy-vps/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Déploiement VPS
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../workflows/local-dev/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Dév Local
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-    
-  
-  
-  
-    
-    
-    
-    
-      
-        
-        
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
-        
-          
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Internes
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_4">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Internes
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../internals/context-engine/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Moteur de context
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../internals/mcp-server/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Serveur MCP
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../internals/orchestrators/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Orchestrateurs
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../internals/providers/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Fournisseurs (Providers)
+    Architecture
   
 
     
@@ -1422,12 +708,12 @@
   <a href="#13-pilotlock-linference-validee-une-fois-pour-toutes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1.3 pilot.lock — l'inférence validée une fois pour toutes
+        1.3 pilot.lock : l'inférence validée une fois pour toutes
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="1.3 pilot.lock — l&#39;inférence validée une fois pour toutes">
+    <nav class="md-nav" aria-label="1.3 pilot.lock : l&#39;inférence validée une fois pour toutes">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1906,7 +1192,7 @@
   <a href="#pilot-validate-analyse-statique-offline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        pilot validate — analyse statique offline
+        pilot validate : analyse statique offline
       
     </span>
   </a>
@@ -1917,7 +1203,7 @@
   <a href="#pilot-env-diff-env1-env2-parite-entre-environnements" class="md-nav__link">
     <span class="md-ellipsis">
       
-        pilot env diff &lt;env1&gt; &lt;env2&gt; — parité entre environnements
+        pilot env diff &lt;env1&gt; &lt;env2&gt; : parité entre environnements
       
     </span>
   </a>
@@ -1928,7 +1214,7 @@
   <a href="#pilot-secrets-check-env-env-valider-sans-exposer" class="md-nav__link">
     <span class="md-ellipsis">
       
-        pilot secrets check [--env &lt;env&gt;] — valider sans exposer
+        pilot secrets check [--env &lt;env&gt;] : valider sans exposer
       
     </span>
   </a>
@@ -1950,7 +1236,7 @@
   <a href="#pilot-clean-nettoyage-cible-du-projet" class="md-nav__link">
     <span class="md-ellipsis">
       
-        pilot clean — nettoyage ciblé du projet
+        pilot clean : nettoyage ciblé du projet
       
     </span>
   </a>
@@ -1961,7 +1247,7 @@
   <a href="#pilot-env-push-env-env-mettre-a-jour-les-vars-sans-redeployer" class="md-nav__link">
     <span class="md-ellipsis">
       
-        pilot env push [--env &lt;env&gt;] — mettre à jour les vars sans redéployer
+        pilot env push [--env &lt;env&gt;] : mettre à jour les vars sans redéployer
       
     </span>
   </a>
@@ -1972,7 +1258,7 @@
   <a href="#pilot-init-adopt-adopter-un-projet-existant" class="md-nav__link">
     <span class="md-ellipsis">
       
-        pilot init --adopt — adopter un projet existant
+        pilot init --adopt : adopter un projet existant
       
     </span>
   </a>
@@ -2000,7 +1286,7 @@
   <a href="#pilot_config_get-pilot_config_set-outils-mcp" class="md-nav__link">
     <span class="md-ellipsis">
       
-        pilot_config_get / pilot_config_set — outils MCP
+        pilot_config_get / pilot_config_set : outils MCP
       
     </span>
   </a>
@@ -2011,7 +1297,7 @@
   <a href="#pilot_generate_k8s-outil-mcp" class="md-nav__link">
     <span class="md-ellipsis">
       
-        pilot_generate_k8s — outil MCP
+        pilot_generate_k8s : outil MCP
       
     </span>
   </a>
@@ -2114,10 +1400,1173 @@
       
         
         
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pour commencer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/adding-services/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ajouter des services
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Commandes CLI
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Commandes CLI
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/init/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    init
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/add/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    add
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/env/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    env
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/up-down/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    up / down
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/push/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    push
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    plan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/preflight/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    preflight
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/deploy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    deploy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/status/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    status
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/history/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    history
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/rollback/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    rollback
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/logs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    logs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/sync/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sync
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/secrets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    secrets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/diagnose/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    diagnose
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/resume/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    resume
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/update/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    update
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    context
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/mcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    mcp
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Workflows
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Workflows
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../workflows/local-dev/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dév Local
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../workflows/ai-agent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI Agent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../workflows/ci-cd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CI/CD
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../workflows/deploy-vps/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Déploiement VPS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
         
           
           <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Référence
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Référence
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/pilot-yaml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pilot.yaml
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Internes
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Internes
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../internals/context-engine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Moteur de context
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../internals/orchestrators/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Orchestrateurs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../internals/providers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fournisseurs (Providers)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../internals/mcp-server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Serveur MCP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
             
   
   
@@ -2135,8 +2584,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -2145,6 +2594,34 @@
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/stale-compose/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diagnostic Compose
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -2295,12 +2772,12 @@
   <a href="#13-pilotlock-linference-validee-une-fois-pour-toutes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1.3 pilot.lock — l'inférence validée une fois pour toutes
+        1.3 pilot.lock : l'inférence validée une fois pour toutes
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="1.3 pilot.lock — l&#39;inférence validée une fois pour toutes">
+    <nav class="md-nav" aria-label="1.3 pilot.lock : l&#39;inférence validée une fois pour toutes">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2779,7 +3256,7 @@
   <a href="#pilot-validate-analyse-statique-offline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        pilot validate — analyse statique offline
+        pilot validate : analyse statique offline
       
     </span>
   </a>
@@ -2790,7 +3267,7 @@
   <a href="#pilot-env-diff-env1-env2-parite-entre-environnements" class="md-nav__link">
     <span class="md-ellipsis">
       
-        pilot env diff &lt;env1&gt; &lt;env2&gt; — parité entre environnements
+        pilot env diff &lt;env1&gt; &lt;env2&gt; : parité entre environnements
       
     </span>
   </a>
@@ -2801,7 +3278,7 @@
   <a href="#pilot-secrets-check-env-env-valider-sans-exposer" class="md-nav__link">
     <span class="md-ellipsis">
       
-        pilot secrets check [--env &lt;env&gt;] — valider sans exposer
+        pilot secrets check [--env &lt;env&gt;] : valider sans exposer
       
     </span>
   </a>
@@ -2823,7 +3300,7 @@
   <a href="#pilot-clean-nettoyage-cible-du-projet" class="md-nav__link">
     <span class="md-ellipsis">
       
-        pilot clean — nettoyage ciblé du projet
+        pilot clean : nettoyage ciblé du projet
       
     </span>
   </a>
@@ -2834,7 +3311,7 @@
   <a href="#pilot-env-push-env-env-mettre-a-jour-les-vars-sans-redeployer" class="md-nav__link">
     <span class="md-ellipsis">
       
-        pilot env push [--env &lt;env&gt;] — mettre à jour les vars sans redéployer
+        pilot env push [--env &lt;env&gt;] : mettre à jour les vars sans redéployer
       
     </span>
   </a>
@@ -2845,7 +3322,7 @@
   <a href="#pilot-init-adopt-adopter-un-projet-existant" class="md-nav__link">
     <span class="md-ellipsis">
       
-        pilot init --adopt — adopter un projet existant
+        pilot init --adopt : adopter un projet existant
       
     </span>
   </a>
@@ -2873,7 +3350,7 @@
   <a href="#pilot_config_get-pilot_config_set-outils-mcp" class="md-nav__link">
     <span class="md-ellipsis">
       
-        pilot_config_get / pilot_config_set — outils MCP
+        pilot_config_get / pilot_config_set : outils MCP
       
     </span>
   </a>
@@ -2884,7 +3361,7 @@
   <a href="#pilot_generate_k8s-outil-mcp" class="md-nav__link">
     <span class="md-ellipsis">
       
-        pilot_generate_k8s — outil MCP
+        pilot_generate_k8s : outil MCP
       
     </span>
   </a>
@@ -2967,17 +3444,20 @@
                   
 
 
+  
+  
+
 
 <h1 id="pilot-modele-de-resilience">pilot : Modèle de résilience</h1>
 <blockquote>
-<p><strong>Document de référence — architecture et vision du modèle de résilience</strong></p>
+<p><strong>Document de référence : architecture et vision du modèle de résilience</strong></p>
 </blockquote>
 <hr />
 <h2 id="contexte-quest-ce-que-pilot">Contexte : qu'est-ce que pilot ?</h2>
 <p><strong>pilot</strong> est un CLI terminal-first, opinionated et IA-natif qui accompagne le développeur
 de l'initialisation d'un projet jusqu'au déploiement en production.</p>
-<p>Sa promesse centrale : <strong>ce qui tourne en local tourne en production pour tout ce que pilot contrôle — les divergences hors périmètre sont rendues visibles avant le déploiement.</strong></p>
-<p>pilot cible en priorité les <em>vibe coders</em> — des développeurs qui codent avec ou sans agent IA,
+<p>Sa promesse centrale : <strong>ce qui tourne en local tourne en production pour tout ce que pilot contrôle : les divergences hors périmètre sont rendues visibles avant le déploiement.</strong></p>
+<p>pilot cible en priorité les <em>vibe coders</em> : des développeurs qui codent avec ou sans agent IA,
 qui ne maîtrisent pas nécessairement les rouages du DevOps, et qui ont besoin qu'un outil
 pense à leur place pour tout ce qui concerne l'infrastructure, les environnements et le déploiement.
 Il s'adresse aussi aux développeurs confirmés qui veulent aller vite sans sacrifier la robustesse.</p>
@@ -2992,15 +3472,15 @@ Il s'adresse aussi aux développeurs confirmés qui veulent aller vite sans sacr
 Mais le monde réel est chaotique : ports occupés, variables manquantes, migrations qui échouent,
 clés SSH mal configurées, images cassées, containers qui crashent au démarrage.</p>
 <p>Le problème actuel : quand pilot échoue, il sort une erreur. L'utilisateur ne sait pas toujours
-quoi faire. L'agent IA, lui, commence à improviser des commandes dans tous les sens —
+quoi faire. L'agent IA, lui, commence à improviser des commandes dans tous les sens -
 ce qui empire souvent la situation.</p>
 <p><strong>Ce qu'on cherche à construire</strong> : un pilot qui ne laisse jamais l'utilisateur ni l'agent
-dans un état ambigu. Chaque échec est diagnostiqué, classé, et résolu — automatiquement
+dans un état ambigu. Chaque échec est diagnostiqué, classé, et résolu : automatiquement
 si possible, avec des instructions exactes sinon. pilot doit être le seul interlocuteur
 fiable entre l'humain ou l'agent et le système, quelle que soit la complexité du projet
 ou le chaos de l'environnement.</p>
 <p>Ce document décrit le modèle qui rend ça possible : comment les opérations sont planifiées,
-exécutées, réparées et compensées — sans que l'utilisateur ni l'agent n'aient à comprendre
+exécutées, réparées et compensées : sans que l'utilisateur ni l'agent n'aient à comprendre
 la mécanique sous-jacente.</p>
 <hr />
 <h2 id="principe-directeur">Principe directeur</h2>
@@ -3044,7 +3524,7 @@ entièrement par pilot.</p>
 <strong>Les divergences hors périmètre sont rendues visibles avant le déploiement."</strong></p>
 </blockquote>
 <p>Docker ne résout pas tout. ARM vs x86, volumes locaux vs stockage distant, ressources
-disponibles, DNS interne vs externe — ces divergences existent et pilot ne peut pas
+disponibles, DNS interne vs externe : ces divergences existent et pilot ne peut pas
 toutes les effacer. Ce qu'il peut faire, c'est les rendre <strong>prévisibles et visibles</strong>
 plutôt que silencieuses.</p>
 <p><code>pilot env diff dev prod</code> (voir section 11) est l'outil qui matérialise cette promesse :
@@ -3074,82 +3554,82 @@ et de la précision du dynamique. Ils ne voient que le résultat.</p>
 <hr />
 <h3 id="12-le-squelette-dexecution-universel">1.2 Le squelette d'exécution universel</h3>
 <p>Toute opération complexe de pilot suit ce squelette, dans cet ordre invariable :</p>
-<div class="highlight"><pre><span></span><code>┌─────────────────────────────────────────────────────────────────┐
-│                     SQUELETTE D&#39;EXÉCUTION                       │
-│                                                                 │
-│  [1] PREFLIGHT          vérification exhaustive avant tout      │
-│       │                                                         │
-│  [2] PRE-HOOKS          actions configurées à exécuter avant    │  (optionnel)
-│       │                                                         │
-│  [3] MIGRATIONS         évolution du schéma de données          │  (optionnel)
-│       │                                                         │
-│  [4] BUILD / PUSH       construction et publication de l&#39;image  │  (si applicable)
-│       │                                                         │
-│  [5] DEPLOY             mise en place du nouvel état cible      │
-│       │                                                         │
-│  [6] POST-HOOKS         actions configurées à exécuter après    │  (optionnel)
-│       │                                                         │
-│  [7] HEALTHCHECK        validation que l&#39;état cible est sain    │
-│                                                                 │
-│  Si échec en [3..7] → PLAN DE COMPENSATION (ordre inverse)      │
-└─────────────────────────────────────────────────────────────────┘
-</code></pre></div>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌─────────────────────────────────────────────────────────────────┐
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│                     SQUELETTE D&#39;EXÉCUTION                       │
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│                                                                 │
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│  [1] PREFLIGHT          vérification exhaustive avant tout      │
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│       │                                                         │
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│  [2] PRE-HOOKS          actions configurées à exécuter avant    │  (optionnel)
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│       │                                                         │
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│  [3] MIGRATIONS         évolution du schéma de données          │  (optionnel)
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│       │                                                         │
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│  [4] BUILD / PUSH       construction et publication de l&#39;image  │  (si applicable)
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│       │                                                         │
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│  [5] DEPLOY             mise en place du nouvel état cible      │
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│       │                                                         │
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│  [6] POST-HOOKS         actions configurées à exécuter après    │  (optionnel)
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│       │                                                         │
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│  [7] HEALTHCHECK        validation que l&#39;état cible est sain    │
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│                                                                 │
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│  Si échec en [3..7] → PLAN DE COMPENSATION (ordre inverse)      │
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>└─────────────────────────────────────────────────────────────────┘
+</span></code></pre></div>
 <p>Les nœuds entre crochets <code>[ ]</code> sont <strong>activés ou désactivés</strong> selon ce que pilot
 détecte dans le projet et dans <code>pilot.yaml</code>. Un nœud désactivé est skip silencieusement.</p>
 <p>Exemples selon les projets :</p>
-<div class="highlight"><pre><span></span><code>App Node.js simple, pas de DB :
-  [1] preflight → [5] deploy → [7] healthcheck
-
-App Python + Postgres + migrations Alembic :
-  [1] preflight → [3] migrations(alembic) → [4] push → [5] deploy → [7] healthcheck
-
-App avec nginx et reload nécessaire :
-  [1] preflight → [4] push → [5] deploy → [6] nginx-reload → [7] healthcheck
-
-Monorepo, 2 services interdépendants :
-  [1] preflight → [3] migrations(api) →
-    service-api  : [4] push → [5] deploy → [7] health ─┐
-    service-worker (attend api.healthy) : ──────────────▶ [4] push → [5] deploy → [7] health
-</code></pre></div>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>App Node.js simple, pas de DB :
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  [1] preflight → [5] deploy → [7] healthcheck
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>App Python + Postgres + migrations Alembic :
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  [1] preflight → [3] migrations(alembic) → [4] push → [5] deploy → [7] healthcheck
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>App avec nginx et reload nécessaire :
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>  [1] preflight → [4] push → [5] deploy → [6] nginx-reload → [7] healthcheck
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>Monorepo, 2 services interdépendants :
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>  [1] preflight → [3] migrations(api) →
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>    service-api  : [4] push → [5] deploy → [7] health ─┐
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>    service-worker (attend api.healthy) : ──────────────▶ [4] push → [5] deploy → [7] health
+</span></code></pre></div>
 <p>La forme est toujours reconnaissable. Ce qui change c'est ce qui s'active.</p>
 <hr />
-<h3 id="13-pilotlock-linference-validee-une-fois-pour-toutes">1.3 <code>pilot.lock</code> — l'inférence validée une fois pour toutes</h3>
+<h3 id="13-pilotlock-linference-validee-une-fois-pour-toutes">1.3 <code>pilot.lock</code> : l'inférence validée une fois pour toutes</h3>
 <p>L'inférence dynamique à chaque exécution est une bombe à retardement : un projet qui évolue
 silencieusement change le comportement de pilot sans que personne ne le voie. La solution n'est
-pas d'inférer mieux à chaque fois — c'est d'<strong>inférer une fois, valider, verrouiller</strong>.</p>
+pas d'inférer mieux à chaque fois : c'est d'<strong>inférer une fois, valider, verrouiller</strong>.</p>
 <h4 id="fonctionnement">Fonctionnement</h4>
 <p>Au premier <code>pilot preflight</code>, pilot analyse le projet et produit un fichier <code>pilot.lock</code> :</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># pilot.lock — généré automatiquement, à committer dans le repo</span>
-<span class="c1"># NE PAS MODIFIER MANUELLEMENT — relancer pilot preflight pour régénérer</span>
-
-<span class="nt">schema_version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
-<span class="nt">generated_at</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;2026-04-03T10:00:00Z&quot;</span>
-<span class="nt">generated_from</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prisma/schema.prisma</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker-compose.prod.yml</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pilot.yaml</span>
-
-<span class="nt">execution_plan</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">nodes_active</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">preflight</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">migrations</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">push</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">deploy</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">healthcheck</span><span class="p p-Indicator">]</span>
-
-<span class="w">  </span><span class="nt">migrations</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">tool</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prisma</span>
-<span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">npx prisma migrate deploy</span>
-<span class="w">    </span><span class="nt">rollback_command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">npx prisma migrate rollback</span>
-<span class="w">    </span><span class="nt">reversible</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">                        </span><span class="c1"># déclaré explicitement, pas de défaut</span>
-<span class="w">    </span><span class="nt">detected_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prisma/schema.prisma</span>
-
-<span class="w">  </span><span class="nt">service_order</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">db</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">redis</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">api</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">worker</span><span class="p p-Indicator">]</span><span class="w">    </span><span class="c1"># résolu depuis depends_on</span>
-<span class="w">  </span><span class="nt">readiness_signals</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">api</span><span class="p">:</span><span class="w">    </span><span class="p p-Indicator">{</span><span class="nt"> type</span><span class="p">:</span><span class="w"> </span><span class="nv">healthcheck</span><span class="p p-Indicator">,</span><span class="nt"> endpoint</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;http://localhost:8080/health&quot;</span><span class="w"> </span><span class="p p-Indicator">}</span>
-<span class="w">    </span><span class="nt">worker</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> type</span><span class="p">:</span><span class="w"> </span><span class="nv">healthcheck</span><span class="p p-Indicator">,</span><span class="nt"> endpoint</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;http://localhost:9000/health&quot;</span><span class="w"> </span><span class="p p-Indicator">}</span>
-<span class="w">    </span><span class="nt">db</span><span class="p">:</span><span class="w">     </span><span class="p p-Indicator">{</span><span class="nt"> type</span><span class="p">:</span><span class="w"> </span><span class="nv">healthcheck</span><span class="p p-Indicator">,</span><span class="nt"> command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;pg_isready&quot;</span><span class="w"> </span><span class="p p-Indicator">}</span>
-
-<span class="nt">execution_provider</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compose</span><span class="w">                  </span><span class="c1"># docker-compose (v1 default)</span>
-</code></pre></div>
-<p>L'utilisateur <strong>valide ce fichier une fois</strong> — il reflète exactement ce que pilot va faire.
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># pilot.lock : généré automatiquement, à committer dans le repo</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1"># NE PAS MODIFIER MANUELLEMENT : relancer pilot preflight pour régénérer</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="nt">schema_version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="nt">generated_at</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;2026-04-03T10:00:00Z&quot;</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="nt">generated_from</span><span class="p">:</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prisma/schema.prisma</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker-compose.prod.yml</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pilot.yaml</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="nt">execution_plan</span><span class="p">:</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">  </span><span class="nt">nodes_active</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">preflight</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">migrations</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">push</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">deploy</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">healthcheck</span><span class="p p-Indicator">]</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">  </span><span class="nt">migrations</span><span class="p">:</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">    </span><span class="nt">tool</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prisma</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">npx prisma migrate deploy</span>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">    </span><span class="nt">rollback_command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">npx prisma migrate rollback</span>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">    </span><span class="nt">reversible</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">                        </span><span class="c1"># déclaré explicitement, pas de défaut</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">    </span><span class="nt">detected_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prisma/schema.prisma</span>
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">  </span><span class="nt">service_order</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">db</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">redis</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">api</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">worker</span><span class="p p-Indicator">]</span><span class="w">    </span><span class="c1"># résolu depuis depends_on</span>
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="w">  </span><span class="nt">readiness_signals</span><span class="p">:</span>
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="w">    </span><span class="nt">api</span><span class="p">:</span><span class="w">    </span><span class="p p-Indicator">{</span><span class="nt"> type</span><span class="p">:</span><span class="w"> </span><span class="nv">healthcheck</span><span class="p p-Indicator">,</span><span class="nt"> endpoint</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;http://localhost:8080/health&quot;</span><span class="w"> </span><span class="p p-Indicator">}</span>
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="w">    </span><span class="nt">worker</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> type</span><span class="p">:</span><span class="w"> </span><span class="nv">healthcheck</span><span class="p p-Indicator">,</span><span class="nt"> endpoint</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;http://localhost:9000/health&quot;</span><span class="w"> </span><span class="p p-Indicator">}</span>
+</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="w">    </span><span class="nt">db</span><span class="p">:</span><span class="w">     </span><span class="p p-Indicator">{</span><span class="nt"> type</span><span class="p">:</span><span class="w"> </span><span class="nv">healthcheck</span><span class="p p-Indicator">,</span><span class="nt"> command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;pg_isready&quot;</span><span class="w"> </span><span class="p p-Indicator">}</span>
+</span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a>
+</span><span id="__span-2-27"><a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="nt">execution_provider</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compose</span><span class="w">                  </span><span class="c1"># docker-compose (v1 default)</span>
+</span></code></pre></div>
+<p>L'utilisateur <strong>valide ce fichier une fois</strong> : il reflète exactement ce que pilot va faire.
 Il est commité dans le repo. pilot s'y réfère pour toutes les exécutions suivantes.
-<strong>Ce qui tourne en production, c'est ce que l'équipe a validé — pas ce que pilot a inféré ce matin.</strong></p>
+<strong>Ce qui tourne en production, c'est ce que l'équipe a validé : pas ce que pilot a inféré ce matin.</strong></p>
 <h4 id="gestion-de-la-fraicheur">Gestion de la fraîcheur</h4>
 <p><code>pilot.lock</code> devient <strong>stale</strong> quand les signaux qui l'ont produit changent :
 - nouveau fichier de migration détecté
@@ -3157,14 +3637,14 @@ Il est commité dans le repo. pilot s'y réfère pour toutes les exécutions sui
 - <code>pilot.yaml</code> modifié
 - Dockerfile modifié (changement de stage de build)</p>
 <p>Quand pilot détecte un lock stale :
-<div class="highlight"><pre><span></span><code>  ✗  pilot.lock est obsolète
-     Changements détectés depuis la dernière validation :
-       → prisma/schema.prisma modifié (nouvelle migration)
-
-  Relancez pilot preflight pour régénérer et valider le plan.
-</code></pre></div></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>  ✗  pilot.lock est obsolète
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>     Changements détectés depuis la dernière validation :
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>       → prisma/schema.prisma modifié (nouvelle migration)
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>  Relancez pilot preflight pour régénérer et valider le plan.
+</span></code></pre></div></p>
 <p>pilot <strong>refuse de continuer</strong> tant que le lock n'est pas à jour.
-L'agent ne peut pas ignorer cette erreur — elle est BLOCKING.</p>
+L'agent ne peut pas ignorer cette erreur : elle est BLOCKING.</p>
 <h4 id="inference-graduee-pour-la-generation-du-lock">Inférence graduée (pour la génération du lock)</h4>
 <p>Lors de la génération du lock, l'inférence reste graduée :</p>
 <table>
@@ -3207,36 +3687,36 @@ L'agent ne peut pas ignorer cette erreur — elle est BLOCKING.</p>
 <hr />
 <h3 id="14-linterface-du-provider-dexecution">1.4 L'interface du provider d'exécution</h3>
 <p>pilot ne parle jamais à Docker directement dans son core. Il parle à une interface
-abstraite — le <strong>provider d'exécution</strong> — dont Docker/Compose est la première implémentation.</p>
+abstraite : le <strong>provider d'exécution</strong> : dont Docker/Compose est la première implémentation.</p>
 <h4 id="pourquoi-cette-abstraction-des-le-depart">Pourquoi cette abstraction dès le départ</h4>
 <p>Si le core de pilot appelle des commandes Docker directement, ajouter Podman ou systemd
 plus tard nécessite une réécriture. L'interface doit exister en v1, même si une seule
 implémentation concrète existe. C'est la condition pour que pilot soit extensible
 sans dette technique accumulée.</p>
 <h4 id="le-contrat-du-provider">Le contrat du provider</h4>
-<div class="highlight"><pre><span></span><code><span class="kd">type</span><span class="w"> </span><span class="nx">ExecutionProvider</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="c1">// Build construit l&#39;image depuis le contexte du projet.</span>
-<span class="w">    </span><span class="nx">Build</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="nx">BuildOptions</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
-
-<span class="w">    </span><span class="c1">// Push publie l&#39;image vers le registry.</span>
-<span class="w">    </span><span class="nx">Push</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="nx">PushOptions</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
-
-<span class="w">    </span><span class="c1">// Deploy déploie les services sur la cible.</span>
-<span class="w">    </span><span class="nx">Deploy</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="nx">DeployOptions</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
-
-<span class="w">    </span><span class="c1">// Health vérifie que les services sont prêts (readiness, pas juste started).</span>
-<span class="w">    </span><span class="nx">Health</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="nx">HealthOptions</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">HealthStatus</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
-
-<span class="w">    </span><span class="c1">// Stop arrête les services proprement.</span>
-<span class="w">    </span><span class="nx">Stop</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="nx">StopOptions</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
-
-<span class="w">    </span><span class="c1">// Rollback restaure l&#39;état précédent des services.</span>
-<span class="w">    </span><span class="nx">Rollback</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="nx">RollbackOptions</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
-
-<span class="w">    </span><span class="c1">// Logs retourne un flux de logs d&#39;un service.</span>
-<span class="w">    </span><span class="nx">Logs</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="nx">LogOptions</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">&lt;-</span><span class="kd">chan</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
-<span class="p">}</span>
-</code></pre></div>
+<div class="language-go highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kd">type</span><span class="w"> </span><span class="nx">ExecutionProvider</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="c1">// Build construit l&#39;image depuis le contexte du projet.</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nx">Build</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="nx">BuildOptions</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span><span class="c1">// Push publie l&#39;image vers le registry.</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="nx">Push</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="nx">PushOptions</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">    </span><span class="c1">// Deploy déploie les services sur la cible.</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">    </span><span class="nx">Deploy</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="nx">DeployOptions</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">    </span><span class="c1">// Health vérifie que les services sont prêts (readiness, pas juste started).</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">    </span><span class="nx">Health</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="nx">HealthOptions</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">HealthStatus</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">    </span><span class="c1">// Stop arrête les services proprement.</span>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">    </span><span class="nx">Stop</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="nx">StopOptions</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="w">    </span><span class="c1">// Rollback restaure l&#39;état précédent des services.</span>
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="w">    </span><span class="nx">Rollback</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="nx">RollbackOptions</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span>
+</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>
+</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="w">    </span><span class="c1">// Logs retourne un flux de logs d&#39;un service.</span>
+</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="w">    </span><span class="nx">Logs</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="nx">LogOptions</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">&lt;-</span><span class="kd">chan</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span>
+</span><span id="__span-4-22"><a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="p">}</span>
+</span></code></pre></div>
 <h4 id="providers-prevus">Providers prévus</h4>
 <table>
 <thead>
@@ -3250,7 +3730,7 @@ sans dette technique accumulée.</p>
 <tr>
 <td><code>compose</code></td>
 <td>Docker Compose local + VPS</td>
-<td><strong>v1 — implémenté</strong></td>
+<td><strong>v1 : implémenté</strong></td>
 </tr>
 <tr>
 <td><code>systemd</code></td>
@@ -3265,37 +3745,37 @@ sans dette technique accumulée.</p>
 <tr>
 <td><code>k8s</code></td>
 <td>Kubernetes</td>
-<td>futur — après validation VPS</td>
+<td>futur : après validation VPS</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Ce que ça change pour <code>pilot.yaml</code></strong> : rien pour l'utilisateur.
 Le provider est résolu depuis le type de target et le lock, pas exposé dans la config.</p>
 <p><strong>Ce que <code>pilot.lock</code> indique :</strong>
-<div class="highlight"><pre><span></span><code><span class="nt">execution_provider</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compose</span><span class="w">    </span><span class="c1"># résolu automatiquement, peut être surchargé</span>
-</code></pre></div></p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">execution_provider</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compose</span><span class="w">    </span><span class="c1"># résolu automatiquement, peut être surchargé</span>
+</span></code></pre></div></p>
 <hr />
 <h3 id="15-multi-services-et-dependances">1.5 Multi-services et dépendances</h3>
 <p>Quand un projet a plusieurs services, pilot résout l'ordre de déploiement
 depuis les déclarations <code>depends_on</code> du fichier compose, au moment de la génération
 du <code>pilot.lock</code>. L'utilisateur n'a pas à gérer ça dans <code>pilot.yaml</code> : il le déclare déjà dans compose.</p>
-<div class="highlight"><pre><span></span><code># docker-compose.prod.yml  ← pilot lit ça
-services:
-  api:
-    depends_on: [db]
-    healthcheck:
-      test: [&quot;CMD&quot;, &quot;curl&quot;, &quot;-f&quot;, &quot;http://localhost:8080/health&quot;]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-  worker:
-    depends_on: [api, redis]
-  db: ...
-  redis: ...
-
-# pilot en déduit l&#39;ordre de lancement :
-# db → redis → api → worker
-</code></pre></div>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a># docker-compose.prod.yml  ← pilot lit ça
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>services:
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>  api:
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>    depends_on: [db]
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>    healthcheck:
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>      test: [&quot;CMD&quot;, &quot;curl&quot;, &quot;-f&quot;, &quot;http://localhost:8080/health&quot;]
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>      interval: 5s
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>      timeout: 3s
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>      retries: 10
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>  worker:
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>    depends_on: [api, redis]
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>  db: ...
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>  redis: ...
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a># pilot en déduit l&#39;ordre de lancement :
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a># db → redis → api → worker
+</span></code></pre></div>
 <p><strong>Important : <code>depends_on</code> ≠ readiness.</strong></p>
 <p>Docker lui-même le reconnaît : <code>depends_on</code> garantit l'ordre de démarrage,
 pas que le service précédent est prêt à recevoir des requêtes.</p>
@@ -3331,7 +3811,7 @@ de répondre à la question : <em>si ça échoue plus tard, que peut-on défaire
 <h3 id="21-perimetre-de-la-compensation">2.1 Périmètre de la compensation</h3>
 <blockquote>
 <p><strong>pilot restaure un état opérationnel cohérent pour les composants qu'il contrôle.</strong>
-Il ne promet pas de rétablir l'état exact du monde — certains effets externes
+Il ne promet pas de rétablir l'état exact du monde : certains effets externes
 sont irréversibles par nature.</p>
 </blockquote>
 <p><strong>Ce que pilot peut compenser :</strong></p>
@@ -3347,12 +3827,12 @@ sont irréversibles par nature.</p>
 <tr>
 <td>[3] migrations</td>
 <td>rollback via <code>rollback_command</code></td>
-<td>si <code>reversible: true</code> — déclaré explicitement dans pilot.lock</td>
+<td>si <code>reversible: true</code> : déclaré explicitement dans pilot.lock</td>
 </tr>
 <tr>
 <td>[4] push</td>
 <td>aucune (image publiée, inoffensif)</td>
-<td>—</td>
+<td>:</td>
 </tr>
 <tr>
 <td>[5] deploy</td>
@@ -3388,11 +3868,11 @@ avec une <code>rollback_command</code> testée.</strong></p>
 </blockquote>
 <p>Mettre <code>reversible: true</code> par défaut crée une fausse garantie : pilot promettrait un rollback
 que personne n'a testé. Le défaut sûr est <code>reversible: false</code>.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Dans pilot.lock — déclaration explicite requise pour activer le rollback</span>
-<span class="nt">migrations</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">reversible</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<span class="w">  </span><span class="nt">rollback_command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">npx prisma migrate rollback</span><span class="w">   </span><span class="c1"># obligatoire si reversible: true</span>
-</code></pre></div>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Dans pilot.lock : déclaration explicite requise pour activer le rollback</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nt">migrations</span><span class="p">:</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="nt">reversible</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="nt">rollback_command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">npx prisma migrate rollback</span><span class="w">   </span><span class="c1"># obligatoire si reversible: true</span>
+</span></code></pre></div>
 <p><strong>Comportement selon le contexte :</strong></p>
 <table>
 <thead>
@@ -3416,18 +3896,18 @@ que personne n'a testé. Le défaut sûr est <code>reversible: false</code>.</p>
 </tbody>
 </table>
 <p><strong>Confirmation textuelle pour migration irréversible en remote :</strong>
-<div class="highlight"><pre><span></span><code>  ⚠️  Migration irréversible sur vps-prod
-
-     La migration suivante va être exécutée :
-       20260403_drop_legacy_users_table (irréversible)
-       Commande : npx prisma migrate deploy
-
-     Cette opération ne peut pas être annulée automatiquement.
-
-     Pour confirmer, tapez : je confirme
-     &gt; _
-</code></pre></div></p>
-<p>Pas de touche Entrée — l'utilisateur doit taper le texte. L'agent IA doit présenter
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>  ⚠️  Migration irréversible sur vps-prod
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>     La migration suivante va être exécutée :
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>       20260403_drop_legacy_users_table (irréversible)
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>       Commande : npx prisma migrate deploy
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>     Cette opération ne peut pas être annulée automatiquement.
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>     Pour confirmer, tapez : je confirme
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>     &gt; _
+</span></code></pre></div></p>
+<p>Pas de touche Entrée : l'utilisateur doit taper le texte. L'agent IA doit présenter
 cette confirmation à l'humain avant de continuer : c'est une décision humaine, pas automatique.</p>
 <blockquote>
 <p><strong>pilot ne franchit jamais une étape irréversible sans avoir établi que les étapes
@@ -3436,23 +3916,23 @@ healthcheck défini).</p>
 </blockquote>
 <h3 id="23-execution-de-la-compensation">2.3 Exécution de la compensation</h3>
 <p>En cas d'échec :</p>
-<div class="highlight"><pre><span></span><code>Échec détecté au nœud [5] deploy
-  │
-  ├─ compensation [5] : restaurer image précédente    ← automatique
-  ├─ compensation [3] : alembic downgrade -1          ← si reversible: true
-  │
-  └─ rapport final :
-       composants pilot restaurés :
-         ✓ image : v1.3 → v1.2 (restaurée)
-         ✓ schéma : migration_008 → migration_007 (revert OK)
-
-       effets externes non compensables :
-         ✗ 3 emails de confirmation envoyés pendant la fenêtre
-         ✗ webhook order.created déclenché vers Stripe
-
-       cause de l&#39;échec : container OOM (limit 512MB insuffisante)
-       prochaine étape  : augmenter memory_limit dans docker-compose.prod.yml
-</code></pre></div>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>Échec détecté au nœud [5] deploy
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>  │
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>  ├─ compensation [5] : restaurer image précédente    ← automatique
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>  ├─ compensation [3] : alembic downgrade -1          ← si reversible: true
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>  │
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>  └─ rapport final :
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>       composants pilot restaurés :
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>         ✓ image : v1.3 → v1.2 (restaurée)
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>         ✓ schéma : migration_008 → migration_007 (revert OK)
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>       effets externes non compensables :
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>         ✗ 3 emails de confirmation envoyés pendant la fenêtre
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>         ✗ webhook order.created déclenché vers Stripe
+</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>
+</span><span id="__span-9-15"><a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a>       cause de l&#39;échec : container OOM (limit 512MB insuffisante)
+</span><span id="__span-9-16"><a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a>       prochaine étape  : augmenter memory_limit dans docker-compose.prod.yml
+</span></code></pre></div>
 <p>Si la compensation elle-même échoue → pilot le signale explicitement avec
 l'état exact de chaque composant, sans tenter d'improviser davantage.</p>
 <hr />
@@ -3461,142 +3941,142 @@ l'état exact de chaque composant, sans tenter d'improviser davantage.</p>
 Le type détermine qui agit et comment.</p>
 <h3 id="type-a-deterministe-sans-risque">Type A : Déterministe, sans risque</h3>
 <p>pilot corrige seul, log ce qu'il a fait, continue.</p>
-<div class="highlight"><pre><span></span><code>Exemples :
-  → permissions SSH key incorrectes (0644) → chmod 600 automatique
-  → .env absent mais .env.example présent → copie et avertit
-  → image locale obsolète → docker pull automatique avant up
-</code></pre></div>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>Exemples :
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>  → permissions SSH key incorrectes (0644) → chmod 600 automatique
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>  → .env absent mais .env.example présent → copie et avertit
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>  → image locale obsolète → docker pull automatique avant up
+</span></code></pre></div>
 <h3 id="type-b-deterministe-impactant">Type B : Déterministe, impactant</h3>
 <p>pilot corrige seul mais annonce clairement ce qu'il fait.
 Supporte <code>--dry-run</code> pour voir sans exécuter.</p>
-<div class="highlight"><pre><span></span><code>Exemples :
-  → Docker non démarré → lance Docker, attend qu&#39;il soit prêt
-  → nginx à recharger après sync → nginx -s reload annoncé
-  → réseau Docker absent → docker network create annoncé
-</code></pre></div>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>Exemples :
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>  → Docker non démarré → lance Docker, attend qu&#39;il soit prêt
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>  → nginx à recharger après sync → nginx -s reload annoncé
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>  → réseau Docker absent → docker network create annoncé
+</span></code></pre></div>
 <h3 id="type-c-choix-requis-options-connues">Type C : Choix requis, options connues</h3>
 <p>pilot liste les options et <strong>attend</strong> la réponse.
 Il ne choisit jamais arbitrairement.</p>
-<div class="highlight"><pre><span></span><code>Exemples :
-  → conflit de port → liste les ports libres, attend le choix
-  → user SSH non configuré → demande quel user utiliser
-  → migration irréversible avant deploy risqué → demande confirmation explicite
-  → plusieurs targets disponibles → lequel déployer ?
-</code></pre></div>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>Exemples :
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>  → conflit de port → liste les ports libres, attend le choix
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>  → user SSH non configuré → demande quel user utiliser
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>  → migration irréversible avant deploy risqué → demande confirmation explicite
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>  → plusieurs targets disponibles → lequel déployer ?
+</span></code></pre></div>
 <p><strong>En terminal (humain) :</strong>
-<div class="highlight"><pre><span></span><code>  ✗  Port 8080 est occupé (nginx, pid 1234)
-
-     Ports libres disponibles pour le service api :
-       [1] 8081   ← recommandé (prochain libre)
-       [2] 8082
-       [3] 3001
-
-     Votre choix [8081] :
-</code></pre></div></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>  ✗  Port 8080 est occupé (nginx, pid 1234)
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>     Ports libres disponibles pour le service api :
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>       [1] 8081   ← recommandé (prochain libre)
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>       [2] 8082
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>       [3] 3001
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>     Votre choix [8081] :
+</span></code></pre></div></p>
 <p><strong>En JSON (agent IA) :</strong>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;awaiting_choice&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PILOT-NET-001&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Port 8080 is in use by nginx (pid 1234)&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">8081</span><span class="p">,</span><span class="w"> </span><span class="mi">8082</span><span class="p">,</span><span class="w"> </span><span class="mi">3001</span><span class="p">],</span>
-<span class="w">  </span><span class="nt">&quot;recommended&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8081</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;applies_to&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;environments.dev.ports.api&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;resume_with&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pilot resume --answer 8081&quot;</span>
-<span class="p">}</span>
-</code></pre></div></p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="p">{</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;awaiting_choice&quot;</span><span class="p">,</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span><span class="nt">&quot;code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PILOT-NET-001&quot;</span><span class="p">,</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Port 8080 is in use by nginx (pid 1234)&quot;</span><span class="p">,</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">  </span><span class="nt">&quot;options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">8081</span><span class="p">,</span><span class="w"> </span><span class="mi">8082</span><span class="p">,</span><span class="w"> </span><span class="mi">3001</span><span class="p">],</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">  </span><span class="nt">&quot;recommended&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8081</span><span class="p">,</span>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="w">  </span><span class="nt">&quot;applies_to&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;environments.dev.ports.api&quot;</span><span class="p">,</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="w">  </span><span class="nt">&quot;resume_with&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pilot resume --answer 8081&quot;</span>
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="p">}</span>
+</span></code></pre></div></p>
 <h3 id="type-d-choix-requis-options-non-enumerables">Type D : Choix requis, options non énumérables</h3>
 <p>pilot s'arrête avec des instructions exactes. Il n'improvise jamais.</p>
-<div class="highlight"><pre><span></span><code>Exemples :
-  → valeur d&#39;une variable d&#39;env manquante → explique quelle var, où la mettre
-  → mot de passe SSH → explique comment le configurer
-  → token registry expiré → explique comment le renouveler
-</code></pre></div>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>Exemples :
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>  → valeur d&#39;une variable d&#39;env manquante → explique quelle var, où la mettre
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>  → mot de passe SSH → explique comment le configurer
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>  → token registry expiré → explique comment le renouveler
+</span></code></pre></div>
 <hr />
 <h2 id="4-mecanisme-de-suspension">4. Mécanisme de suspension</h2>
 <p>Quand pilot attend une réponse (TYPE C), l'opération est <strong>suspendue</strong>, pas annulée.</p>
 <h3 id="pour-lhumain-en-terminal">Pour l'humain en terminal</h3>
 <p>pilot attend directement sur stdin. L'opération reprend après le choix
 sans relancer la commande. L'état avant la suspension est préservé en mémoire.</p>
-<div class="highlight"><pre><span></span><code>$ pilot deploy
-  ✓  preflight OK
-  ✓  migrations OK
-  ✗  conflit de port détecté
-
-     [choix demandé : voir ci-dessus]
-
-  → Choix saisi : 8081
-  ✓  pilot.yaml mis à jour (environments.prod.ports.api: 8081)
-  →  reprise du déploiement...
-  ✓  deploy OK
-  ✓  healthcheck OK
-</code></pre></div>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>$ pilot deploy
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>  ✓  preflight OK
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>  ✓  migrations OK
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>  ✗  conflit de port détecté
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>     [choix demandé : voir ci-dessus]
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>  → Choix saisi : 8081
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>  ✓  pilot.yaml mis à jour (environments.prod.ports.api: 8081)
+</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>  →  reprise du déploiement...
+</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>  ✓  deploy OK
+</span><span id="__span-16-12"><a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>  ✓  healthcheck OK
+</span></code></pre></div>
 <h3 id="pour-lagent-ia">Pour l'agent IA</h3>
 <p>pilot s'arrête et écrit l'état dans <code>.pilot/state.json</code> avec <code>pending_choice</code>.
 L'agent lit l'état, répond via <code>pilot resume --answer &lt;valeur&gt;</code>, pilot reprend.</p>
-<div class="highlight"><pre><span></span><code># Cycle de l&#39;agent :
-1. appelle pilot deploy
-2. reçoit {&quot;status&quot;: &quot;awaiting_choice&quot;, ...}
-3. lit les options, choisit selon son contexte
-4. appelle pilot resume --answer 8081
-5. reçoit {&quot;status&quot;: &quot;succeeded&quot;} ou nouvelle étape
-</code></pre></div>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a># Cycle de l&#39;agent :
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>1. appelle pilot deploy
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>2. reçoit {&quot;status&quot;: &quot;awaiting_choice&quot;, ...}
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>3. lit les options, choisit selon son contexte
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>4. appelle pilot resume --answer 8081
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>5. reçoit {&quot;status&quot;: &quot;succeeded&quot;} ou nouvelle étape
+</span></code></pre></div>
 <p>Ce mécanisme garantit que l'agent ne se retrouve jamais à deviner
 ou à improviser des commandes système en dehors de pilot.</p>
 <hr />
 <h2 id="5-pilot-diagnose-le-snapshot-exhaustif">5. <code>pilot diagnose</code> : le snapshot exhaustif</h2>
 <p>Commande disponible à tout moment, avant ou après une opération.
 Donne une vue complète et fiable de l'état du système.</p>
-<div class="highlight"><pre><span></span><code>$ pilot diagnose
-
-─── Système ──────────────────────────────────────────
-  Docker          : ✓ running (v26.1.3)
-  Docker Compose  : ✓ v2.27.0
-  Go              : ✓ 1.23.4
-  Connexion réseau: ✓
-
-─── Projet ───────────────────────────────────────────
-  pilot.yaml       : ✓ valide
-  .env.dev        : ✓ 12 vars, 0 vide
-  .env.prod       : ✗ 2 vars vides  →  DATABASE_URL, REDIS_URL
-  Dockerfile      : ✓ pattern ARG-only (pas d&#39;ENV qui bake les valeurs)
-  compose.dev.yml : ✓ env_file présent sur tous les services
-
-─── Migrations ───────────────────────────────────────
-  Outil détecté   : prisma
-  État            : 2 migrations appliquées, 1 en attente
-  Réversible      : ✓ (rollback_command disponible)
-
-─── Ports locaux (env: dev) ──────────────────────────
-  8080 (api)      : ✓ libre
-  5432 (db)       : ✗ OCCUPÉ : postgres externe (pid 5678)
-  6379 (redis)    : ✓ libre
-
-─── Registry ─────────────────────────────────────────
-  ghcr.io         : ✓ authentifié (mouhamedsylla)
-  joignabilité    : ✓ (&lt;50ms)
-
-─── SSH / VPS (target: vps-prod) ─────────────────────
-  host            : 1.2.3.4   user: deploy
-  clé SSH         : ~/.ssh/id_pilot  ✓ (permissions 600)
-  connectivité    : ✓ joignable (120ms)
-  Docker (VPS)    : ✓ running
-  ports VPS       : 80→nginx  443→nginx  5432→postgres
-                    8080 → LIBRE
-
-─── Build args ───────────────────────────────────────
-  VITE_API_URL    : ✓ dans build_args
-  VITE_APP_ENV    : ✗ absent de build_args → sera vide dans l&#39;image
-
-─── Git ──────────────────────────────────────────────
-  branche         : main
-  état            : dirty (3 fichiers modifiés)
-  dernier commit  : abc1234  &quot;feat: add auth&quot;
-
-─── État pilot ────────────────────────────────────────
-  dernière opération : pilot deploy  (succès, il y a 2h)
-  opération en cours : aucune
-  choix en attente   : aucun
-</code></pre></div>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>$ pilot diagnose
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>─── Système ──────────────────────────────────────────
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>  Docker          : ✓ running (v26.1.3)
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>  Docker Compose  : ✓ v2.27.0
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>  Go              : ✓ 1.23.4
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>  Connexion réseau: ✓
+</span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>
+</span><span id="__span-18-9"><a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>─── Projet ───────────────────────────────────────────
+</span><span id="__span-18-10"><a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a>  pilot.yaml       : ✓ valide
+</span><span id="__span-18-11"><a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>  .env.dev        : ✓ 12 vars, 0 vide
+</span><span id="__span-18-12"><a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a>  .env.prod       : ✗ 2 vars vides  →  DATABASE_URL, REDIS_URL
+</span><span id="__span-18-13"><a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a>  Dockerfile      : ✓ pattern ARG-only (pas d&#39;ENV qui bake les valeurs)
+</span><span id="__span-18-14"><a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a>  compose.dev.yml : ✓ env_file présent sur tous les services
+</span><span id="__span-18-15"><a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a>
+</span><span id="__span-18-16"><a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a>─── Migrations ───────────────────────────────────────
+</span><span id="__span-18-17"><a id="__codelineno-18-17" name="__codelineno-18-17" href="#__codelineno-18-17"></a>  Outil détecté   : prisma
+</span><span id="__span-18-18"><a id="__codelineno-18-18" name="__codelineno-18-18" href="#__codelineno-18-18"></a>  État            : 2 migrations appliquées, 1 en attente
+</span><span id="__span-18-19"><a id="__codelineno-18-19" name="__codelineno-18-19" href="#__codelineno-18-19"></a>  Réversible      : ✓ (rollback_command disponible)
+</span><span id="__span-18-20"><a id="__codelineno-18-20" name="__codelineno-18-20" href="#__codelineno-18-20"></a>
+</span><span id="__span-18-21"><a id="__codelineno-18-21" name="__codelineno-18-21" href="#__codelineno-18-21"></a>─── Ports locaux (env: dev) ──────────────────────────
+</span><span id="__span-18-22"><a id="__codelineno-18-22" name="__codelineno-18-22" href="#__codelineno-18-22"></a>  8080 (api)      : ✓ libre
+</span><span id="__span-18-23"><a id="__codelineno-18-23" name="__codelineno-18-23" href="#__codelineno-18-23"></a>  5432 (db)       : ✗ OCCUPÉ : postgres externe (pid 5678)
+</span><span id="__span-18-24"><a id="__codelineno-18-24" name="__codelineno-18-24" href="#__codelineno-18-24"></a>  6379 (redis)    : ✓ libre
+</span><span id="__span-18-25"><a id="__codelineno-18-25" name="__codelineno-18-25" href="#__codelineno-18-25"></a>
+</span><span id="__span-18-26"><a id="__codelineno-18-26" name="__codelineno-18-26" href="#__codelineno-18-26"></a>─── Registry ─────────────────────────────────────────
+</span><span id="__span-18-27"><a id="__codelineno-18-27" name="__codelineno-18-27" href="#__codelineno-18-27"></a>  ghcr.io         : ✓ authentifié (mouhamedsylla)
+</span><span id="__span-18-28"><a id="__codelineno-18-28" name="__codelineno-18-28" href="#__codelineno-18-28"></a>  joignabilité    : ✓ (&lt;50ms)
+</span><span id="__span-18-29"><a id="__codelineno-18-29" name="__codelineno-18-29" href="#__codelineno-18-29"></a>
+</span><span id="__span-18-30"><a id="__codelineno-18-30" name="__codelineno-18-30" href="#__codelineno-18-30"></a>─── SSH / VPS (target: vps-prod) ─────────────────────
+</span><span id="__span-18-31"><a id="__codelineno-18-31" name="__codelineno-18-31" href="#__codelineno-18-31"></a>  host            : 1.2.3.4   user: deploy
+</span><span id="__span-18-32"><a id="__codelineno-18-32" name="__codelineno-18-32" href="#__codelineno-18-32"></a>  clé SSH         : ~/.ssh/id_pilot  ✓ (permissions 600)
+</span><span id="__span-18-33"><a id="__codelineno-18-33" name="__codelineno-18-33" href="#__codelineno-18-33"></a>  connectivité    : ✓ joignable (120ms)
+</span><span id="__span-18-34"><a id="__codelineno-18-34" name="__codelineno-18-34" href="#__codelineno-18-34"></a>  Docker (VPS)    : ✓ running
+</span><span id="__span-18-35"><a id="__codelineno-18-35" name="__codelineno-18-35" href="#__codelineno-18-35"></a>  ports VPS       : 80→nginx  443→nginx  5432→postgres
+</span><span id="__span-18-36"><a id="__codelineno-18-36" name="__codelineno-18-36" href="#__codelineno-18-36"></a>                    8080 → LIBRE
+</span><span id="__span-18-37"><a id="__codelineno-18-37" name="__codelineno-18-37" href="#__codelineno-18-37"></a>
+</span><span id="__span-18-38"><a id="__codelineno-18-38" name="__codelineno-18-38" href="#__codelineno-18-38"></a>─── Build args ───────────────────────────────────────
+</span><span id="__span-18-39"><a id="__codelineno-18-39" name="__codelineno-18-39" href="#__codelineno-18-39"></a>  VITE_API_URL    : ✓ dans build_args
+</span><span id="__span-18-40"><a id="__codelineno-18-40" name="__codelineno-18-40" href="#__codelineno-18-40"></a>  VITE_APP_ENV    : ✗ absent de build_args → sera vide dans l&#39;image
+</span><span id="__span-18-41"><a id="__codelineno-18-41" name="__codelineno-18-41" href="#__codelineno-18-41"></a>
+</span><span id="__span-18-42"><a id="__codelineno-18-42" name="__codelineno-18-42" href="#__codelineno-18-42"></a>─── Git ──────────────────────────────────────────────
+</span><span id="__span-18-43"><a id="__codelineno-18-43" name="__codelineno-18-43" href="#__codelineno-18-43"></a>  branche         : main
+</span><span id="__span-18-44"><a id="__codelineno-18-44" name="__codelineno-18-44" href="#__codelineno-18-44"></a>  état            : dirty (3 fichiers modifiés)
+</span><span id="__span-18-45"><a id="__codelineno-18-45" name="__codelineno-18-45" href="#__codelineno-18-45"></a>  dernier commit  : abc1234  &quot;feat: add auth&quot;
+</span><span id="__span-18-46"><a id="__codelineno-18-46" name="__codelineno-18-46" href="#__codelineno-18-46"></a>
+</span><span id="__span-18-47"><a id="__codelineno-18-47" name="__codelineno-18-47" href="#__codelineno-18-47"></a>─── État pilot ────────────────────────────────────────
+</span><span id="__span-18-48"><a id="__codelineno-18-48" name="__codelineno-18-48" href="#__codelineno-18-48"></a>  dernière opération : pilot deploy  (succès, il y a 2h)
+</span><span id="__span-18-49"><a id="__codelineno-18-49" name="__codelineno-18-49" href="#__codelineno-18-49"></a>  opération en cours : aucune
+</span><span id="__span-18-50"><a id="__codelineno-18-50" name="__codelineno-18-50" href="#__codelineno-18-50"></a>  choix en attente   : aucun
+</span></code></pre></div>
 <p>Chaque ligne est <code>✓</code> ou <code>✗</code> avec la raison précise.
 Utilisable par l'agent pour établir un point de départ fiable
 avant de lancer n'importe quelle opération.</p>
@@ -3604,51 +4084,51 @@ avant de lancer n'importe quelle opération.</p>
 <h2 id="6-pilotstatejson-memoire-persistante">6. <code>.pilot/state.json</code> : mémoire persistante</h2>
 <p>pilot maintient un fichier d'état pour ne pas redécouvrir à chaque exécution
 ce qui a déjà été fait ou ce qui est en attente.</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;schema_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;active_env&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;dev&quot;</span><span class="p">,</span>
-
-<span class="w">  </span><span class="nt">&quot;last_operation&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pilot deploy&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prod&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;succeeded&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;started_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-03-31T16:00:00Z&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;completed_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-03-31T16:03:12Z&quot;</span>
-<span class="w">  </span><span class="p">},</span>
-
-<span class="w">  </span><span class="nt">&quot;last_success_per_command&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;deploy&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-03-31T16:03:12Z&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;push&quot;</span><span class="p">:</span><span class="w">   </span><span class="s2">&quot;2026-03-31T15:58:00Z&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;up&quot;</span><span class="p">:</span><span class="w">     </span><span class="s2">&quot;2026-03-31T10:22:00Z&quot;</span>
-<span class="w">  </span><span class="p">},</span>
-
-<span class="w">  </span><span class="nt">&quot;pending_choice&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
-
-<span class="w">  </span><span class="nt">&quot;deployed&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;prod&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ghcr.io/mouhamedsylla/mon-projet:abc1234&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;deployed_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-03-31T16:03:12Z&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;previous_image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ghcr.io/mouhamedsylla/mon-projet:abc0000&quot;</span>
-<span class="w">    </span><span class="p">}</span>
-<span class="w">  </span><span class="p">},</span>
-
-<span class="w">  </span><span class="nt">&quot;known_containers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;dev&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;api&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;db&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;redis&quot;</span><span class="p">]</span>
-<span class="w">  </span><span class="p">}</span>
-<span class="p">}</span>
-</code></pre></div>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="p">{</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="w">  </span><span class="nt">&quot;schema_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="w">  </span><span class="nt">&quot;active_env&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;dev&quot;</span><span class="p">,</span>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="w">  </span><span class="nt">&quot;last_operation&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pilot deploy&quot;</span><span class="p">,</span>
+</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="w">    </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prod&quot;</span><span class="p">,</span>
+</span><span id="__span-19-8"><a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="w">    </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;succeeded&quot;</span><span class="p">,</span>
+</span><span id="__span-19-9"><a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a><span class="w">    </span><span class="nt">&quot;started_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-03-31T16:00:00Z&quot;</span><span class="p">,</span>
+</span><span id="__span-19-10"><a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="w">    </span><span class="nt">&quot;completed_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-03-31T16:03:12Z&quot;</span>
+</span><span id="__span-19-11"><a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-19-12"><a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a>
+</span><span id="__span-19-13"><a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a><span class="w">  </span><span class="nt">&quot;last_success_per_command&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-19-14"><a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a><span class="w">    </span><span class="nt">&quot;deploy&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-03-31T16:03:12Z&quot;</span><span class="p">,</span>
+</span><span id="__span-19-15"><a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a><span class="w">    </span><span class="nt">&quot;push&quot;</span><span class="p">:</span><span class="w">   </span><span class="s2">&quot;2026-03-31T15:58:00Z&quot;</span><span class="p">,</span>
+</span><span id="__span-19-16"><a id="__codelineno-19-16" name="__codelineno-19-16" href="#__codelineno-19-16"></a><span class="w">    </span><span class="nt">&quot;up&quot;</span><span class="p">:</span><span class="w">     </span><span class="s2">&quot;2026-03-31T10:22:00Z&quot;</span>
+</span><span id="__span-19-17"><a id="__codelineno-19-17" name="__codelineno-19-17" href="#__codelineno-19-17"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-19-18"><a id="__codelineno-19-18" name="__codelineno-19-18" href="#__codelineno-19-18"></a>
+</span><span id="__span-19-19"><a id="__codelineno-19-19" name="__codelineno-19-19" href="#__codelineno-19-19"></a><span class="w">  </span><span class="nt">&quot;pending_choice&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+</span><span id="__span-19-20"><a id="__codelineno-19-20" name="__codelineno-19-20" href="#__codelineno-19-20"></a>
+</span><span id="__span-19-21"><a id="__codelineno-19-21" name="__codelineno-19-21" href="#__codelineno-19-21"></a><span class="w">  </span><span class="nt">&quot;deployed&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-19-22"><a id="__codelineno-19-22" name="__codelineno-19-22" href="#__codelineno-19-22"></a><span class="w">    </span><span class="nt">&quot;prod&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-19-23"><a id="__codelineno-19-23" name="__codelineno-19-23" href="#__codelineno-19-23"></a><span class="w">      </span><span class="nt">&quot;image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ghcr.io/mouhamedsylla/mon-projet:abc1234&quot;</span><span class="p">,</span>
+</span><span id="__span-19-24"><a id="__codelineno-19-24" name="__codelineno-19-24" href="#__codelineno-19-24"></a><span class="w">      </span><span class="nt">&quot;deployed_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-03-31T16:03:12Z&quot;</span><span class="p">,</span>
+</span><span id="__span-19-25"><a id="__codelineno-19-25" name="__codelineno-19-25" href="#__codelineno-19-25"></a><span class="w">      </span><span class="nt">&quot;previous_image&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ghcr.io/mouhamedsylla/mon-projet:abc0000&quot;</span>
+</span><span id="__span-19-26"><a id="__codelineno-19-26" name="__codelineno-19-26" href="#__codelineno-19-26"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-19-27"><a id="__codelineno-19-27" name="__codelineno-19-27" href="#__codelineno-19-27"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-19-28"><a id="__codelineno-19-28" name="__codelineno-19-28" href="#__codelineno-19-28"></a>
+</span><span id="__span-19-29"><a id="__codelineno-19-29" name="__codelineno-19-29" href="#__codelineno-19-29"></a><span class="w">  </span><span class="nt">&quot;known_containers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-19-30"><a id="__codelineno-19-30" name="__codelineno-19-30" href="#__codelineno-19-30"></a><span class="w">    </span><span class="nt">&quot;dev&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;api&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;db&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;redis&quot;</span><span class="p">]</span>
+</span><span id="__span-19-31"><a id="__codelineno-19-31" name="__codelineno-19-31" href="#__codelineno-19-31"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-19-32"><a id="__codelineno-19-32" name="__codelineno-19-32" href="#__codelineno-19-32"></a><span class="p">}</span>
+</span></code></pre></div>
 <p><strong><code>pending_choice</code> non-null</strong> indique à l'agent qu'il doit répondre
 avant de lancer toute autre opération. Exemple :</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;pending_choice&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PILOT-NET-001&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;prompt&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Port 8080 in use. Choose available port for api.&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">8081</span><span class="p">,</span><span class="w"> </span><span class="mi">8082</span><span class="p">,</span><span class="w"> </span><span class="mi">3001</span><span class="p">],</span>
-<span class="w">  </span><span class="nt">&quot;recommended&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8081</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;applies_to&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;environments.dev.ports.api&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;operation_suspended&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pilot deploy&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;suspended_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-03-31T16:05:00Z&quot;</span>
-<span class="p">}</span>
-</code></pre></div>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="nt">&quot;pending_choice&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="w">  </span><span class="nt">&quot;code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PILOT-NET-001&quot;</span><span class="p">,</span>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="w">  </span><span class="nt">&quot;prompt&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Port 8080 in use. Choose available port for api.&quot;</span><span class="p">,</span>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="w">  </span><span class="nt">&quot;options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">8081</span><span class="p">,</span><span class="w"> </span><span class="mi">8082</span><span class="p">,</span><span class="w"> </span><span class="mi">3001</span><span class="p">],</span>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="w">  </span><span class="nt">&quot;recommended&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8081</span><span class="p">,</span>
+</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="w">  </span><span class="nt">&quot;applies_to&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;environments.dev.ports.api&quot;</span><span class="p">,</span>
+</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="w">  </span><span class="nt">&quot;operation_suspended&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pilot deploy&quot;</span><span class="p">,</span>
+</span><span id="__span-20-8"><a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a><span class="w">  </span><span class="nt">&quot;suspended_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-03-31T16:05:00Z&quot;</span>
+</span><span id="__span-20-9"><a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a><span class="p">}</span>
+</span></code></pre></div>
 <hr />
 <h2 id="7-pilotyaml-principe-de-minimalite">7. <code>pilot.yaml</code> : principe de minimalité</h2>
 <blockquote>
@@ -3658,33 +4138,33 @@ avant de lancer toute autre opération. Exemple :</p>
 1. pilot ne peut pas le déduire automatiquement du projet
 2. L'utilisateur veut explicitement déroger au comportement par défaut</p>
 <h3 id="ce-que-pilotyaml-doit-contenir-non-deductible">Ce que pilot.yaml doit contenir (non-déductible)</h3>
-<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pilot/v1</span>
-
-<span class="nt">project</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mon-projet</span>
-<span class="w">  </span><span class="nt">stack</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">go</span><span class="w">              </span><span class="c1"># pilot peut le détecter mais c&#39;est une intention explicite</span>
-
-<span class="nt">registry</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">provider</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr</span>
-<span class="w">  </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io/mouhamedsylla/mon-projet</span>
-
-<span class="nt">environments</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">dev</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">compose_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker-compose.dev.yml</span><span class="w">   </span><span class="c1"># plusieurs fichiers possibles → choix explicite</span>
-<span class="w">    </span><span class="nt">env_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.env.dev</span>
-
-<span class="w">  </span><span class="nt">prod</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">target</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">vps-prod</span>
-<span class="w">    </span><span class="nt">compose_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker-compose.prod.yml</span>
-<span class="w">    </span><span class="nt">env_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.env.prod</span>
-
-<span class="nt">targets</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">vps-prod</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.2.3.4</span>
-<span class="w">    </span><span class="nt">user</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">deploy</span><span class="w">          </span><span class="c1"># pas toujours &quot;deploy&quot; → explicite</span>
-<span class="w">    </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">~/.ssh/id_pilot</span><span class="w">   </span><span class="c1"># ou: password: true  (demandera à l&#39;exécution)</span>
-<span class="w">    </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">22</span>
-</code></pre></div>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pilot/v1</span>
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="nt">project</span><span class="p">:</span>
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mon-projet</span>
+</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="w">  </span><span class="nt">stack</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">go</span><span class="w">              </span><span class="c1"># pilot peut le détecter mais c&#39;est une intention explicite</span>
+</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>
+</span><span id="__span-21-7"><a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="nt">registry</span><span class="p">:</span>
+</span><span id="__span-21-8"><a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a><span class="w">  </span><span class="nt">provider</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr</span>
+</span><span id="__span-21-9"><a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a><span class="w">  </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io/mouhamedsylla/mon-projet</span>
+</span><span id="__span-21-10"><a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a>
+</span><span id="__span-21-11"><a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a><span class="nt">environments</span><span class="p">:</span>
+</span><span id="__span-21-12"><a id="__codelineno-21-12" name="__codelineno-21-12" href="#__codelineno-21-12"></a><span class="w">  </span><span class="nt">dev</span><span class="p">:</span>
+</span><span id="__span-21-13"><a id="__codelineno-21-13" name="__codelineno-21-13" href="#__codelineno-21-13"></a><span class="w">    </span><span class="nt">compose_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker-compose.dev.yml</span><span class="w">   </span><span class="c1"># plusieurs fichiers possibles → choix explicite</span>
+</span><span id="__span-21-14"><a id="__codelineno-21-14" name="__codelineno-21-14" href="#__codelineno-21-14"></a><span class="w">    </span><span class="nt">env_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.env.dev</span>
+</span><span id="__span-21-15"><a id="__codelineno-21-15" name="__codelineno-21-15" href="#__codelineno-21-15"></a>
+</span><span id="__span-21-16"><a id="__codelineno-21-16" name="__codelineno-21-16" href="#__codelineno-21-16"></a><span class="w">  </span><span class="nt">prod</span><span class="p">:</span>
+</span><span id="__span-21-17"><a id="__codelineno-21-17" name="__codelineno-21-17" href="#__codelineno-21-17"></a><span class="w">    </span><span class="nt">target</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">vps-prod</span>
+</span><span id="__span-21-18"><a id="__codelineno-21-18" name="__codelineno-21-18" href="#__codelineno-21-18"></a><span class="w">    </span><span class="nt">compose_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docker-compose.prod.yml</span>
+</span><span id="__span-21-19"><a id="__codelineno-21-19" name="__codelineno-21-19" href="#__codelineno-21-19"></a><span class="w">    </span><span class="nt">env_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.env.prod</span>
+</span><span id="__span-21-20"><a id="__codelineno-21-20" name="__codelineno-21-20" href="#__codelineno-21-20"></a>
+</span><span id="__span-21-21"><a id="__codelineno-21-21" name="__codelineno-21-21" href="#__codelineno-21-21"></a><span class="nt">targets</span><span class="p">:</span>
+</span><span id="__span-21-22"><a id="__codelineno-21-22" name="__codelineno-21-22" href="#__codelineno-21-22"></a><span class="w">  </span><span class="nt">vps-prod</span><span class="p">:</span>
+</span><span id="__span-21-23"><a id="__codelineno-21-23" name="__codelineno-21-23" href="#__codelineno-21-23"></a><span class="w">    </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.2.3.4</span>
+</span><span id="__span-21-24"><a id="__codelineno-21-24" name="__codelineno-21-24" href="#__codelineno-21-24"></a><span class="w">    </span><span class="nt">user</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">deploy</span><span class="w">          </span><span class="c1"># pas toujours &quot;deploy&quot; → explicite</span>
+</span><span id="__span-21-25"><a id="__codelineno-21-25" name="__codelineno-21-25" href="#__codelineno-21-25"></a><span class="w">    </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">~/.ssh/id_pilot</span><span class="w">   </span><span class="c1"># ou: password: true  (demandera à l&#39;exécution)</span>
+</span><span id="__span-21-26"><a id="__codelineno-21-26" name="__codelineno-21-26" href="#__codelineno-21-26"></a><span class="w">    </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">22</span>
+</span></code></pre></div>
 <p>C'est tout ce qui est <strong>nécessaire</strong>. Le reste est inféré.</p>
 <h3 id="ce-que-pilot-infere-sans-configuration">Ce que pilot infère sans configuration</h3>
 <table>
@@ -3726,18 +4206,18 @@ avant de lancer toute autre opération. Exemple :</p>
 </tbody>
 </table>
 <h3 id="ce-quon-ajoute-uniquement-pour-deroger-au-defaut">Ce qu'on ajoute uniquement pour déroger au défaut</h3>
-<div class="highlight"><pre><span></span><code><span class="c1"># Seulement si on veut changer le comportement par défaut :</span>
-
-<span class="nt">environments</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">prod</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">migrations</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">reversible</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">     </span><span class="c1"># défaut: true : à déclarer si la migration est destructive</span>
-<span class="w">      </span><span class="nt">timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">300</span><span class="w">          </span><span class="c1"># défaut: 120s</span>
-
-<span class="nt">registry</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">build_args</span><span class="p">:</span><span class="w">               </span><span class="c1"># seulement si pilot n&#39;auto-détecte pas correctement</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">VITE_API_URL</span>
-</code></pre></div>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1"># Seulement si on veut changer le comportement par défaut :</span>
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="nt">environments</span><span class="p">:</span>
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="w">  </span><span class="nt">prod</span><span class="p">:</span>
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="w">    </span><span class="nt">migrations</span><span class="p">:</span>
+</span><span id="__span-22-6"><a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a><span class="w">      </span><span class="nt">reversible</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">     </span><span class="c1"># défaut: true : à déclarer si la migration est destructive</span>
+</span><span id="__span-22-7"><a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a><span class="w">      </span><span class="nt">timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">300</span><span class="w">          </span><span class="c1"># défaut: 120s</span>
+</span><span id="__span-22-8"><a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a>
+</span><span id="__span-22-9"><a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a><span class="nt">registry</span><span class="p">:</span>
+</span><span id="__span-22-10"><a id="__codelineno-22-10" name="__codelineno-22-10" href="#__codelineno-22-10"></a><span class="w">  </span><span class="nt">build_args</span><span class="p">:</span><span class="w">               </span><span class="c1"># seulement si pilot n&#39;auto-détecte pas correctement</span>
+</span><span id="__span-22-11"><a id="__codelineno-22-11" name="__codelineno-22-11" href="#__codelineno-22-11"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">VITE_API_URL</span>
+</span></code></pre></div>
 <h3 id="ce-qui-na-pas-sa-place-dans-pilotyaml">Ce qui n'a pas sa place dans pilot.yaml</h3>
 <ul>
 <li>La liste des services (c'est dans compose)</li>
@@ -3750,49 +4230,49 @@ avant de lancer toute autre opération. Exemple :</p>
 <h2 id="8-ce-que-voit-lutilisateur">8. Ce que voit l'utilisateur</h2>
 <p>L'ensemble du modèle ci-dessus est invisible. Ce que vit le dev :</p>
 <h3 id="scenario-premier-deploiement-port-occupe-sur-le-vps">Scénario : premier déploiement, port occupé sur le VPS</h3>
-<div class="highlight"><pre><span></span><code>$ pilot deploy
-
-  → Analyse du projet...
-  → Plan : migrations (prisma) → push → deploy → healthcheck
-
-  ✓  preflight OK
-  ✓  migration appliquée  (20260331_add_users_table)
-
-  ✗  Port 8080 est occupé sur vps-prod (nginx, pid 1234)
-
-     Ports disponibles sur vps-prod :
-       [1] 8081  ← recommandé
-       [2] 3001
-
-     Votre choix [8081] : 1
-
-  ✓  pilot.yaml mis à jour  (prod.ports.api: 8081)
-  ✓  image construite et pushée  (ghcr.io/.../mon-projet:abc1234)
-  ✓  container déployé
-  ✓  healthcheck OK  (api répond en 230ms)
-
-  Déployé sur vps-prod  →  http://1.2.3.4:8081
-</code></pre></div>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>$ pilot deploy
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>  → Analyse du projet...
+</span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a>  → Plan : migrations (prisma) → push → deploy → healthcheck
+</span><span id="__span-23-5"><a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a>
+</span><span id="__span-23-6"><a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a>  ✓  preflight OK
+</span><span id="__span-23-7"><a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a>  ✓  migration appliquée  (20260331_add_users_table)
+</span><span id="__span-23-8"><a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a>
+</span><span id="__span-23-9"><a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a>  ✗  Port 8080 est occupé sur vps-prod (nginx, pid 1234)
+</span><span id="__span-23-10"><a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a>
+</span><span id="__span-23-11"><a id="__codelineno-23-11" name="__codelineno-23-11" href="#__codelineno-23-11"></a>     Ports disponibles sur vps-prod :
+</span><span id="__span-23-12"><a id="__codelineno-23-12" name="__codelineno-23-12" href="#__codelineno-23-12"></a>       [1] 8081  ← recommandé
+</span><span id="__span-23-13"><a id="__codelineno-23-13" name="__codelineno-23-13" href="#__codelineno-23-13"></a>       [2] 3001
+</span><span id="__span-23-14"><a id="__codelineno-23-14" name="__codelineno-23-14" href="#__codelineno-23-14"></a>
+</span><span id="__span-23-15"><a id="__codelineno-23-15" name="__codelineno-23-15" href="#__codelineno-23-15"></a>     Votre choix [8081] : 1
+</span><span id="__span-23-16"><a id="__codelineno-23-16" name="__codelineno-23-16" href="#__codelineno-23-16"></a>
+</span><span id="__span-23-17"><a id="__codelineno-23-17" name="__codelineno-23-17" href="#__codelineno-23-17"></a>  ✓  pilot.yaml mis à jour  (prod.ports.api: 8081)
+</span><span id="__span-23-18"><a id="__codelineno-23-18" name="__codelineno-23-18" href="#__codelineno-23-18"></a>  ✓  image construite et pushée  (ghcr.io/.../mon-projet:abc1234)
+</span><span id="__span-23-19"><a id="__codelineno-23-19" name="__codelineno-23-19" href="#__codelineno-23-19"></a>  ✓  container déployé
+</span><span id="__span-23-20"><a id="__codelineno-23-20" name="__codelineno-23-20" href="#__codelineno-23-20"></a>  ✓  healthcheck OK  (api répond en 230ms)
+</span><span id="__span-23-21"><a id="__codelineno-23-21" name="__codelineno-23-21" href="#__codelineno-23-21"></a>
+</span><span id="__span-23-22"><a id="__codelineno-23-22" name="__codelineno-23-22" href="#__codelineno-23-22"></a>  Déployé sur vps-prod  →  http://1.2.3.4:8081
+</span></code></pre></div>
 <h3 id="scenario-echec-healthcheck-avec-compensation">Scénario : échec healthcheck avec compensation</h3>
-<div class="highlight"><pre><span></span><code>$ pilot deploy
-
-  ✓  preflight OK
-  ✓  migration appliquée
-
-  ✓  image pushée
-  ✓  container déployé
-  ✗  healthcheck échoué  (api ne répond pas après 60s)
-
-  → Compensation en cours...
-  ✓  image précédente restaurée  (abc0000)
-  ✓  migration revertée
-
-  État du système : identique à avant le déploiement.
-
-  Cause probable : container redémarre en boucle (OOM)
-  Diagnostic     : pilot logs api --env prod
-  Fix suggéré    : augmenter la limite mémoire dans docker-compose.prod.yml
-</code></pre></div>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>$ pilot deploy
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>
+</span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>  ✓  preflight OK
+</span><span id="__span-24-4"><a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>  ✓  migration appliquée
+</span><span id="__span-24-5"><a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a>
+</span><span id="__span-24-6"><a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a>  ✓  image pushée
+</span><span id="__span-24-7"><a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a>  ✓  container déployé
+</span><span id="__span-24-8"><a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a>  ✗  healthcheck échoué  (api ne répond pas après 60s)
+</span><span id="__span-24-9"><a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a>
+</span><span id="__span-24-10"><a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a>  → Compensation en cours...
+</span><span id="__span-24-11"><a id="__codelineno-24-11" name="__codelineno-24-11" href="#__codelineno-24-11"></a>  ✓  image précédente restaurée  (abc0000)
+</span><span id="__span-24-12"><a id="__codelineno-24-12" name="__codelineno-24-12" href="#__codelineno-24-12"></a>  ✓  migration revertée
+</span><span id="__span-24-13"><a id="__codelineno-24-13" name="__codelineno-24-13" href="#__codelineno-24-13"></a>
+</span><span id="__span-24-14"><a id="__codelineno-24-14" name="__codelineno-24-14" href="#__codelineno-24-14"></a>  État du système : identique à avant le déploiement.
+</span><span id="__span-24-15"><a id="__codelineno-24-15" name="__codelineno-24-15" href="#__codelineno-24-15"></a>
+</span><span id="__span-24-16"><a id="__codelineno-24-16" name="__codelineno-24-16" href="#__codelineno-24-16"></a>  Cause probable : container redémarre en boucle (OOM)
+</span><span id="__span-24-17"><a id="__codelineno-24-17" name="__codelineno-24-17" href="#__codelineno-24-17"></a>  Diagnostic     : pilot logs api --env prod
+</span><span id="__span-24-18"><a id="__codelineno-24-18" name="__codelineno-24-18" href="#__codelineno-24-18"></a>  Fix suggéré    : augmenter la limite mémoire dans docker-compose.prod.yml
+</span></code></pre></div>
 <p>L'utilisateur n'a pas eu à comprendre ce qu'est un plan de compensation,
 une transaction de déploiement ou une taxonomie d'erreurs.
 Il a vu ce qui s'est passé et sait exactement quoi faire ensuite.</p>
@@ -3800,79 +4280,79 @@ Il a vu ce qui s'est passé et sait exactement quoi faire ensuite.</p>
 <h2 id="9-ce-que-voit-lagent-ia">9. Ce que voit l'agent IA</h2>
 <p>L'agent reçoit des structures JSON à chaque étape, sans ambiguité :</p>
 <h3 id="avant-lexecution-le-plan">Avant l'exécution : le plan</h3>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;operation&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;deploy&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prod&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;plan&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;step&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;preflight&quot;</span><span class="w"> </span><span class="p">},</span>
-<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;step&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;migrations&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;tool&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prisma&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;reversible&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">},</span>
-<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;step&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;push&quot;</span><span class="w"> </span><span class="p">},</span>
-<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;step&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;deploy&quot;</span><span class="w"> </span><span class="p">},</span>
-<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;step&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;healthcheck&quot;</span><span class="w"> </span><span class="p">}</span>
-<span class="w">  </span><span class="p">],</span>
-<span class="w">  </span><span class="nt">&quot;compensation_plan&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;step_4&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;restore previous image&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;step_2&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prisma migrate rollback&quot;</span>
-<span class="w">  </span><span class="p">}</span>
-<span class="p">}</span>
-</code></pre></div>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="p">{</span>
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="w">  </span><span class="nt">&quot;operation&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;deploy&quot;</span><span class="p">,</span>
+</span><span id="__span-25-3"><a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="w">  </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prod&quot;</span><span class="p">,</span>
+</span><span id="__span-25-4"><a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a><span class="w">  </span><span class="nt">&quot;plan&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-25-5"><a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a><span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;step&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;preflight&quot;</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-25-6"><a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a><span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;step&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;migrations&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;tool&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prisma&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;reversible&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-25-7"><a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a><span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;step&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;push&quot;</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-25-8"><a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a><span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;step&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;deploy&quot;</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-25-9"><a id="__codelineno-25-9" name="__codelineno-25-9" href="#__codelineno-25-9"></a><span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;step&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;healthcheck&quot;</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-25-10"><a id="__codelineno-25-10" name="__codelineno-25-10" href="#__codelineno-25-10"></a><span class="w">  </span><span class="p">],</span>
+</span><span id="__span-25-11"><a id="__codelineno-25-11" name="__codelineno-25-11" href="#__codelineno-25-11"></a><span class="w">  </span><span class="nt">&quot;compensation_plan&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-25-12"><a id="__codelineno-25-12" name="__codelineno-25-12" href="#__codelineno-25-12"></a><span class="w">    </span><span class="nt">&quot;step_4&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;restore previous image&quot;</span><span class="p">,</span>
+</span><span id="__span-25-13"><a id="__codelineno-25-13" name="__codelineno-25-13" href="#__codelineno-25-13"></a><span class="w">    </span><span class="nt">&quot;step_2&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prisma migrate rollback&quot;</span>
+</span><span id="__span-25-14"><a id="__codelineno-25-14" name="__codelineno-25-14" href="#__codelineno-25-14"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-25-15"><a id="__codelineno-25-15" name="__codelineno-25-15" href="#__codelineno-25-15"></a><span class="p">}</span>
+</span></code></pre></div>
 <h3 id="en-cas-de-choix-requis">En cas de choix requis</h3>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;awaiting_choice&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PILOT-NET-001&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;severity&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;BLOCKING&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Port 8080 in use on vps-prod (nginx, pid 1234)&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">8081</span><span class="p">,</span><span class="w"> </span><span class="mi">3001</span><span class="p">],</span>
-<span class="w">  </span><span class="nt">&quot;recommended&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8081</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;applies_to&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;environments.prod.ports.api&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;resume_with&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pilot resume --answer 8081&quot;</span>
-<span class="p">}</span>
-</code></pre></div>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="p">{</span>
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;awaiting_choice&quot;</span><span class="p">,</span>
+</span><span id="__span-26-3"><a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="w">  </span><span class="nt">&quot;code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PILOT-NET-001&quot;</span><span class="p">,</span>
+</span><span id="__span-26-4"><a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a><span class="w">  </span><span class="nt">&quot;severity&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;BLOCKING&quot;</span><span class="p">,</span>
+</span><span id="__span-26-5"><a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a><span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Port 8080 in use on vps-prod (nginx, pid 1234)&quot;</span><span class="p">,</span>
+</span><span id="__span-26-6"><a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a><span class="w">  </span><span class="nt">&quot;options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">8081</span><span class="p">,</span><span class="w"> </span><span class="mi">3001</span><span class="p">],</span>
+</span><span id="__span-26-7"><a id="__codelineno-26-7" name="__codelineno-26-7" href="#__codelineno-26-7"></a><span class="w">  </span><span class="nt">&quot;recommended&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8081</span><span class="p">,</span>
+</span><span id="__span-26-8"><a id="__codelineno-26-8" name="__codelineno-26-8" href="#__codelineno-26-8"></a><span class="w">  </span><span class="nt">&quot;applies_to&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;environments.prod.ports.api&quot;</span><span class="p">,</span>
+</span><span id="__span-26-9"><a id="__codelineno-26-9" name="__codelineno-26-9" href="#__codelineno-26-9"></a><span class="w">  </span><span class="nt">&quot;resume_with&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pilot resume --answer 8081&quot;</span>
+</span><span id="__span-26-10"><a id="__codelineno-26-10" name="__codelineno-26-10" href="#__codelineno-26-10"></a><span class="p">}</span>
+</span></code></pre></div>
 <h3 id="en-cas-dechec-guide">En cas d'échec guidé</h3>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;guided_failure&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PILOT-RUNTIME-003&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Healthcheck failed after 60s. Container restarting (OOM).&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;compensation&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;completed&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;system_state&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;restored to pre-deploy&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;remediation&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;steps&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">      </span><span class="s2">&quot;pilot logs api --env prod&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="s2">&quot;Increase memory limit in docker-compose.prod.yml&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="s2">&quot;pilot deploy&quot;</span>
-<span class="w">    </span><span class="p">]</span>
-<span class="w">  </span><span class="p">}</span>
-<span class="p">}</span>
-</code></pre></div>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="p">{</span>
+</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;guided_failure&quot;</span><span class="p">,</span>
+</span><span id="__span-27-3"><a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="w">  </span><span class="nt">&quot;code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PILOT-RUNTIME-003&quot;</span><span class="p">,</span>
+</span><span id="__span-27-4"><a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a><span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Healthcheck failed after 60s. Container restarting (OOM).&quot;</span><span class="p">,</span>
+</span><span id="__span-27-5"><a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a><span class="w">  </span><span class="nt">&quot;compensation&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;completed&quot;</span><span class="p">,</span>
+</span><span id="__span-27-6"><a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a><span class="w">  </span><span class="nt">&quot;system_state&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;restored to pre-deploy&quot;</span><span class="p">,</span>
+</span><span id="__span-27-7"><a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a><span class="w">  </span><span class="nt">&quot;remediation&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-27-8"><a id="__codelineno-27-8" name="__codelineno-27-8" href="#__codelineno-27-8"></a><span class="w">    </span><span class="nt">&quot;steps&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-27-9"><a id="__codelineno-27-9" name="__codelineno-27-9" href="#__codelineno-27-9"></a><span class="w">      </span><span class="s2">&quot;pilot logs api --env prod&quot;</span><span class="p">,</span>
+</span><span id="__span-27-10"><a id="__codelineno-27-10" name="__codelineno-27-10" href="#__codelineno-27-10"></a><span class="w">      </span><span class="s2">&quot;Increase memory limit in docker-compose.prod.yml&quot;</span><span class="p">,</span>
+</span><span id="__span-27-11"><a id="__codelineno-27-11" name="__codelineno-27-11" href="#__codelineno-27-11"></a><span class="w">      </span><span class="s2">&quot;pilot deploy&quot;</span>
+</span><span id="__span-27-12"><a id="__codelineno-27-12" name="__codelineno-27-12" href="#__codelineno-27-12"></a><span class="w">    </span><span class="p">]</span>
+</span><span id="__span-27-13"><a id="__codelineno-27-13" name="__codelineno-27-13" href="#__codelineno-27-13"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-27-14"><a id="__codelineno-27-14" name="__codelineno-27-14" href="#__codelineno-27-14"></a><span class="p">}</span>
+</span></code></pre></div>
 <p>L'agent ne reçoit jamais une erreur vague. Il sait toujours :
 l'état actuel du système, pourquoi ça a échoué, quoi faire ensuite.</p>
 <hr />
 <h2 id="10-machine-a-etats-de-pilot">10. Machine à états de pilot</h2>
-<div class="highlight"><pre><span></span><code>IDLE
-  │
-  ├─▶ PREFLIGHTING
-  │       │
-  │       ├─ TYPE A/B détecté → RECOVERING → retour PREFLIGHTING
-  │       ├─ TYPE C détecté   → AWAITING_CHOICE
-  │       │       │
-  │       │       └─ réponse reçue → retour PREFLIGHTING
-  │       └─ OK
-  │           │
-  ├─▶ EXECUTING
-  │       │
-  │       ├─ TYPE A/B détecté → RECOVERING → retour EXECUTING
-  │       ├─ TYPE C détecté   → AWAITING_CHOICE → réponse → retour EXECUTING
-  │       ├─ TYPE D détecté   → GUIDED_FAILURE
-  │       └─ OK
-  │           │
-  ├─▶ SUCCEEDED
-  │
-  └─▶ GUIDED_FAILURE
-</code></pre></div>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>IDLE
+</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>  │
+</span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>  ├─▶ PREFLIGHTING
+</span><span id="__span-28-4"><a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a>  │       │
+</span><span id="__span-28-5"><a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a>  │       ├─ TYPE A/B détecté → RECOVERING → retour PREFLIGHTING
+</span><span id="__span-28-6"><a id="__codelineno-28-6" name="__codelineno-28-6" href="#__codelineno-28-6"></a>  │       ├─ TYPE C détecté   → AWAITING_CHOICE
+</span><span id="__span-28-7"><a id="__codelineno-28-7" name="__codelineno-28-7" href="#__codelineno-28-7"></a>  │       │       │
+</span><span id="__span-28-8"><a id="__codelineno-28-8" name="__codelineno-28-8" href="#__codelineno-28-8"></a>  │       │       └─ réponse reçue → retour PREFLIGHTING
+</span><span id="__span-28-9"><a id="__codelineno-28-9" name="__codelineno-28-9" href="#__codelineno-28-9"></a>  │       └─ OK
+</span><span id="__span-28-10"><a id="__codelineno-28-10" name="__codelineno-28-10" href="#__codelineno-28-10"></a>  │           │
+</span><span id="__span-28-11"><a id="__codelineno-28-11" name="__codelineno-28-11" href="#__codelineno-28-11"></a>  ├─▶ EXECUTING
+</span><span id="__span-28-12"><a id="__codelineno-28-12" name="__codelineno-28-12" href="#__codelineno-28-12"></a>  │       │
+</span><span id="__span-28-13"><a id="__codelineno-28-13" name="__codelineno-28-13" href="#__codelineno-28-13"></a>  │       ├─ TYPE A/B détecté → RECOVERING → retour EXECUTING
+</span><span id="__span-28-14"><a id="__codelineno-28-14" name="__codelineno-28-14" href="#__codelineno-28-14"></a>  │       ├─ TYPE C détecté   → AWAITING_CHOICE → réponse → retour EXECUTING
+</span><span id="__span-28-15"><a id="__codelineno-28-15" name="__codelineno-28-15" href="#__codelineno-28-15"></a>  │       ├─ TYPE D détecté   → GUIDED_FAILURE
+</span><span id="__span-28-16"><a id="__codelineno-28-16" name="__codelineno-28-16" href="#__codelineno-28-16"></a>  │       └─ OK
+</span><span id="__span-28-17"><a id="__codelineno-28-17" name="__codelineno-28-17" href="#__codelineno-28-17"></a>  │           │
+</span><span id="__span-28-18"><a id="__codelineno-28-18" name="__codelineno-28-18" href="#__codelineno-28-18"></a>  ├─▶ SUCCEEDED
+</span><span id="__span-28-19"><a id="__codelineno-28-19" name="__codelineno-28-19" href="#__codelineno-28-19"></a>  │
+</span><span id="__span-28-20"><a id="__codelineno-28-20" name="__codelineno-28-20" href="#__codelineno-28-20"></a>  └─▶ GUIDED_FAILURE
+</span></code></pre></div>
 <p><strong>Règle absolue</strong> : pilot ne se termine que dans l'état <code>SUCCEEDED</code>
 ou dans l'état <code>GUIDED_FAILURE</code>. Jamais dans un état indéterminé.</p>
 <p><strong><code>state.json</code> est la source de vérité unique dès la première écriture.</strong>
-L'état n'est jamais gardé seulement en mémoire — si le terminal crash pendant
+L'état n'est jamais gardé seulement en mémoire : si le terminal crash pendant
 un <code>AWAITING_CHOICE</code>, la reprise se fait depuis <code>state.json</code>, pas depuis rien.</p>
 <hr />
 <h2 id="recapitulatif-des-commandes-liees-a-ce-modele">Récapitulatif des commandes liées à ce modèle</h2>
@@ -3913,47 +4393,47 @@ un <code>AWAITING_CHOICE</code>, la reprise se fait depuis <code>state.json</cod
 <hr />
 <h2 id="11-evolutions-planifiees-de-la-surface-de-commandes">11. Évolutions planifiées de la surface de commandes</h2>
 <p>Ce modèle de résilience implique des ajouts et des retraits par rapport à l'état actuel de pilot.
-Rien n'est implémenté ici — c'est le plan de référence.</p>
+Rien n'est implémenté ici : c'est le plan de référence.</p>
 <h3 id="a-ajouter">À ajouter</h3>
-<h4 id="pilot-validate-analyse-statique-offline"><code>pilot validate</code> — analyse statique offline</h4>
+<h4 id="pilot-validate-analyse-statique-offline"><code>pilot validate</code> : analyse statique offline</h4>
 <p>Vérifie la cohérence du projet sans aucune dépendance runtime (pas de Docker, pas de réseau).
 Peut tourner sur une machine fraîche, en CI, avant toute installation.
 Cible : Dockerfile antipatterns, <code>pilot.yaml</code> valide, <code>.env.*</code> cohérents, <code>.gitignore</code> correct.
 Différent de <code>pilot preflight</code> qui nécessite Docker et le réseau.</p>
-<h4 id="pilot-env-diff-env1-env2-parite-entre-environnements"><code>pilot env diff &lt;env1&gt; &lt;env2&gt;</code> — parité entre environnements</h4>
+<h4 id="pilot-env-diff-env1-env2-parite-entre-environnements"><code>pilot env diff &lt;env1&gt; &lt;env2&gt;</code> : parité entre environnements</h4>
 <p>Affiche les variables présentes dans un environnement et absentes de l'autre,
 les ports qui diffèrent, les services qui ne sont pas dans les deux compose files.
 Colmate le trou classique "ça marche en dev mais plante en prod pour une variable manquante".</p>
-<h4 id="pilot-secrets-check-env-env-valider-sans-exposer"><code>pilot secrets check [--env &lt;env&gt;]</code> — valider sans exposer</h4>
+<h4 id="pilot-secrets-check-env-env-valider-sans-exposer"><code>pilot secrets check [--env &lt;env&gt;]</code> : valider sans exposer</h4>
 <p>Vérifie que chaque secret référencé dans <code>pilot.yaml</code> existe et est non-vide
-dans le provider configuré. Aucune valeur affichée — juste existence + non-vide.
+dans le provider configuré. Aucune valeur affichée : juste existence + non-vide.
 S'intègre au preflight avant chaque deploy.</p>
 <h4 id="-dry-run-sur-pilot-deploy-et-pilot-push"><code>--dry-run</code> sur <code>pilot deploy</code> et <code>pilot push</code></h4>
 <p>Affiche le plan complet (étapes, compensation prévue, ce qui va changer)
 sans rien exécuter. Utile pour l'agent avant d'agir, et pour l'humain prudent avant prod.</p>
-<h4 id="pilot-clean-nettoyage-cible-du-projet"><code>pilot clean</code> — nettoyage ciblé du projet</h4>
+<h4 id="pilot-clean-nettoyage-cible-du-projet"><code>pilot clean</code> : nettoyage ciblé du projet</h4>
 <p>Supprime les images locales obsolètes, containers stopped, volumes orphelins
 appartenant à ce projet spécifiquement. Plus chirurgical que <code>docker system prune</code>
 qui touche tous les projets de la machine.</p>
-<h4 id="pilot-env-push-env-env-mettre-a-jour-les-vars-sans-redeployer"><code>pilot env push [--env &lt;env&gt;]</code> — mettre à jour les vars sans redéployer</h4>
+<h4 id="pilot-env-push-env-env-mettre-a-jour-les-vars-sans-redeployer"><code>pilot env push [--env &lt;env&gt;]</code> : mettre à jour les vars sans redéployer</h4>
 <p>Synchronise le fichier <code>.env.*</code> vers le VPS et redémarre les services affectés,
 sans rebuilder l'image. Comble le vide entre <code>pilot sync</code> (fichiers config)
 et <code>pilot deploy</code> (image complète) pour le cas "je veux juste changer LOG_LEVEL".</p>
-<div class="highlight"><pre><span></span><code>pilot sync      → fichiers statiques (nginx.conf, certs…)
-pilot env push  → variables d&#39;environnement + restart des services
-pilot deploy    → nouvelle image + tout le reste
-</code></pre></div>
-<h4 id="pilot-init-adopt-adopter-un-projet-existant"><code>pilot init --adopt</code> — adopter un projet existant</h4>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>pilot sync      → fichiers statiques (nginx.conf, certs…)
+</span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>pilot env push  → variables d&#39;environnement + restart des services
+</span><span id="__span-29-3"><a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>pilot deploy    → nouvelle image + tout le reste
+</span></code></pre></div>
+<h4 id="pilot-init-adopt-adopter-un-projet-existant"><code>pilot init --adopt</code> : adopter un projet existant</h4>
 <p>Génère <code>pilot.yaml</code> depuis un projet qui a déjà un Dockerfile et un docker-compose,
 au lieu de créer de zéro. Réduit la friction pour les projets qui veulent rejoindre
 pilot sans tout refaire.</p>
 <hr />
 <h3 id="a-retirer">À retirer</h3>
-<h4 id="pilot_config_get-pilot_config_set-outils-mcp"><code>pilot_config_get</code> / <code>pilot_config_set</code> — outils MCP</h4>
+<h4 id="pilot_config_get-pilot_config_set-outils-mcp"><code>pilot_config_get</code> / <code>pilot_config_set</code> : outils MCP</h4>
 <p>Permettre à un agent IA de lire et écrire <code>pilot.yaml</code> directement est trop risqué.
 Une correction silencieuse d'un champ peut en casser un autre.
-<code>pilot.yaml</code> reste sous contrôle humain — l'agent peut suggérer, l'humain applique.</p>
-<h4 id="pilot_generate_k8s-outil-mcp"><code>pilot_generate_k8s</code> — outil MCP</h4>
+<code>pilot.yaml</code> reste sous contrôle humain : l'agent peut suggérer, l'humain applique.</p>
+<h4 id="pilot_generate_k8s-outil-mcp"><code>pilot_generate_k8s</code> : outil MCP</h4>
 <p>Le provider Kubernetes n'est pas encore implémenté. Exposer un outil MCP
 pour quelque chose qui ne fonctionne pas crée de fausses attentes.
 À réintroduire quand k8s sera réellement opérationnel.</p>
@@ -3965,7 +4445,7 @@ pilot peut le détecter lors du preflight et le corriger automatiquement.
 Pas besoin d'une commande de premier niveau pour ça.</p>
 <h4 id="pilot-history-dans-pilot-status-history"><code>pilot history</code> → dans <code>pilot status --history</code></h4>
 <p><code>pilot history</code> est une vue temporelle de <code>state.json</code>. Ce n'est pas un concept
-distinct de <code>pilot status</code> — c'est la même chose avec un filtre temporel.
+distinct de <code>pilot status</code> : c'est la même chose avec un filtre temporel.
 <code>pilot status</code> pour l'état courant, <code>pilot status --history</code> pour le passé.</p>
 <h4 id="pilot-context-sous-pilot-mcp-context"><code>pilot context</code> → sous <code>pilot mcp context</code></h4>
 <p><code>pilot context</code> n'a de sens que dans un contexte MCP. Exposée au même niveau
@@ -3993,6 +4473,12 @@ que <code>pilot deploy</code> dans <code>--help</code>, elle crée de la confusi
           
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
         </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
         
       </main>
       
@@ -4023,7 +4509,7 @@ que <code>pilot deploy</code> dans <code>--help</code>, elle crée de la confusi
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.top", "navigation.tracking", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>

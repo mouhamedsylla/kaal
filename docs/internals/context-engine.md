@@ -41,7 +41,8 @@ type ProjectContext struct {
     // Ce qui manque (pour l'env actif)
     MissingDockerfile bool
     MissingCompose    bool
-    ActiveEnv         string
+    MissingComposeEnvs []string  // tous les envs configurés sans compose
+    ActiveEnv          string
 
     // Config parsée (accès structuré)
     Config *config.Config
@@ -66,6 +67,7 @@ projCtx, err := context.Collect("dev")
 4. Cherche les fichiers clés : `go.mod`, `package.json`, `Cargo.toml`, `requirements.txt`, `pyproject.toml`, `pom.xml`, `build.gradle`, `Makefile`
 5. Liste les Dockerfiles et compose files existants
 6. Détermine `MissingDockerfile` et `MissingCompose` pour l'env actif
+7. Détermine `MissingComposeEnvs` : **tous** les environnements configurés sans leur fichier compose (pas seulement l'env actif)
 
 ---
 
@@ -134,11 +136,57 @@ Les fichiers cachés (`.`) à la racine sont ignorés, sauf `.env.example` : car
 
 ---
 
+## Champs JSON retournés par `pilot_context` (MCP)
+
+| Champ JSON | Source | Description |
+|------------|--------|-------------|
+| `pilot_yaml` | `KaalYAML` | Contenu brut de pilot.yaml |
+| `stack` | `Stack` | Langage détecté |
+| `language_version` | `LanguageVersion` | Version du langage |
+| `is_existing_project` | `IsExistingProject` | True si code existant |
+| `file_tree` | `FileTree` | Arbre de fichiers filtré |
+| `key_files` | `KeyFiles` | Fichiers manifestes détectés |
+| `existing_dockerfiles` | `ExistingDockerfiles` | Dockerfiles présents |
+| `existing_compose_files` | `ExistingComposeFiles` | Composes présents |
+| `existing_env_files` | `ExistingEnvFiles` | Fichiers .env présents |
+| `missing_dockerfile` | `MissingDockerfile` | Dockerfile manquant ? |
+| `missing_compose` | `MissingCompose` | Compose manquant (env actif) ? |
+| `missing_compose_envs` | `MissingComposeEnvs` | **Liste de tous les envs** sans compose |
+| `active_env` | `ActiveEnv` | Environnement actif |
+| `agent_prompt` | `AgentPrompt()` | Prompt Markdown complet |
+| `services` | `Config.Services` | Services de pilot.yaml |
+| `environments` | `Config.Environments` | Environnements de pilot.yaml |
+
+`missing_compose_envs` permet à l'agent de générer **tous** les composes manquants en un seul passage, pas seulement celui de l'env actif.
+
+---
+
 ## Utilisation dans l'écosystème pilot
 
 | Consommateur | Usage |
 |--------------|-------|
-| `pilot up` | Vérifie `MissingDockerfile` et `MissingCompose` |
+| `pilot up` | Vérifie `MissingDockerfile` et `MissingCompose` (env actif) + staleness |
 | `pilot context` | Affiche `AgentPrompt()` ou `Summary()` |
 | MCP `pilot_context` | Retourne le contexte en JSON pour l'agent |
 | MCP `pilot_up` | Passe le contexte à l'agent si fichiers manquants |
+
+### Services managés dans `AgentPrompt()`
+
+Quand des services ont `hosting: managed`, `AgentPrompt()` inclut une section
+**CRITICAL** que l'agent doit respecter :
+
+```markdown
+## CRITICAL : Managed services (DO NOT generate Docker Compose blocks)
+
+The following services are externally hosted. Do NOT add them as services
+in docker-compose. They are provided by external cloud providers and
+your application connects to them via environment variables only.
+
+| Service | Type     | Provider   | Env vars needed                    |
+|---------|----------|------------|------------------------------------|
+| db      | postgres | neon       | DATABASE_URL                       |
+| cache   | redis    | upstash    | UPSTASH_REDIS_REST_URL, ...        |
+```
+
+C'est la garantie que l'agent ne génère pas accidentellement un container postgres
+alors que le projet utilise Neon.

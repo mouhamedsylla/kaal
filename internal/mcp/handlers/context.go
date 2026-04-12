@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"os"
 
-	pilotctx "github.com/mouhamedsylla/pilot/internal/mcp/context"
 	"github.com/mouhamedsylla/pilot/internal/env"
+	"github.com/mouhamedsylla/pilot/internal/meta"
+	pilotctx "github.com/mouhamedsylla/pilot/internal/mcp/context"
 )
 
 // HandleContext returns the full project context for AI agents.
@@ -21,21 +22,22 @@ func HandleContext(_ context.Context, params map[string]any) (any, error) {
 	}
 
 	return map[string]any{
-		"pilot_yaml":             projCtx.KaalYAML,
-		"stack":                  projCtx.Stack,
-		"language_version":       projCtx.LanguageVersion,
-		"is_existing_project":    projCtx.IsExistingProject,
-		"file_tree":              projCtx.FileTree,
-		"key_files":              projCtx.KeyFiles,
-		"existing_dockerfiles":   projCtx.ExistingDockerfiles,
-		"existing_compose_files": projCtx.ExistingComposeFiles,
-		"existing_env_files":     projCtx.ExistingEnvFiles,
-		"missing_dockerfile":     projCtx.MissingDockerfile,
-		"missing_compose":        projCtx.MissingCompose,
-		"active_env":             projCtx.ActiveEnv,
-		"agent_prompt":           projCtx.AgentPrompt(),
-		"services":               projCtx.Config.Services,
-		"environments":           projCtx.Config.Environments,
+		"pilot_yaml":              projCtx.KaalYAML,
+		"stack":                   projCtx.Stack,
+		"language_version":        projCtx.LanguageVersion,
+		"is_existing_project":     projCtx.IsExistingProject,
+		"file_tree":               projCtx.FileTree,
+		"key_files":               projCtx.KeyFiles,
+		"existing_dockerfiles":    projCtx.ExistingDockerfiles,
+		"existing_compose_files":  projCtx.ExistingComposeFiles,
+		"existing_env_files":      projCtx.ExistingEnvFiles,
+		"missing_dockerfile":      projCtx.MissingDockerfile,
+		"missing_compose":         projCtx.MissingCompose,
+		"missing_compose_envs":    projCtx.MissingComposeEnvs,
+		"active_env":              projCtx.ActiveEnv,
+		"agent_prompt":            projCtx.AgentPrompt(),
+		"services":                projCtx.Config.Services,
+		"environments":            projCtx.Config.Environments,
 	}, nil
 }
 
@@ -61,7 +63,8 @@ func HandleGenerateDockerfile(_ context.Context, params map[string]any) (any, er
 	}, nil
 }
 
-// HandleGenerateCompose writes a docker-compose file provided by the agent.
+// HandleGenerateCompose writes a docker-compose file provided by the agent
+// and records the current pilot.yaml hash for staleness detection.
 func HandleGenerateCompose(_ context.Context, params map[string]any) (any, error) {
 	content := strParam(params, "content")
 	if content == "" {
@@ -78,9 +81,21 @@ func HandleGenerateCompose(_ context.Context, params map[string]any) (any, error
 		return nil, fmt.Errorf("write %s: %w", dest, err)
 	}
 
+	// Record the current pilot.yaml hash so pilot up can detect staleness
+	// if pilot.yaml is modified after this compose was generated.
+	// Non-fatal: a failure here must never block the agent workflow.
+	if err := meta.RecordCompose(".", activeEnv, dest); err != nil {
+		// Log silently — the compose was written successfully.
+		_ = err
+	}
+
 	return map[string]any{
 		"written": dest,
-		"message": fmt.Sprintf("docker-compose file written to %s — run 'pilot up' to start", dest),
+		"message": fmt.Sprintf(
+			"docker-compose file written to %s — run 'pilot up' to start\n"+
+				"pilot.yaml hash recorded in .pilot/compose-meta.json",
+			dest,
+		),
 	}, nil
 }
 

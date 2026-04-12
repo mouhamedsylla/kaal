@@ -28,7 +28,7 @@ pilot.yaml
     │                         sait où déployer et avec quelles contraintes
     │
     └── pilot l'exécute      → le lance localement (docker compose)
-                              le déploie à distance (SSH + docker compose)
+                              le déploie à distance (SSH + pipeline 8 étapes)
                               gère les opérations fastidieuses automatiquement
 ```
 
@@ -81,147 +81,174 @@ Si cela fonctionne dans ces contraintes localement, cela fonctionnera en product
 
 pilot est conçu pour fonctionner *avec* des agents IA, et non à côté d'eux après coup.
 
-Lorsque `pilot up` trouve des fichiers manquants, il ne se contente pas d'échouer : il construit un prompt structuré avec le contexte complet de votre projet et indique à l'agent exactement ce qu'il faut générer et avec quelles contraintes (build multi-étapes, utilisateur non-root, healthchecks, gestion VITE_*, injection env_file…).
+Lorsque `pilot up` trouve des fichiers manquants, il ne se contente pas d'échouer : il construit un prompt structuré avec le contexte complet de votre projet et indique à l'agent exactement ce qu'il faut générer et avec quelles contraintes (build multi-étapes, utilisateur non-root, healthchecks, gestion VITE_*, injection env_file...).
 
-Lorsque `pilot preflight` s'exécute avant un déploiement, il renvoie un plan d'action structuré en JSON que l'agent suit étape par étape : actions humaines d'abord, puis actions de l'agent, puis l'objectif de déploiement.
+Lorsque `pilot preflight` s'exécute avant un déploiement, il retourne un plan d'action structuré en JSON que l'agent suit étape par étape : actions humaines d'abord, puis actions de l'agent.
 
-Lorsque `pilot_context` est appelé via MCP, l'agent reçoit tout : la stack, les services, les fichiers existants, les fichiers manquants, les chemins env_file, les cibles non configurées : une image complète, pas un résumé.
+Lorsque `pilot_context` est appelé via MCP, l'agent reçoit tout : la stack, les services, les fichiers existants, les fichiers manquants, les chemins env_file, les targets non configurés : une image complète, pas un résumé.
 
 **L'agent ne devine pas. pilot lui dit exactement ce qui existe, ce qui manque et quoi faire.**
 
 ### 4. Zéro friction du local vers la prod
 
 ```bash
-pilot up              # local
-pilot push            # build
+pilot up                  # local
+pilot push                # build
 pilot deploy --env prod   # prod
 ```
 
-Trois commandes. Les mêmes commandes depuis votre terminal, depuis la CI, depuis votre agent IA via MCP.
+Trois commandes. Les mêmes depuis votre terminal, depuis la CI, depuis votre agent IA via MCP.
 
 ### 5. Automated ops, not documented ops
 
-Most tools document what you need to do manually. pilot does it for you:
+La plupart des outils documentent ce que vous devez faire manuellement. pilot le fait pour vous :
 
-| Problem | Manual approach | pilot |
+| Problème | Approche manuelle | pilot |
 |---|---|---|
-| Built ARM image on Mac, VPS is AMD64 | Add `--platform linux/amd64` to every build | Auto-detects Apple Silicon, builds linux/amd64 by default |
-| Vite vars not showing in prod | Manually add `ARG`/`ENV` to Dockerfile | Auto-injects `VITE_*` vars, patches Dockerfile transparently |
-| nginx config missing on VPS | `scp nginx/prod.conf deploy@host:~/pilot/nginx/` | `pilot sync` scans bind-mounts in compose file and copies them |
-| `.env.prod` not on VPS | Manual `scp` | `pilot sync` copies all `env_file` declared in pilot.yaml |
-| Deploy user not in docker group | SSH + `sudo usermod -aG docker deploy` | `pilot setup --env prod` |
-| Wrong working dir on VPS | Debug compose errors | pilot always uses `~/pilot/docker-compose.<env>.yml` |
+| Image ARM construite sur Mac, VPS en AMD64 | `--platform linux/amd64` à chaque build | Détecte Apple Silicon, build linux/amd64 par défaut |
+| Variables Vite absentes en prod | Ajouter `ARG`/`ENV` dans le Dockerfile | Auto-injecte les `VITE_*`, patche le Dockerfile de façon transparente |
+| Config nginx manquante sur le VPS | `scp nginx/prod.conf deploy@host:~/pilot/nginx/` | `pilot sync` scanne les bind-mounts du compose et les copie |
+| `.env.prod` absent sur le VPS | `scp` manuel | `pilot sync` copie tous les `env_file` déclarés dans pilot.yaml |
+| User deploy pas dans le groupe docker | SSH + `sudo usermod -aG docker deploy` | `pilot setup --env prod` |
+| Mauvais répertoire de travail sur le VPS | Déboguer les erreurs compose | pilot utilise toujours `~/pilot/docker-compose.<env>.yml` |
 
 ---
 
-## The preflight system
+## Le système preflight et pilot.lock
 
-Before pushing or deploying, `pilot preflight` runs a structured checklist and returns an action plan:
+Avant de déployer, `pilot preflight --target deploy` fait deux choses :
+
+**1. Vérifie** tous les prérequis (Docker, SSH, registry, clés, fichiers compose...)
 
 ```
-pilot preflight --target deploy
-
-✓ pilot_yaml
-✓ registry_image
-✓ dockerfile
-✓ docker_daemon
-✓ registry_creds
-✓ compose_file
-✓ target_host
-✓ ssh_key
-✓ vps_connectivity
-✓ vps_docker_group
-✓ vps_env_file
-✓ All checks passed : ready to deploy
+✓ pilot_yaml            project: my-api
+✓ dockerfile            Dockerfile
+✓ registry_creds        GITHUB_TOKEN + GITHUB_ACTOR présents
+✓ vps_connectivity      SSH OK (1.2.3.4:22)
+✓ All checks passed : pilot.lock generated
 ```
 
-When something is wrong, the report tells exactly who needs to act:
-- `[HUMAN]` : you must do this (provide credentials, add SSH key, open firewall port)
-- `[AGENT]` : the AI agent can call a pilot tool to fix this automatically
+**2. Génère `pilot.lock`** : le contrat signé du prochain déploiement :
 
-The agent calls `pilot_preflight` first, follows `next_steps[]` in order, and only asks you when human action is genuinely required : not for things it can handle itself.
+```yaml
+# pilot.lock : generated automatically, commit this file.
+execution_plan:
+  nodes_active: [preflight, migrations, deploy, post_hooks, healthcheck]
+  migrations:
+    tool: prisma
+    command: npx prisma migrate deploy
+    rollback_command: npx prisma migrate rollback
+    reversible: true
+project_hash: "abc123..."
+```
+
+`pilot.lock` doit être commité. `pilot deploy` vérifie que les sources n'ont pas changé depuis sa génération. Ce qui a été validé par l'équipe est ce qui s'exécute en production : jamais une inférence du moment.
 
 ---
 
-## The AI-agent deploy workflow
+## Le modèle de résilience
 
-In a project with Claude Code and `.mcp.json`:
+pilot ne laisse jamais l'utilisateur ni l'agent dans un état ambigu. Chaque erreur appartient à l'un des quatre types :
+
+| Type | Situation | Qui agit | Comment |
+|------|-----------|----------|---------|
+| **A** | Déterministe, faible impact | pilot, silencieusement | auto-corrige, continue |
+| **B** | Déterministe, impact visible | pilot, annoncé | auto-corrige, affiche ce qu'il a fait |
+| **C** | Choix requis, options connues | humain ou agent | suspend, présente les options, attend |
+| **D** | Choix requis, options inconnues | humain uniquement | arrête avec des instructions précises |
+
+Quand une erreur TypeC survient (ex: user pas dans le groupe docker), pilot suspend l'opération et présente des choix numérotés. `pilot resume --answer 0` reprend depuis là où ça s'est arrêté.
+
+Pour les agents IA, la même information arrive en JSON structuré avec `resume_with` pour reprendre automatiquement.
+
+---
+
+## Le workflow agent AI de déploiement
+
+Dans un projet avec Claude Code et `.mcp.json` :
 
 ```
-You:    "Les tests passent, déploie en prod"
+Vous :  "Les tests passent, déploie en prod"
 
 Agent:  pilot_preflight → all_ok: false
           [HUMAN] registry_creds: export GITHUB_TOKEN=...
-        → waits for you
+        → attend votre confirmation
 
-You:    (set the token)
+Vous :  (configurez le token)
 
-Agent:  pilot_preflight → all_ok: true
-        pilot_push → image built and pushed
-        pilot_deploy → synced + deployed
-        pilot_status → reports service health
+Agent:  pilot_preflight → all_ok: true : pilot.lock generated
+        pilot_push → image built linux/amd64, pushed
+        pilot_deploy → pipeline 8 étapes (hooks, migrations, deploy, healthcheck)
+        pilot_status → tous les services healthy
 
-You:    ✓ Done. No terminal opened.
+Vous :  ✓ Terminé. Aucun terminal ouvert.
 ```
 
-The agent knows your infrastructure through `pilot.yaml`. It knows what's deployed through `pilot_status`. It knows what's broken through `pilot_preflight`. It knows how to fix things through `pilot_setup`, `pilot_sync`, and the generate tools. You stay in the chat.
+L'agent connaît votre infrastructure via `pilot.yaml`. Il sait ce qui est déployé via `pilot_status`. Il sait ce qui est cassé via `pilot_preflight`. Il sait comment réparer via `pilot_setup`, `pilot_sync`, et les outils de génération. Vous restez dans le chat.
 
 ---
 
-## What pilot is not
+## Ce que pilot n'est pas
 
-- **Not a wrapper around Docker** : pilot supports compose, k3d (local Kubernetes), Lima (lightweight VMs), and cloud providers. Docker compose is the default implementation.
-- **Not a CI tool** : pilot provides the primitives (`push`, `deploy`, `rollback`). GitHub Actions or GitLab CI sequence them.
-- **Not a template engine** : Dockerfiles and compose files are generated by your AI agent reading your actual project, not by static templates.
-- **Not Terraform** : pilot manages your application and its direct dependencies. Infrastructure provisioning (VMs, VPCs, managed databases) is Terraform or Pulumi's job.
-- **Not opinionated about your stack** : Go, Node, Python, Rust, Java. VPS, AWS, GCP. GHCR, Docker Hub, custom registry. pilot abstracts the differences through provider interfaces.
+- **Pas un wrapper autour de Docker** : pilot supporte compose, k3d (Kubernetes local), Lima (VMs légères), et les cloud providers. Docker compose est l'implémentation par défaut.
+- **Pas un outil de CI** : pilot fournit les primitives (`push`, `deploy`, `rollback`). GitHub Actions ou GitLab CI les séquencent.
+- **Pas un moteur de templates** : les Dockerfiles et compose files sont générés par votre agent IA qui lit votre projet réel : pas par des templates statiques.
+- **Pas Terraform** : pilot gère votre application et ses dépendances directes. Le provisioning d'infrastructure (VMs, VPCs, bases de données managées) reste le travail de Terraform ou Pulumi.
+- **Pas opinioné sur votre stack** : Go, Node, Python, Rust, Java. VPS, AWS, GCP. GHCR, Docker Hub, registry custom. pilot abstrait les différences via des interfaces provider.
 
 ---
 
-## Project lifecycle
+## Cycle de vie du projet
 
 ```
 pilot init my-app
-    └─► pilot.yaml + .mcp.json created
-        Wizard: services, environments, VPS host, registry
+    └─► pilot.yaml + .mcp.json créés
+        Wizard : services, environnements, VPS host, registry
 
-─── first run ───
-
-pilot up
-    └─► Missing files detected
-        Agent receives full context via pilot_context (MCP)
-        or pilot context (paste into any AI chat)
-        Agent generates: Dockerfile + docker-compose.dev.yml
-        Files written to project root
+─── premier démarrage ───
 
 pilot up
-    └─► docker compose up
-        Services running locally
+    └─► Fichiers manquants détectés
+        L'agent reçoit le contexte complet via pilot_context (MCP)
+        ou pilot context (paste dans n'importe quel AI chat)
+        L'agent génère : Dockerfile + docker-compose.dev.yml
+        Fichiers écrits à la racine du projet
 
-─── development cycle ───
+pilot up
+    └─► docker compose up -d
+        Services en cours localement
 
-pilot push
-    └─► VITE_* vars auto-detected from .env.dev
-        linux/amd64 image built
-        Image pushed to registry
+─── cycle de développement ───
+
+pilot preflight --target deploy --env prod
+    └─► Vérifie 13 prérequis
+        Génère pilot.lock → commiter
+
+pilot push --env prod
+    └─► Vars VITE_* auto-détectées depuis .env.prod
+        Image linux/amd64 construite
+        Image poussée vers le registry
+
+pilot plan --env prod
+    └─► Affiche le pipeline exact (sans exécuter)
 
 pilot deploy --env prod
-    └─► pilot sync: compose + env + nginx/prod.conf + ...
-        docker pull on VPS
-        docker compose up -d
-        ✓ Deployed
+    └─► lock check → secrets → sync → hooks → migrations
+        → deploy → hooks → healthcheck
+        ✓ Déployé
 
-─── something breaks ───
+─── quelque chose casse ───
 
 pilot rollback --env prod
-    └─► Reads prev-tag from VPS state
-        Restarts with previous image
+    └─► Lit prev-tag depuis l'état VPS
+        Redémarre avec l'image précédente
 
-─── infrastructure change ───
+─── changement d'infrastructure ───
 
-Edit pilot.yaml (add a service, change a port)
-    └─► Agent calls pilot_context
-        Regenerates docker-compose files
+Modifier pilot.yaml (ajout service, changement port)
+    └─► L'agent appelle pilot_context
+        Régénère les fichiers compose
+        pilot preflight (nouveau pilot.lock)
         pilot sync + pilot deploy
-        VPS updated
+        VPS mis à jour
 ```

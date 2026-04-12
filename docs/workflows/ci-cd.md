@@ -18,7 +18,7 @@ Les mêmes commandes que tu utilises en local fonctionnent en CI. Pas de script 
 
 ### `pilot.lock` et CI
 
-`pilot.lock` doit être **commité dans le dépôt** — c'est un prérequis de `pilot deploy`.
+`pilot.lock` doit être **commité dans le dépôt** : c'est un prérequis de `pilot deploy`.
 
 En pratique :
 - Tu génères `pilot.lock` localement avec `pilot preflight --target deploy`
@@ -263,7 +263,7 @@ pilot push --tag ${{ github.sha }} --env prod
 pilot deploy --env prod --tag ${{ github.sha }}
 ```
 
-**`pilot.lock` commité** : régénère `pilot.lock` localement après chaque changement de `pilot.yaml`, compose file ou schéma de migration. Le CI ne doit pas générer le lock — il vérifie que celui commité est à jour.
+**`pilot.lock` commité** : régénère `pilot.lock` localement après chaque changement de `pilot.yaml`, compose file ou schéma de migration. Le CI ne doit pas générer le lock : il vérifie que celui commité est à jour.
 
 **`--env` sur pilot push** : toujours préciser l'env en CI pour que pilot lise le bon `.env.<env>` et injecte les bonnes variables compile-time.
 

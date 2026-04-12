@@ -6,7 +6,7 @@ Les `ExecutionProvider` gèrent le démarrage, l'arrêt et la surveillance des s
 
 ## Interface
 
-Définie dans `internal/domain/ports.go` — les adapters l'implémentent, le domain ne connaît rien d'eux.
+Définie dans `internal/domain/ports.go` : les adapters l'implémentent, le domain ne connaît rien d'eux.
 
 ```go
 // internal/domain/ports.go
@@ -76,7 +76,7 @@ func NewExecutionProvider(cfg *config.Config, env string) (domain.ExecutionProvi
 }
 ```
 
-Les commandes `cmd/up.go`, `cmd/status.go`, `cmd/logs.go` appellent `runtime.NewExecutionProvider()` — jamais l'adapter directement.
+Les commandes `cmd/up.go`, `cmd/status.go`, `cmd/logs.go` appellent `runtime.NewExecutionProvider()` : jamais l'adapter directement.
 
 ---
 

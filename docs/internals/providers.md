@@ -21,7 +21,7 @@ type DeployProvider interface {
 }
 ```
 
-### `HookRunner` (optionnel — pre/post deploy)
+### `HookRunner` (optionnel : pre/post deploy)
 
 ```go
 type HookRunner interface {
@@ -29,7 +29,7 @@ type HookRunner interface {
 }
 ```
 
-### `MigrationRunner` (optionnel — migrations schema)
+### `MigrationRunner` (optionnel : migrations schema)
 
 ```go
 type MigrationRunner interface {
@@ -65,11 +65,11 @@ func remoteComposeFile(env string) string {
 
 Le pipeline complet est orchestré par `app/deploy.DeployUseCase`, pas par le provider lui-même. Le provider expose les briques primitives :
 
-1. `Sync(env)` — copie les fichiers vers `~/pilot/` sur le VPS
-2. `RunHooks(ctx, commands)` — exécute des commandes SSH arbitraires
-3. `RunMigrations(ctx, tool, command)` — exécute la commande de migration via SSH
-4. `Deploy(ctx, env, opts)` — `docker pull` + `docker compose up -d`
-5. `Rollback(ctx, env, toTag)` — restaure un tag précédent
+1. `Sync(env)` : copie les fichiers vers `~/pilot/` sur le VPS
+2. `RunHooks(ctx, commands)` : exécute des commandes SSH arbitraires
+3. `RunMigrations(ctx, tool, command)` : exécute la commande de migration via SSH
+4. `Deploy(ctx, env, opts)` : `docker pull` + `docker compose up -d`
+5. `Rollback(ctx, env, toTag)` : restaure un tag précédent
 
 #### Erreurs structurées (taxonomie TypeA/B/C/D)
 
@@ -212,4 +212,4 @@ case "hetzner":
     return hetzner.New(cfg, target), nil
 ```
 
-C'est tout. Le pipeline de déploiement, le preflight, le rollback, le sync, le status et les logs fonctionnent immédiatement — ils opèrent sur l'interface, pas sur le type concret.
+C'est tout. Le pipeline de déploiement, le preflight, le rollback, le sync, le status et les logs fonctionnent immédiatement : ils opèrent sur l'interface, pas sur le type concret.

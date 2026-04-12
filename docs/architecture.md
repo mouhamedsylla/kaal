@@ -1,4 +1,4 @@
-# pilot — Architecture
+# pilot : Architecture
 
 > This document is the authoritative technical reference for pilot's internals.
 > If you are contributing, this is where to start. If you are debugging something deep,
@@ -40,7 +40,7 @@ In practice this means:
 - **`adapters/`** implements those interfaces (Docker Compose, SSH/VPS, GHCR, ...).
   They import `domain/` but `domain/` never imports them.
 - **`app/`** contains the use cases (deploy, preflight, push, ...). They depend on
-  `domain/` interfaces — never on concrete adapters. This makes every use case unit-testable
+  `domain/` interfaces : never on concrete adapters. This makes every use case unit-testable
   with plain Go mocks, no Docker, no SSH required.
 - **`cmd/`** and **`mcp/handlers/`** wire everything together via `app/runtime`.
 
@@ -54,7 +54,7 @@ The deploy use case never changes.
 ```
 pilot/
 ├── main.go                         # Entry point: calls cmd.Execute()
-├── cmd/                            # Cobra commands — one file per command
+├── cmd/                            # Cobra commands : one file per command
 │   ├── root.go                     # Global flags, error rendering (TypeC/TypeD)
 │   ├── deploy.go                   # pilot deploy
 │   ├── preflight.go                # pilot preflight
@@ -72,14 +72,14 @@ pilot/
 │   └── init.go                     # pilot init (TUI wizard)
 │
 ├── internal/
-│   ├── domain/                     # The core — imports nothing internal
+│   ├── domain/                     # The core : imports nothing internal
 │   │   ├── ports.go                # All domain interfaces (4 ports)
 │   │   ├── errors/                 # TypeA/B/C/D error taxonomy
 │   │   ├── state/                  # State machine + .pilot/state.json
 │   │   ├── lock/                   # pilot.lock read/write + staleness check
 │   │   └── plan/                   # Step names (StepPreflight, StepDeploy, ...)
 │   │
-│   ├── adapters/                   # Port implementations — import domain/, nothing else
+│   ├── adapters/                   # Port implementations : import domain/, nothing else
 │   │   ├── compose/                # ExecutionProvider → Docker Compose
 │   │   ├── k8s/                    # ExecutionProvider → Kubernetes (stub)
 │   │   ├── vps/                    # DeployProvider + HookRunner + MigrationRunner → SSH
@@ -100,9 +100,9 @@ pilot/
 │   │       ├── aws_sm/             # SecretManager → AWS Secrets Manager (stub)
 │   │       └── gcp_sm/             # SecretManager → GCP Secret Manager (stub)
 │   │
-│   ├── app/                        # Use cases — depend on domain/ interfaces only
+│   ├── app/                        # Use cases : depend on domain/ interfaces only
 │   │   ├── runtime/                # Factory: reads pilot.yaml, builds concrete ports
-│   │   ├── deploy/                 # DeployUseCase — 7-step pipeline
+│   │   ├── deploy/                 # DeployUseCase : 7-step pipeline
 │   │   ├── preflight/              # PreflightUseCase + lock generation
 │   │   ├── push/                   # PushUseCase
 │   │   ├── up/                     # UpUseCase
@@ -164,7 +164,7 @@ mcp/handlers/ ──────────────────────
 Everything else knows about `domain/` and implements (or uses) its interfaces.
 
 The only package allowed to import both adapters and use cases is `app/runtime`.
-`cmd/` and `mcp/handlers/` import `app/runtime` — never adapters directly.
+`cmd/` and `mcp/handlers/` import `app/runtime` : never adapters directly.
 
 ---
 
@@ -175,7 +175,7 @@ The only package allowed to import both adapters and use cases is `app/runtime`.
 All four contracts live in `internal/domain/ports.go`.
 
 ```go
-// ExecutionProvider — local runtime (Docker Compose, Podman, k3d, ...)
+// ExecutionProvider : local runtime (Docker Compose, Podman, k3d, ...)
 type ExecutionProvider interface {
     Up(ctx context.Context, env string, services []string) error
     Down(ctx context.Context, env string) error
@@ -183,7 +183,7 @@ type ExecutionProvider interface {
     Logs(ctx context.Context, env string, service string, opts LogOptions) (<-chan string, error)
 }
 
-// DeployProvider — remote target (VPS, AWS, ...)
+// DeployProvider : remote target (VPS, AWS, ...)
 type DeployProvider interface {
     Sync(ctx context.Context, env string) error
     Deploy(ctx context.Context, env string, opts DeployOptions) error
@@ -192,24 +192,24 @@ type DeployProvider interface {
     Logs(ctx context.Context, env string, service string, opts LogOptions) (<-chan string, error)
 }
 
-// RegistryProvider — image build + push
+// RegistryProvider : image build + push
 type RegistryProvider interface {
     Login(ctx context.Context) error
     Build(ctx context.Context, opts BuildOptions) error
     Push(ctx context.Context, tag string) error
 }
 
-// SecretManager — secret resolution
+// SecretManager : secret resolution
 type SecretManager interface {
     Inject(ctx context.Context, env string, refs map[string]string) (map[string]string, error)
 }
 
-// HookRunner — pre/post-deploy hooks (remote SSH for VPS)
+// HookRunner : pre/post-deploy hooks (remote SSH for VPS)
 type HookRunner interface {
     RunHooks(ctx context.Context, commands []string) error
 }
 
-// MigrationRunner — schema changes with optional rollback
+// MigrationRunner : schema changes with optional rollback
 type MigrationRunner interface {
     RunMigrations(ctx context.Context, cfg MigrationConfig) error
     RollbackMigrations(ctx context.Context, cfg MigrationConfig) error
@@ -224,7 +224,7 @@ bridge the concrete `*vps.Provider` to these interfaces.
 ### Error taxonomy
 
 `internal/domain/errors/` defines the four-type taxonomy. Every pilot failure is one
-of these four types — the type determines **who acts** and **how**, not just what broke.
+of these four types : the type determines **who acts** and **how**, not just what broke.
 
 | Type | Situation | Actor | Mechanism |
 |------|-----------|-------|-----------|
@@ -330,7 +330,7 @@ type State struct {
 
 ### pilot.lock
 
-`internal/domain/lock/` manages `pilot.lock` — the validated, committed snapshot of
+`internal/domain/lock/` manages `pilot.lock` : the validated, committed snapshot of
 what the next deploy will do.
 
 **Lifecycle:**
@@ -353,7 +353,7 @@ pilot deploy
 `pilot.lock` in YAML:
 
 ```yaml
-# pilot.lock — generated automatically, commit this file.
+# pilot.lock : generated automatically, commit this file.
 schema_version: 1
 generated_at: 2026-04-11T14:00:00Z
 generated_from:
@@ -401,7 +401,7 @@ their step list.
 ## Adapters layer
 
 All adapters live in `internal/adapters/`. Each implements one or more domain interfaces.
-Stubs return `fmt.Errorf("xxx: not yet implemented")` — never silent `nil`.
+Stubs return `fmt.Errorf("xxx: not yet implemented")` : never silent `nil`.
 
 ### Execution providers
 
@@ -480,7 +480,7 @@ func New(cfg *config.Config, port domain.SomePort) *UseCase { ... }
 func (uc *UseCase) Execute(ctx context.Context, in Input) (Output, error) { ... }
 ```
 
-Ports are injected at construction time — unit tests pass fakes, `cmd/` passes
+Ports are injected at construction time : unit tests pass fakes, `cmd/` passes
 real adapters from `app/runtime`.
 
 | Use case | Package | Key injected ports |
@@ -529,7 +529,7 @@ func NewMigrationRunner(cfg *config.Config, targetName string) (domain.Migration
 ### The hook/migration bridge
 
 `vps.Provider` has raw `RunHooks(ctx, []string)` and `RunMigrations(ctx, tool, cmd string)`
-methods — not the exact signatures the domain interfaces require. `runtime.go` bridges
+methods : not the exact signatures the domain interfaces require. `runtime.go` bridges
 them with local duck-typed adapters:
 
 ```go
@@ -577,14 +577,14 @@ On any failure from step 4 onward, compensation runs in LIFO order:
 
 ```
 failure in step 6 (deploy)
-  → compensate: step 6 (image rollback — always)
-  → compensate: step 5 (migration rollback — if reversible: true)
+  → compensate: step 6 (image rollback : always)
+  → compensate: step 5 (migration rollback : if reversible: true)
 ```
 
 ```
 failure in step 5 (migrations)
-  → compensate: step 5 (migration rollback — if reversible: true)
-  (deploy hasn't started yet — no image to roll back)
+  → compensate: step 5 (migration rollback : if reversible: true)
+  (deploy hasn't started yet : no image to roll back)
 ```
 
 The compensation loop in `deploy.go`:
@@ -702,13 +702,13 @@ embedded in `data.pilot_error`.
 | Context | All I/O functions accept `context.Context` as first argument. |
 | Stubs | Return `fmt.Errorf("xxx: not yet implemented")`, never `nil`. |
 | Factories | Named `New(cfg, ...)` in their own package. |
-| Terminal output | Everything goes through `pkg/ui` — no `fmt.Println` in `internal/`. |
+| Terminal output | Everything goes through `pkg/ui` : no `fmt.Println` in `internal/`. |
 | `--json` flag | Use `ui.JSON(v)` instead of `ui.Success/Error/...` when JSON mode is active. |
 | Error sites | Return `domain/errors.PilotError` with the right type, code, and exit code. |
-| Error propagation | Use `WithCause(err)` to wrap the original cause — never lose it. |
+| Error propagation | Use `WithCause(err)` to wrap the original cause : never lose it. |
 | File writes | Atomic: write to `.tmp`, then `os.Rename` to final path. |
 | Git | Feature branches `feat/xxx`, docs `docs/xxx`, merge `--no-ff` into `main`. |
-| Tests | Use cases are tested with injected mocks — no Docker, no SSH in unit tests. |
+| Tests | Use cases are tested with injected mocks : no Docker, no SSH in unit tests. |
 
 ### Adding a new provider
 
@@ -718,7 +718,7 @@ embedded in `data.pilot_error`.
 4. Update the implementation status table in `README.md`
 
 That's it. The deploy use case, preflight, rollback, sync, status, and logs all work
-immediately — they operate on the interface, not the concrete type.
+immediately : they operate on the interface, not the concrete type.
 
 ### Adding a new MCP tool
 

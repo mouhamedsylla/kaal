@@ -107,7 +107,7 @@ pilot preflight --target deploy --env prod
 ✓ vps_connectivity     connected to deploy@1.2.3.4
 ✓ vps_docker_group     deploy can run docker commands
 ✓ vps_env_file         .env.prod synced at ~/pilot/.env.prod
-✓ All checks passed — pilot.lock generated
+✓ All checks passed : pilot.lock generated
 ```
 
 **Commiter `pilot.lock` dans le dépôt :**
@@ -152,7 +152,7 @@ pilot plan --env prod
 ```
 
 ```
-  Execution plan — pilot deploy --env prod
+  Execution plan : pilot deploy --env prod
 
   Steps
   ──────────────────────────────────────────────────
@@ -162,7 +162,7 @@ pilot plan --env prod
   [4] post_hooks       run post-deploy hooks on remote
   [5] healthcheck      wait for all services healthy
 
-  Compensation plan  (LIFO — executed on failure)
+  Compensation plan  (LIFO : executed on failure)
   ──────────────────────────────────────────────────
   [1] deploy           restore previous image tag
   [2] migrations       npx prisma migrate rollback
@@ -224,7 +224,7 @@ Utile après avoir modifié `nginx/prod.conf` ou `.env.prod` sans changer l'imag
 
 ### Rechargement automatique de nginx
 
-Si des fichiers de configuration nginx ont été mis à jour, pilot exécute automatiquement `nginx -s reload` dans le container — sans interruption de service.
+Si des fichiers de configuration nginx ont été mis à jour, pilot exécute automatiquement `nginx -s reload` dans le container : sans interruption de service.
 
 ```
 → Syncing files to remote

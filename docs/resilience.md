@@ -1,6 +1,6 @@
 # pilot : Modèle de résilience
 
-> **Document de référence — architecture et vision du modèle de résilience**
+> **Document de référence : architecture et vision du modèle de résilience**
 
 ---
 
@@ -9,9 +9,9 @@
 **pilot** est un CLI terminal-first, opinionated et IA-natif qui accompagne le développeur
 de l'initialisation d'un projet jusqu'au déploiement en production.
 
-Sa promesse centrale : **ce qui tourne en local tourne en production pour tout ce que pilot contrôle — les divergences hors périmètre sont rendues visibles avant le déploiement.**
+Sa promesse centrale : **ce qui tourne en local tourne en production pour tout ce que pilot contrôle : les divergences hors périmètre sont rendues visibles avant le déploiement.**
 
-pilot cible en priorité les *vibe coders* — des développeurs qui codent avec ou sans agent IA,
+pilot cible en priorité les *vibe coders* : des développeurs qui codent avec ou sans agent IA,
 qui ne maîtrisent pas nécessairement les rouages du DevOps, et qui ont besoin qu'un outil
 pense à leur place pour tout ce qui concerne l'infrastructure, les environnements et le déploiement.
 Il s'adresse aussi aux développeurs confirmés qui veulent aller vite sans sacrifier la robustesse.
@@ -31,17 +31,17 @@ Mais le monde réel est chaotique : ports occupés, variables manquantes, migrat
 clés SSH mal configurées, images cassées, containers qui crashent au démarrage.
 
 Le problème actuel : quand pilot échoue, il sort une erreur. L'utilisateur ne sait pas toujours
-quoi faire. L'agent IA, lui, commence à improviser des commandes dans tous les sens —
+quoi faire. L'agent IA, lui, commence à improviser des commandes dans tous les sens -
 ce qui empire souvent la situation.
 
 **Ce qu'on cherche à construire** : un pilot qui ne laisse jamais l'utilisateur ni l'agent
-dans un état ambigu. Chaque échec est diagnostiqué, classé, et résolu — automatiquement
+dans un état ambigu. Chaque échec est diagnostiqué, classé, et résolu : automatiquement
 si possible, avec des instructions exactes sinon. pilot doit être le seul interlocuteur
 fiable entre l'humain ou l'agent et le système, quelle que soit la complexité du projet
 ou le chaos de l'environnement.
 
 Ce document décrit le modèle qui rend ça possible : comment les opérations sont planifiées,
-exécutées, réparées et compensées — sans que l'utilisateur ni l'agent n'aient à comprendre
+exécutées, réparées et compensées : sans que l'utilisateur ni l'agent n'aient à comprendre
 la mécanique sous-jacente.
 
 ---
@@ -69,7 +69,7 @@ Ce principe gouverne trois dimensions :
 > **Les divergences hors périmètre sont rendues visibles avant le déploiement."**
 
 Docker ne résout pas tout. ARM vs x86, volumes locaux vs stockage distant, ressources
-disponibles, DNS interne vs externe — ces divergences existent et pilot ne peut pas
+disponibles, DNS interne vs externe : ces divergences existent et pilot ne peut pas
 toutes les effacer. Ce qu'il peut faire, c'est les rendre **prévisibles et visibles**
 plutôt que silencieuses.
 
@@ -152,19 +152,19 @@ La forme est toujours reconnaissable. Ce qui change c'est ce qui s'active.
 
 ---
 
-### 1.3 `pilot.lock` — l'inférence validée une fois pour toutes
+### 1.3 `pilot.lock` : l'inférence validée une fois pour toutes
 
 L'inférence dynamique à chaque exécution est une bombe à retardement : un projet qui évolue
 silencieusement change le comportement de pilot sans que personne ne le voie. La solution n'est
-pas d'inférer mieux à chaque fois — c'est d'**inférer une fois, valider, verrouiller**.
+pas d'inférer mieux à chaque fois : c'est d'**inférer une fois, valider, verrouiller**.
 
 #### Fonctionnement
 
 Au premier `pilot preflight`, pilot analyse le projet et produit un fichier `pilot.lock` :
 
 ```yaml
-# pilot.lock — généré automatiquement, à committer dans le repo
-# NE PAS MODIFIER MANUELLEMENT — relancer pilot preflight pour régénérer
+# pilot.lock : généré automatiquement, à committer dans le repo
+# NE PAS MODIFIER MANUELLEMENT : relancer pilot preflight pour régénérer
 
 schema_version: 1
 generated_at: "2026-04-03T10:00:00Z"
@@ -192,9 +192,9 @@ execution_plan:
 execution_provider: compose                  # docker-compose (v1 default)
 ```
 
-L'utilisateur **valide ce fichier une fois** — il reflète exactement ce que pilot va faire.
+L'utilisateur **valide ce fichier une fois** : il reflète exactement ce que pilot va faire.
 Il est commité dans le repo. pilot s'y réfère pour toutes les exécutions suivantes.
-**Ce qui tourne en production, c'est ce que l'équipe a validé — pas ce que pilot a inféré ce matin.**
+**Ce qui tourne en production, c'est ce que l'équipe a validé : pas ce que pilot a inféré ce matin.**
 
 #### Gestion de la fraîcheur
 
@@ -214,7 +214,7 @@ Quand pilot détecte un lock stale :
 ```
 
 pilot **refuse de continuer** tant que le lock n'est pas à jour.
-L'agent ne peut pas ignorer cette erreur — elle est BLOCKING.
+L'agent ne peut pas ignorer cette erreur : elle est BLOCKING.
 
 #### Inférence graduée (pour la génération du lock)
 
@@ -235,7 +235,7 @@ Une fois le lock généré et validé, ces questions ne se reposent plus.
 ### 1.4 L'interface du provider d'exécution
 
 pilot ne parle jamais à Docker directement dans son core. Il parle à une interface
-abstraite — le **provider d'exécution** — dont Docker/Compose est la première implémentation.
+abstraite : le **provider d'exécution** : dont Docker/Compose est la première implémentation.
 
 #### Pourquoi cette abstraction dès le départ
 
@@ -275,10 +275,10 @@ type ExecutionProvider interface {
 
 | Provider | Cible | Statut |
 |---|---|---|
-| `compose` | Docker Compose local + VPS | **v1 — implémenté** |
+| `compose` | Docker Compose local + VPS | **v1 : implémenté** |
 | `systemd` | Binaires natifs (Go, Rust) sur VPS sans Docker | futur |
 | `podman` | Environnements sans Docker daemon | futur |
-| `k8s` | Kubernetes | futur — après validation VPS |
+| `k8s` | Kubernetes | futur : après validation VPS |
 
 **Ce que ça change pour `pilot.yaml`** : rien pour l'utilisateur.
 Le provider est résolu depuis le type de target et le lock, pas exposé dans la config.
@@ -345,15 +345,15 @@ de répondre à la question : *si ça échoue plus tard, que peut-on défaire ?*
 ### 2.1 Périmètre de la compensation
 
 > **pilot restaure un état opérationnel cohérent pour les composants qu'il contrôle.**
-> Il ne promet pas de rétablir l'état exact du monde — certains effets externes
+> Il ne promet pas de rétablir l'état exact du monde : certains effets externes
 > sont irréversibles par nature.
 
 **Ce que pilot peut compenser :**
 
 | Nœud | Compensation | Condition |
 |---|---|---|
-| [3] migrations | rollback via `rollback_command` | si `reversible: true` — déclaré explicitement dans pilot.lock |
-| [4] push | aucune (image publiée, inoffensif) | — |
+| [3] migrations | rollback via `rollback_command` | si `reversible: true` : déclaré explicitement dans pilot.lock |
+| [4] push | aucune (image publiée, inoffensif) | : |
 | [5] deploy | restaurer l'image précédente | image précédente connue dans state.json |
 | [6] post-hooks | dépend du hook | déclaré dans pilot.yaml si besoin |
 | [7] healthcheck | déclenche la compensation | c'est le déclencheur, pas une étape |
@@ -378,7 +378,7 @@ Mettre `reversible: true` par défaut crée une fausse garantie : pilot promettr
 que personne n'a testé. Le défaut sûr est `reversible: false`.
 
 ```yaml
-# Dans pilot.lock — déclaration explicite requise pour activer le rollback
+# Dans pilot.lock : déclaration explicite requise pour activer le rollback
 migrations:
   reversible: true
   rollback_command: npx prisma migrate rollback   # obligatoire si reversible: true
@@ -405,7 +405,7 @@ migrations:
      > _
 ```
 
-Pas de touche Entrée — l'utilisateur doit taper le texte. L'agent IA doit présenter
+Pas de touche Entrée : l'utilisateur doit taper le texte. L'agent IA doit présenter
 cette confirmation à l'humain avant de continuer : c'est une décision humaine, pas automatique.
 
 > **pilot ne franchit jamais une étape irréversible sans avoir établi que les étapes
@@ -905,7 +905,7 @@ IDLE
 ou dans l'état `GUIDED_FAILURE`. Jamais dans un état indéterminé.
 
 **`state.json` est la source de vérité unique dès la première écriture.**
-L'état n'est jamais gardé seulement en mémoire — si le terminal crash pendant
+L'état n'est jamais gardé seulement en mémoire : si le terminal crash pendant
 un `AWAITING_CHOICE`, la reprise se fait depuis `state.json`, pas depuis rien.
 
 ---
@@ -926,36 +926,36 @@ un `AWAITING_CHOICE`, la reprise se fait depuis `state.json`, pas depuis rien.
 ## 11. Évolutions planifiées de la surface de commandes
 
 Ce modèle de résilience implique des ajouts et des retraits par rapport à l'état actuel de pilot.
-Rien n'est implémenté ici — c'est le plan de référence.
+Rien n'est implémenté ici : c'est le plan de référence.
 
 ### À ajouter
 
-#### `pilot validate` — analyse statique offline
+#### `pilot validate` : analyse statique offline
 Vérifie la cohérence du projet sans aucune dépendance runtime (pas de Docker, pas de réseau).
 Peut tourner sur une machine fraîche, en CI, avant toute installation.
 Cible : Dockerfile antipatterns, `pilot.yaml` valide, `.env.*` cohérents, `.gitignore` correct.
 Différent de `pilot preflight` qui nécessite Docker et le réseau.
 
-#### `pilot env diff <env1> <env2>` — parité entre environnements
+#### `pilot env diff <env1> <env2>` : parité entre environnements
 Affiche les variables présentes dans un environnement et absentes de l'autre,
 les ports qui diffèrent, les services qui ne sont pas dans les deux compose files.
 Colmate le trou classique "ça marche en dev mais plante en prod pour une variable manquante".
 
-#### `pilot secrets check [--env <env>]` — valider sans exposer
+#### `pilot secrets check [--env <env>]` : valider sans exposer
 Vérifie que chaque secret référencé dans `pilot.yaml` existe et est non-vide
-dans le provider configuré. Aucune valeur affichée — juste existence + non-vide.
+dans le provider configuré. Aucune valeur affichée : juste existence + non-vide.
 S'intègre au preflight avant chaque deploy.
 
 #### `--dry-run` sur `pilot deploy` et `pilot push`
 Affiche le plan complet (étapes, compensation prévue, ce qui va changer)
 sans rien exécuter. Utile pour l'agent avant d'agir, et pour l'humain prudent avant prod.
 
-#### `pilot clean` — nettoyage ciblé du projet
+#### `pilot clean` : nettoyage ciblé du projet
 Supprime les images locales obsolètes, containers stopped, volumes orphelins
 appartenant à ce projet spécifiquement. Plus chirurgical que `docker system prune`
 qui touche tous les projets de la machine.
 
-#### `pilot env push [--env <env>]` — mettre à jour les vars sans redéployer
+#### `pilot env push [--env <env>]` : mettre à jour les vars sans redéployer
 Synchronise le fichier `.env.*` vers le VPS et redémarre les services affectés,
 sans rebuilder l'image. Comble le vide entre `pilot sync` (fichiers config)
 et `pilot deploy` (image complète) pour le cas "je veux juste changer LOG_LEVEL".
@@ -966,7 +966,7 @@ pilot env push  → variables d'environnement + restart des services
 pilot deploy    → nouvelle image + tout le reste
 ```
 
-#### `pilot init --adopt` — adopter un projet existant
+#### `pilot init --adopt` : adopter un projet existant
 Génère `pilot.yaml` depuis un projet qui a déjà un Dockerfile et un docker-compose,
 au lieu de créer de zéro. Réduit la friction pour les projets qui veulent rejoindre
 pilot sans tout refaire.
@@ -975,12 +975,12 @@ pilot sans tout refaire.
 
 ### À retirer
 
-#### `pilot_config_get` / `pilot_config_set` — outils MCP
+#### `pilot_config_get` / `pilot_config_set` : outils MCP
 Permettre à un agent IA de lire et écrire `pilot.yaml` directement est trop risqué.
 Une correction silencieuse d'un champ peut en casser un autre.
-`pilot.yaml` reste sous contrôle humain — l'agent peut suggérer, l'humain applique.
+`pilot.yaml` reste sous contrôle humain : l'agent peut suggérer, l'humain applique.
 
-#### `pilot_generate_k8s` — outil MCP
+#### `pilot_generate_k8s` : outil MCP
 Le provider Kubernetes n'est pas encore implémenté. Exposer un outil MCP
 pour quelque chose qui ne fonctionne pas crée de fausses attentes.
 À réintroduire quand k8s sera réellement opérationnel.
@@ -996,7 +996,7 @@ Pas besoin d'une commande de premier niveau pour ça.
 
 #### `pilot history` → dans `pilot status --history`
 `pilot history` est une vue temporelle de `state.json`. Ce n'est pas un concept
-distinct de `pilot status` — c'est la même chose avec un filtre temporel.
+distinct de `pilot status` : c'est la même chose avec un filtre temporel.
 `pilot status` pour l'état courant, `pilot status --history` pour le passé.
 
 #### `pilot context` → sous `pilot mcp context`

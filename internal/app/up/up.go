@@ -9,6 +9,7 @@ import (
 
 	"github.com/mouhamedsylla/pilot/internal/config"
 	domain "github.com/mouhamedsylla/pilot/internal/domain"
+	"github.com/mouhamedsylla/pilot/internal/meta"
 )
 
 // ── Up ────────────────────────────────────────────────────────────────────────
@@ -36,7 +37,30 @@ type MissingComposeError struct {
 }
 
 func (e *MissingComposeError) Error() string {
-	return fmt.Sprintf("compose file not found: %s\n  Ask your AI agent: \"Generate the missing infrastructure files for this project\"", e.ComposePath)
+	return fmt.Sprintf(
+		"compose file not found: %s\n"+
+			"  Ask your AI agent: \"Generate the missing infrastructure files for this project\"\n"+
+			"  Or run manually:    pilot add <service>  to update pilot.yaml first",
+		e.ComposePath,
+	)
+}
+
+// StaleComposeError is returned when pilot.yaml has changed since the compose
+// file was last generated. The compose file may no longer reflect the real infra.
+type StaleComposeError struct {
+	Env         string
+	ComposeFile string
+}
+
+func (e *StaleComposeError) Error() string {
+	return fmt.Sprintf(
+		"docker-compose.%s.yml is stale — pilot.yaml has changed since it was generated\n\n"+
+			"  Regenerate it:\n"+
+			"    Ask your AI agent: \"Regenerate the compose file for the %s environment\"\n\n"+
+			"  The agent will call pilot_generate_compose with the updated pilot.yaml.\n"+
+			"  Your existing compose file will be replaced.",
+		e.Env, e.Env,
+	)
 }
 
 // UpUseCase starts the local environment.
@@ -66,6 +90,13 @@ func (uc *UpUseCase) Execute(ctx context.Context, in Input) (Output, error) {
 	composePath := filepath.Join(projectDir, composeFile)
 	if _, err := os.Stat(composePath); os.IsNotExist(err) {
 		return Output{}, &MissingComposeError{ComposePath: composePath, Env: in.Env}
+	}
+
+	// Staleness check: if pilot.yaml changed since the compose was generated,
+	// warn the user before they run with an outdated compose.
+	// Non-blocking when no record exists (first run or .pilot/ deleted).
+	if staleness, err := meta.CheckStaleness(projectDir, in.Env); err == nil && staleness.IsStale {
+		return Output{}, &StaleComposeError{Env: in.Env, ComposeFile: composeFile}
 	}
 
 	out := Output{Env: in.Env}

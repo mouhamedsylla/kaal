@@ -6,17 +6,17 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Dev Environment as Code">
+        <meta name="description" content="Dev Environment as Code - de l'init au déploiement, sans friction.">
       
       
         <meta name="author" content="Mouhamed SYLLA">
       
       
       
-        <link rel="prev" href="../architecture/">
+        <link rel="prev" href="..">
       
       
-        <link rel="next" href="../pilot-yaml/">
+        <link rel="next" href="../architecture/">
       
       
         
@@ -90,7 +90,9 @@
     
       
 
-<header class="md-header" data-md-component="header">
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href=".." title="pilot Documentation" class="md-header__button md-logo" aria-label="pilot Documentation" data-md-component="logo">
       
@@ -125,13 +127,21 @@
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
     
   
     
     
     
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_1">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
     
   
 </form>
@@ -161,6 +171,11 @@
       </label>
       <nav class="md-search__options" aria-label="Search">
         
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
         <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
@@ -185,16 +200,22 @@
       
     
     
+      <div class="md-header__source">
+        <a href="https://github.com/mouhamedsylla/pilot" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    mouhamedsylla/pilot
+  </div>
+</a>
+      </div>
+    
   </nav>
   
-</header>
     
-    <div class="md-container" data-md-component="container">
       
-      
-        
-          
-            
 <nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
@@ -213,7 +234,7 @@
           
   
   
-  Concept
+  Introduction
 
         </a>
       </li>
@@ -229,7 +250,27 @@
     
     
       <li class="md-tabs__item">
-        <a href="../commands/context/" class="md-tabs__link">
+        <a href="../guide/getting-started/" class="md-tabs__link">
+          
+  
+  
+  Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../commands/init/" class="md-tabs__link">
           
   
   
@@ -249,11 +290,31 @@
     
     
       <li class="md-tabs__item">
-        <a href="../workflows/ai-agent/" class="md-tabs__link">
+        <a href="../workflows/local-dev/" class="md-tabs__link">
           
   
   
   Workflows
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../reference/pilot-yaml/" class="md-tabs__link">
+          
+  
+  
+  Référence
 
         </a>
       </li>
@@ -289,7 +350,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../troubleshooting/env-vars-empty-in-container/" class="md-tabs__link">
+        <a href="../troubleshooting/stale-compose/" class="md-tabs__link">
           
   
   
@@ -304,7 +365,13 @@
     </ul>
   </div>
 </nav>
-          
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
         
       
       <main class="md-main" data-md-component="main">
@@ -331,6 +398,18 @@
     </a>
     pilot Documentation
   </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/mouhamedsylla/pilot" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    mouhamedsylla/pilot
+  </div>
+</a>
+    </div>
   
   <ul class="md-nav__list" data-md-scrollfix>
     
@@ -369,7 +448,7 @@
   <span class="md-ellipsis">
     
   
-    Concept
+    Introduction
   
 
     
@@ -385,7 +464,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Concept
+    Introduction
   
 
           </label>
@@ -406,34 +485,6 @@
     
   
     Accueil
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../architecture/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Architecture
   
 
     
@@ -608,10 +659,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-preflight-system" class="md-nav__link">
+  <a href="#le-systeme-preflight-et-pilotlock" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The preflight system
+        Le système preflight et pilot.lock
       
     </span>
   </a>
@@ -619,10 +670,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-ai-agent-deploy-workflow" class="md-nav__link">
+  <a href="#le-modele-de-resilience" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The AI-agent deploy workflow
+        Le modèle de résilience
       
     </span>
   </a>
@@ -630,10 +681,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-pilot-is-not" class="md-nav__link">
+  <a href="#le-workflow-agent-ai-de-deploiement" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What pilot is not
+        Le workflow agent AI de déploiement
       
     </span>
   </a>
@@ -641,10 +692,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#project-lifecycle" class="md-nav__link">
+  <a href="#ce-que-pilot-nest-pas" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Project lifecycle
+        Ce que pilot n'est pas
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cycle-de-vie-du-projet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cycle de vie du projet
       
     </span>
   </a>
@@ -667,14 +729,42 @@
   
   
     <li class="md-nav__item">
-      <a href="../pilot-yaml/" class="md-nav__link">
+      <a href="../architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    pilot.yaml
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../resilience/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Modèle de résilience
   
 
     
@@ -725,7 +815,7 @@
   <span class="md-ellipsis">
     
   
-    Commandes CLI
+    Guide
   
 
     
@@ -741,7 +831,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Commandes CLI
+    Guide
   
 
           </label>
@@ -754,14 +844,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../commands/context/" class="md-nav__link">
+      <a href="../guide/getting-started/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    context
+    Pour commencer
   
 
     
@@ -782,322 +872,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../commands/deploy/" class="md-nav__link">
+      <a href="../guide/adding-services/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    deploy
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../commands/env/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    env
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../commands/history/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    history
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../commands/logs/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    logs
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../commands/mcp/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    mcp
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../commands/preflight/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    preflight
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../commands/push/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    push
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../commands/rollback/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    rollback
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../commands/setup/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    setup
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../commands/status/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    status
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../commands/sync/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    sync
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../commands/up-down/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    up / down
+    Ajouter des services
   
 
     
@@ -1148,7 +930,7 @@
   <span class="md-ellipsis">
     
   
-    Workflows
+    Commandes CLI
   
 
     
@@ -1164,11 +946,658 @@
             <span class="md-nav__icon md-icon"></span>
             
   
+    Commandes CLI
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/init/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    init
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/add/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    add
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/env/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    env
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/up-down/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    up / down
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/push/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    push
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    plan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/preflight/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    preflight
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/deploy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    deploy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/status/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    status
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/history/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    history
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/rollback/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    rollback
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/logs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    logs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/sync/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sync
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/secrets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    secrets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/diagnose/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    diagnose
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/resume/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    resume
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/update/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    update
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    context
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../commands/mcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    mcp
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Workflows
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
     Workflows
   
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../workflows/local-dev/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dév Local
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -1254,6 +1683,65 @@
 
               
             
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Référence
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Référence
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
               
                 
   
@@ -1261,14 +1749,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../workflows/local-dev/" class="md-nav__link">
+      <a href="../reference/pilot-yaml/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Dév Local
+    pilot.yaml
   
 
     
@@ -1309,10 +1797,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
             
   
   
@@ -1330,8 +1818,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1356,34 +1844,6 @@
     
   
     Moteur de context
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../internals/mcp-server/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Serveur MCP
   
 
     
@@ -1460,14 +1920,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../resilience/" class="md-nav__link">
+      <a href="../internals/mcp-server/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Modèle de résilience
+    Serveur MCP
   
 
     
@@ -1508,10 +1968,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
             
   
   
@@ -1529,8 +1989,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1539,6 +1999,34 @@
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/stale-compose/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diagnostic Compose
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -1696,10 +2184,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-preflight-system" class="md-nav__link">
+  <a href="#le-systeme-preflight-et-pilotlock" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The preflight system
+        Le système preflight et pilot.lock
       
     </span>
   </a>
@@ -1707,10 +2195,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-ai-agent-deploy-workflow" class="md-nav__link">
+  <a href="#le-modele-de-resilience" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The AI-agent deploy workflow
+        Le modèle de résilience
       
     </span>
   </a>
@@ -1718,10 +2206,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-pilot-is-not" class="md-nav__link">
+  <a href="#le-workflow-agent-ai-de-deploiement" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What pilot is not
+        Le workflow agent AI de déploiement
       
     </span>
   </a>
@@ -1729,10 +2217,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#project-lifecycle" class="md-nav__link">
+  <a href="#ce-que-pilot-nest-pas" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Project lifecycle
+        Ce que pilot n'est pas
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cycle-de-vie-du-projet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cycle de vie du projet
       
     </span>
   </a>
@@ -1755,6 +2254,9 @@
                   
 
 
+  
+  
+
 
 <h1 id="concepts-philosophie">Concepts &amp; Philosophie</h1>
 <h2 id="le-probleme-que-resout-pilot">Le problème que résout pilot</h2>
@@ -1768,203 +2270,251 @@
 <p><strong>La réponse de pilot :</strong> un unique <code>pilot.yaml</code> que les trois parties lisent. Vous l'écrivez une fois, tout le monde reste synchronisé.</p>
 <hr />
 <h2 id="le-modele-central-pilotyaml-comme-contrat-partage">Le modèle central : pilot.yaml comme contrat partagé</h2>
-<div class="highlight"><pre><span></span><code>pilot.yaml
-    │
-    ├── Vous l&#39;écrivez      → décrit ce dont votre application a besoin
-    │                         (services, environnements, cibles, registre)
-    │
-    ├── L&#39;agent IA le lit   → comprend votre infrastructure exacte
-    │                         génère le bon Dockerfile et les fichiers compose
-    │                         sait quelles variables d&#39;env sont liées à la compilation vs exécution
-    │                         sait où déployer et avec quelles contraintes
-    │
-    └── pilot l&#39;exécute      → le lance localement (docker compose)
-                              le déploie à distance (SSH + docker compose)
-                              gère les opérations fastidieuses automatiquement
-</code></pre></div>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pilot.yaml
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    │
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    ├── Vous l&#39;écrivez      → décrit ce dont votre application a besoin
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    │                         (services, environnements, cibles, registre)
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    │
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    ├── L&#39;agent IA le lit   → comprend votre infrastructure exacte
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    │                         génère le bon Dockerfile et les fichiers compose
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    │                         sait quelles variables d&#39;env sont liées à la compilation vs exécution
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    │                         sait où déployer et avec quelles contraintes
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    │
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    └── pilot l&#39;exécute      → le lance localement (docker compose)
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>                              le déploie à distance (SSH + pipeline 8 étapes)
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>                              gère les opérations fastidieuses automatiquement
+</span></code></pre></div>
 <p>Ce n'est pas seulement un fichier de configuration. C'est le <strong>contrat</strong> entre vous, vos outils et votre environnement de production. Tout le reste : Dockerfiles, fichiers compose, scripts CI : en découle.</p>
 <hr />
 <h2 id="principes">Principes</h2>
 <h3 id="1-decrire-lintention-pas-limplementation">1. Décrire l'intention, pas l'implémentation</h3>
 <p>Vous déclarez <strong>ce dont</strong> votre application a besoin, pas <strong>comment</strong> la construire :</p>
-<div class="highlight"><pre><span></span><code><span class="nt">services</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">app</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">app</span>
-<span class="w">    </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8080</span>
-<span class="w">  </span><span class="nt">db</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">postgres</span>
-<span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;16&quot;</span>
-<span class="w">  </span><span class="nt">cache</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">redis</span>
-</code></pre></div>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">services</span><span class="p">:</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">app</span><span class="p">:</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">app</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8080</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nt">db</span><span class="p">:</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">postgres</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;16&quot;</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="nt">cache</span><span class="p">:</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">redis</span>
+</span></code></pre></div>
 <p>pilot (ou votre agent IA) génère l'implémentation. Si vous ajoutez un service, vous ajoutez une ligne. L'agent régénère le fichier compose. Aucune modification manuelle de YAML pour les volumes, les réseaux, ou les healthchecks.</p>
 <h3 id="2-local-production">2. Local = Production</h3>
 <p>Les environnements locaux simulent les contraintes de production :</p>
-<div class="highlight"><pre><span></span><code><span class="nt">environments</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">dev</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">runtime</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compose</span>
-<span class="w">    </span><span class="nt">resources</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">cpus</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1&quot;</span>
-<span class="w">      </span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1G</span><span class="w">    </span><span class="c1"># mêmes limites qu&#39;en prod</span>
-
-<span class="w">  </span><span class="nt">prod</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">target</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">vps-prod</span>
-<span class="w">    </span><span class="nt">resources</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">cpus</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1&quot;</span>
-<span class="w">      </span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1G</span><span class="w">    </span><span class="c1"># identiques</span>
-</code></pre></div>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">environments</span><span class="p">:</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">dev</span><span class="p">:</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nt">runtime</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compose</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nt">resources</span><span class="p">:</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">      </span><span class="nt">cpus</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1&quot;</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">      </span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1G</span><span class="w">    </span><span class="c1"># mêmes limites qu&#39;en prod</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="nt">prod</span><span class="p">:</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">    </span><span class="nt">target</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">vps-prod</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span><span class="nt">resources</span><span class="p">:</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">      </span><span class="nt">cpus</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1&quot;</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">      </span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1G</span><span class="w">    </span><span class="c1"># identiques</span>
+</span></code></pre></div>
 <p>Si cela fonctionne dans ces contraintes localement, cela fonctionnera en production.</p>
 <h3 id="3-ia-native-pas-ia-optionnelle">3. IA-native, pas IA-optionnelle</h3>
 <p>pilot est conçu pour fonctionner <em>avec</em> des agents IA, et non à côté d'eux après coup.</p>
-<p>Lorsque <code>pilot up</code> trouve des fichiers manquants, il ne se contente pas d'échouer : il construit un prompt structuré avec le contexte complet de votre projet et indique à l'agent exactement ce qu'il faut générer et avec quelles contraintes (build multi-étapes, utilisateur non-root, healthchecks, gestion VITE_*, injection env_file…).</p>
-<p>Lorsque <code>pilot preflight</code> s'exécute avant un déploiement, il renvoie un plan d'action structuré en JSON que l'agent suit étape par étape : actions humaines d'abord, puis actions de l'agent, puis l'objectif de déploiement.</p>
-<p>Lorsque <code>pilot_context</code> est appelé via MCP, l'agent reçoit tout : la stack, les services, les fichiers existants, les fichiers manquants, les chemins env_file, les cibles non configurées : une image complète, pas un résumé.</p>
+<p>Lorsque <code>pilot up</code> trouve des fichiers manquants, il ne se contente pas d'échouer : il construit un prompt structuré avec le contexte complet de votre projet et indique à l'agent exactement ce qu'il faut générer et avec quelles contraintes (build multi-étapes, utilisateur non-root, healthchecks, gestion VITE_*, injection env_file...).</p>
+<p>Lorsque <code>pilot preflight</code> s'exécute avant un déploiement, il retourne un plan d'action structuré en JSON que l'agent suit étape par étape : actions humaines d'abord, puis actions de l'agent.</p>
+<p>Lorsque <code>pilot_context</code> est appelé via MCP, l'agent reçoit tout : la stack, les services, les fichiers existants, les fichiers manquants, les chemins env_file, les targets non configurés : une image complète, pas un résumé.</p>
 <p><strong>L'agent ne devine pas. pilot lui dit exactement ce qui existe, ce qui manque et quoi faire.</strong></p>
 <h3 id="4-zero-friction-du-local-vers-la-prod">4. Zéro friction du local vers la prod</h3>
-<div class="highlight"><pre><span></span><code>pilot<span class="w"> </span>up<span class="w">              </span><span class="c1"># local</span>
-pilot<span class="w"> </span>push<span class="w">            </span><span class="c1"># build</span>
-pilot<span class="w"> </span>deploy<span class="w"> </span>--env<span class="w"> </span>prod<span class="w">   </span><span class="c1"># prod</span>
-</code></pre></div>
-<p>Trois commandes. Les mêmes commandes depuis votre terminal, depuis la CI, depuis votre agent IA via MCP.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pilot<span class="w"> </span>up<span class="w">                  </span><span class="c1"># local</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>pilot<span class="w"> </span>push<span class="w">                </span><span class="c1"># build</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>pilot<span class="w"> </span>deploy<span class="w"> </span>--env<span class="w"> </span>prod<span class="w">   </span><span class="c1"># prod</span>
+</span></code></pre></div>
+<p>Trois commandes. Les mêmes depuis votre terminal, depuis la CI, depuis votre agent IA via MCP.</p>
 <h3 id="5-automated-ops-not-documented-ops">5. Automated ops, not documented ops</h3>
-<p>Most tools document what you need to do manually. pilot does it for you:</p>
+<p>La plupart des outils documentent ce que vous devez faire manuellement. pilot le fait pour vous :</p>
 <table>
 <thead>
 <tr>
-<th>Problem</th>
-<th>Manual approach</th>
+<th>Problème</th>
+<th>Approche manuelle</th>
 <th>pilot</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Built ARM image on Mac, VPS is AMD64</td>
-<td>Add <code>--platform linux/amd64</code> to every build</td>
-<td>Auto-detects Apple Silicon, builds linux/amd64 by default</td>
+<td>Image ARM construite sur Mac, VPS en AMD64</td>
+<td><code>--platform linux/amd64</code> à chaque build</td>
+<td>Détecte Apple Silicon, build linux/amd64 par défaut</td>
 </tr>
 <tr>
-<td>Vite vars not showing in prod</td>
-<td>Manually add <code>ARG</code>/<code>ENV</code> to Dockerfile</td>
-<td>Auto-injects <code>VITE_*</code> vars, patches Dockerfile transparently</td>
+<td>Variables Vite absentes en prod</td>
+<td>Ajouter <code>ARG</code>/<code>ENV</code> dans le Dockerfile</td>
+<td>Auto-injecte les <code>VITE_*</code>, patche le Dockerfile de façon transparente</td>
 </tr>
 <tr>
-<td>nginx config missing on VPS</td>
+<td>Config nginx manquante sur le VPS</td>
 <td><code>scp nginx/prod.conf deploy@host:~/pilot/nginx/</code></td>
-<td><code>pilot sync</code> scans bind-mounts in compose file and copies them</td>
+<td><code>pilot sync</code> scanne les bind-mounts du compose et les copie</td>
 </tr>
 <tr>
-<td><code>.env.prod</code> not on VPS</td>
-<td>Manual <code>scp</code></td>
-<td><code>pilot sync</code> copies all <code>env_file</code> declared in pilot.yaml</td>
+<td><code>.env.prod</code> absent sur le VPS</td>
+<td><code>scp</code> manuel</td>
+<td><code>pilot sync</code> copie tous les <code>env_file</code> déclarés dans pilot.yaml</td>
 </tr>
 <tr>
-<td>Deploy user not in docker group</td>
+<td>User deploy pas dans le groupe docker</td>
 <td>SSH + <code>sudo usermod -aG docker deploy</code></td>
 <td><code>pilot setup --env prod</code></td>
 </tr>
 <tr>
-<td>Wrong working dir on VPS</td>
-<td>Debug compose errors</td>
-<td>pilot always uses <code>~/pilot/docker-compose.&lt;env&gt;.yml</code></td>
+<td>Mauvais répertoire de travail sur le VPS</td>
+<td>Déboguer les erreurs compose</td>
+<td>pilot utilise toujours <code>~/pilot/docker-compose.&lt;env&gt;.yml</code></td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="the-preflight-system">The preflight system</h2>
-<p>Before pushing or deploying, <code>pilot preflight</code> runs a structured checklist and returns an action plan:</p>
-<div class="highlight"><pre><span></span><code>pilot preflight --target deploy
-
-✓ pilot_yaml
-✓ registry_image
-✓ dockerfile
-✓ docker_daemon
-✓ registry_creds
-✓ compose_file
-✓ target_host
-✓ ssh_key
-✓ vps_connectivity
-✓ vps_docker_group
-✓ vps_env_file
-✓ All checks passed : ready to deploy
-</code></pre></div>
-<p>When something is wrong, the report tells exactly who needs to act:
-- <code>[HUMAN]</code> : you must do this (provide credentials, add SSH key, open firewall port)
-- <code>[AGENT]</code> : the AI agent can call a pilot tool to fix this automatically</p>
-<p>The agent calls <code>pilot_preflight</code> first, follows <code>next_steps[]</code> in order, and only asks you when human action is genuinely required : not for things it can handle itself.</p>
+<h2 id="le-systeme-preflight-et-pilotlock">Le système preflight et pilot.lock</h2>
+<p>Avant de déployer, <code>pilot preflight --target deploy</code> fait deux choses :</p>
+<p><strong>1. Vérifie</strong> tous les prérequis (Docker, SSH, registry, clés, fichiers compose...)</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>✓ pilot_yaml            project: my-api
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>✓ dockerfile            Dockerfile
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>✓ registry_creds        GITHUB_TOKEN + GITHUB_ACTOR présents
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>✓ vps_connectivity      SSH OK (1.2.3.4:22)
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>✓ All checks passed : pilot.lock generated
+</span></code></pre></div>
+<p><strong>2. Génère <code>pilot.lock</code></strong> : le contrat signé du prochain déploiement :</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># pilot.lock : generated automatically, commit this file.</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nt">execution_plan</span><span class="p">:</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nt">nodes_active</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">preflight</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">migrations</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">deploy</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">post_hooks</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">healthcheck</span><span class="p p-Indicator">]</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="nt">migrations</span><span class="p">:</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="nt">tool</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prisma</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">npx prisma migrate deploy</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">    </span><span class="nt">rollback_command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">npx prisma migrate rollback</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">    </span><span class="nt">reversible</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="nt">project_hash</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;abc123...&quot;</span>
+</span></code></pre></div>
+<p><code>pilot.lock</code> doit être commité. <code>pilot deploy</code> vérifie que les sources n'ont pas changé depuis sa génération. Ce qui a été validé par l'équipe est ce qui s'exécute en production : jamais une inférence du moment.</p>
 <hr />
-<h2 id="the-ai-agent-deploy-workflow">The AI-agent deploy workflow</h2>
-<p>In a project with Claude Code and <code>.mcp.json</code>:</p>
-<div class="highlight"><pre><span></span><code>You:    &quot;Les tests passent, déploie en prod&quot;
-
-Agent:  pilot_preflight → all_ok: false
-          [HUMAN] registry_creds: export GITHUB_TOKEN=...
-        → waits for you
-
-You:    (set the token)
-
-Agent:  pilot_preflight → all_ok: true
-        pilot_push → image built and pushed
-        pilot_deploy → synced + deployed
-        pilot_status → reports service health
-
-You:    ✓ Done. No terminal opened.
-</code></pre></div>
-<p>The agent knows your infrastructure through <code>pilot.yaml</code>. It knows what's deployed through <code>pilot_status</code>. It knows what's broken through <code>pilot_preflight</code>. It knows how to fix things through <code>pilot_setup</code>, <code>pilot_sync</code>, and the generate tools. You stay in the chat.</p>
+<h2 id="le-modele-de-resilience">Le modèle de résilience</h2>
+<p>pilot ne laisse jamais l'utilisateur ni l'agent dans un état ambigu. Chaque erreur appartient à l'un des quatre types :</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Situation</th>
+<th>Qui agit</th>
+<th>Comment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A</strong></td>
+<td>Déterministe, faible impact</td>
+<td>pilot, silencieusement</td>
+<td>auto-corrige, continue</td>
+</tr>
+<tr>
+<td><strong>B</strong></td>
+<td>Déterministe, impact visible</td>
+<td>pilot, annoncé</td>
+<td>auto-corrige, affiche ce qu'il a fait</td>
+</tr>
+<tr>
+<td><strong>C</strong></td>
+<td>Choix requis, options connues</td>
+<td>humain ou agent</td>
+<td>suspend, présente les options, attend</td>
+</tr>
+<tr>
+<td><strong>D</strong></td>
+<td>Choix requis, options inconnues</td>
+<td>humain uniquement</td>
+<td>arrête avec des instructions précises</td>
+</tr>
+</tbody>
+</table>
+<p>Quand une erreur TypeC survient (ex: user pas dans le groupe docker), pilot suspend l'opération et présente des choix numérotés. <code>pilot resume --answer 0</code> reprend depuis là où ça s'est arrêté.</p>
+<p>Pour les agents IA, la même information arrive en JSON structuré avec <code>resume_with</code> pour reprendre automatiquement.</p>
 <hr />
-<h2 id="what-pilot-is-not">What pilot is not</h2>
+<h2 id="le-workflow-agent-ai-de-deploiement">Le workflow agent AI de déploiement</h2>
+<p>Dans un projet avec Claude Code et <code>.mcp.json</code> :</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Vous :  &quot;Les tests passent, déploie en prod&quot;
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>Agent:  pilot_preflight → all_ok: false
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>          [HUMAN] registry_creds: export GITHUB_TOKEN=...
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>        → attend votre confirmation
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>Vous :  (configurez le token)
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>Agent:  pilot_preflight → all_ok: true : pilot.lock generated
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>        pilot_push → image built linux/amd64, pushed
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>        pilot_deploy → pipeline 8 étapes (hooks, migrations, deploy, healthcheck)
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>        pilot_status → tous les services healthy
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>Vous :  ✓ Terminé. Aucun terminal ouvert.
+</span></code></pre></div>
+<p>L'agent connaît votre infrastructure via <code>pilot.yaml</code>. Il sait ce qui est déployé via <code>pilot_status</code>. Il sait ce qui est cassé via <code>pilot_preflight</code>. Il sait comment réparer via <code>pilot_setup</code>, <code>pilot_sync</code>, et les outils de génération. Vous restez dans le chat.</p>
+<hr />
+<h2 id="ce-que-pilot-nest-pas">Ce que pilot n'est pas</h2>
 <ul>
-<li><strong>Not a wrapper around Docker</strong> : pilot supports compose, k3d (local Kubernetes), Lima (lightweight VMs), and cloud providers. Docker compose is the default implementation.</li>
-<li><strong>Not a CI tool</strong> : pilot provides the primitives (<code>push</code>, <code>deploy</code>, <code>rollback</code>). GitHub Actions or GitLab CI sequence them.</li>
-<li><strong>Not a template engine</strong> : Dockerfiles and compose files are generated by your AI agent reading your actual project, not by static templates.</li>
-<li><strong>Not Terraform</strong> : pilot manages your application and its direct dependencies. Infrastructure provisioning (VMs, VPCs, managed databases) is Terraform or Pulumi's job.</li>
-<li><strong>Not opinionated about your stack</strong> : Go, Node, Python, Rust, Java. VPS, AWS, GCP. GHCR, Docker Hub, custom registry. pilot abstracts the differences through provider interfaces.</li>
+<li><strong>Pas un wrapper autour de Docker</strong> : pilot supporte compose, k3d (Kubernetes local), Lima (VMs légères), et les cloud providers. Docker compose est l'implémentation par défaut.</li>
+<li><strong>Pas un outil de CI</strong> : pilot fournit les primitives (<code>push</code>, <code>deploy</code>, <code>rollback</code>). GitHub Actions ou GitLab CI les séquencent.</li>
+<li><strong>Pas un moteur de templates</strong> : les Dockerfiles et compose files sont générés par votre agent IA qui lit votre projet réel : pas par des templates statiques.</li>
+<li><strong>Pas Terraform</strong> : pilot gère votre application et ses dépendances directes. Le provisioning d'infrastructure (VMs, VPCs, bases de données managées) reste le travail de Terraform ou Pulumi.</li>
+<li><strong>Pas opinioné sur votre stack</strong> : Go, Node, Python, Rust, Java. VPS, AWS, GCP. GHCR, Docker Hub, registry custom. pilot abstrait les différences via des interfaces provider.</li>
 </ul>
 <hr />
-<h2 id="project-lifecycle">Project lifecycle</h2>
-<div class="highlight"><pre><span></span><code>pilot init my-app
-    └─► pilot.yaml + .mcp.json created
-        Wizard: services, environments, VPS host, registry
-
-─── first run ───
-
-pilot up
-    └─► Missing files detected
-        Agent receives full context via pilot_context (MCP)
-        or pilot context (paste into any AI chat)
-        Agent generates: Dockerfile + docker-compose.dev.yml
-        Files written to project root
-
-pilot up
-    └─► docker compose up
-        Services running locally
-
-─── development cycle ───
-
-pilot push
-    └─► VITE_* vars auto-detected from .env.dev
-        linux/amd64 image built
-        Image pushed to registry
-
-pilot deploy --env prod
-    └─► pilot sync: compose + env + nginx/prod.conf + ...
-        docker pull on VPS
-        docker compose up -d
-        ✓ Deployed
-
-─── something breaks ───
-
-pilot rollback --env prod
-    └─► Reads prev-tag from VPS state
-        Restarts with previous image
-
-─── infrastructure change ───
-
-Edit pilot.yaml (add a service, change a port)
-    └─► Agent calls pilot_context
-        Regenerates docker-compose files
-        pilot sync + pilot deploy
-        VPS updated
-</code></pre></div>
+<h2 id="cycle-de-vie-du-projet">Cycle de vie du projet</h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>pilot init my-app
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>    └─► pilot.yaml + .mcp.json créés
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>        Wizard : services, environnements, VPS host, registry
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>─── premier démarrage ───
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>pilot up
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>    └─► Fichiers manquants détectés
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>        L&#39;agent reçoit le contexte complet via pilot_context (MCP)
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>        ou pilot context (paste dans n&#39;importe quel AI chat)
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>        L&#39;agent génère : Dockerfile + docker-compose.dev.yml
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>        Fichiers écrits à la racine du projet
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>pilot up
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>    └─► docker compose up -d
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>        Services en cours localement
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>─── cycle de développement ───
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a>pilot preflight --target deploy --env prod
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a>    └─► Vérifie 13 prérequis
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a>        Génère pilot.lock → commiter
+</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a>
+</span><span id="__span-7-24"><a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a>pilot push --env prod
+</span><span id="__span-7-25"><a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a>    └─► Vars VITE_* auto-détectées depuis .env.prod
+</span><span id="__span-7-26"><a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a>        Image linux/amd64 construite
+</span><span id="__span-7-27"><a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a>        Image poussée vers le registry
+</span><span id="__span-7-28"><a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a>
+</span><span id="__span-7-29"><a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a>pilot plan --env prod
+</span><span id="__span-7-30"><a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a>    └─► Affiche le pipeline exact (sans exécuter)
+</span><span id="__span-7-31"><a id="__codelineno-7-31" name="__codelineno-7-31" href="#__codelineno-7-31"></a>
+</span><span id="__span-7-32"><a id="__codelineno-7-32" name="__codelineno-7-32" href="#__codelineno-7-32"></a>pilot deploy --env prod
+</span><span id="__span-7-33"><a id="__codelineno-7-33" name="__codelineno-7-33" href="#__codelineno-7-33"></a>    └─► lock check → secrets → sync → hooks → migrations
+</span><span id="__span-7-34"><a id="__codelineno-7-34" name="__codelineno-7-34" href="#__codelineno-7-34"></a>        → deploy → hooks → healthcheck
+</span><span id="__span-7-35"><a id="__codelineno-7-35" name="__codelineno-7-35" href="#__codelineno-7-35"></a>        ✓ Déployé
+</span><span id="__span-7-36"><a id="__codelineno-7-36" name="__codelineno-7-36" href="#__codelineno-7-36"></a>
+</span><span id="__span-7-37"><a id="__codelineno-7-37" name="__codelineno-7-37" href="#__codelineno-7-37"></a>─── quelque chose casse ───
+</span><span id="__span-7-38"><a id="__codelineno-7-38" name="__codelineno-7-38" href="#__codelineno-7-38"></a>
+</span><span id="__span-7-39"><a id="__codelineno-7-39" name="__codelineno-7-39" href="#__codelineno-7-39"></a>pilot rollback --env prod
+</span><span id="__span-7-40"><a id="__codelineno-7-40" name="__codelineno-7-40" href="#__codelineno-7-40"></a>    └─► Lit prev-tag depuis l&#39;état VPS
+</span><span id="__span-7-41"><a id="__codelineno-7-41" name="__codelineno-7-41" href="#__codelineno-7-41"></a>        Redémarre avec l&#39;image précédente
+</span><span id="__span-7-42"><a id="__codelineno-7-42" name="__codelineno-7-42" href="#__codelineno-7-42"></a>
+</span><span id="__span-7-43"><a id="__codelineno-7-43" name="__codelineno-7-43" href="#__codelineno-7-43"></a>─── changement d&#39;infrastructure ───
+</span><span id="__span-7-44"><a id="__codelineno-7-44" name="__codelineno-7-44" href="#__codelineno-7-44"></a>
+</span><span id="__span-7-45"><a id="__codelineno-7-45" name="__codelineno-7-45" href="#__codelineno-7-45"></a>Modifier pilot.yaml (ajout service, changement port)
+</span><span id="__span-7-46"><a id="__codelineno-7-46" name="__codelineno-7-46" href="#__codelineno-7-46"></a>    └─► L&#39;agent appelle pilot_context
+</span><span id="__span-7-47"><a id="__codelineno-7-47" name="__codelineno-7-47" href="#__codelineno-7-47"></a>        Régénère les fichiers compose
+</span><span id="__span-7-48"><a id="__codelineno-7-48" name="__codelineno-7-48" href="#__codelineno-7-48"></a>        pilot preflight (nouveau pilot.lock)
+</span><span id="__span-7-49"><a id="__codelineno-7-49" name="__codelineno-7-49" href="#__codelineno-7-49"></a>        pilot sync + pilot deploy
+</span><span id="__span-7-50"><a id="__codelineno-7-50" name="__codelineno-7-50" href="#__codelineno-7-50"></a>        VPS mis à jour
+</span></code></pre></div>
 
 
 
@@ -1984,6 +2534,12 @@ Edit pilot.yaml (add a service, change a port)
           
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
         </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
         
       </main>
       
@@ -2014,7 +2570,7 @@ Edit pilot.yaml (add a service, change a port)
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.top", "navigation.tracking", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>

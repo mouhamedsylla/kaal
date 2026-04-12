@@ -7,10 +7,20 @@ import (
 	"strings"
 
 	"github.com/mouhamedsylla/pilot/internal/config"
+	"github.com/mouhamedsylla/pilot/internal/scaffold/catalog"
 	"gopkg.in/yaml.v3"
 )
 
-// Generate writes pilot.yaml and .mcp.json to opts.OutputDir.
+// Generate writes pilot.yaml, .mcp.json, .env.example, and optionally .env.local
+// to opts.OutputDir.
+//
+// Files generated:
+//   - pilot.yaml          — infrastructure declaration (always)
+//   - .mcp.json           — AI agent connection (always, preserved if exists)
+//   - .env.example        — env var placeholders for managed services (always)
+//   - .env.local          — registry credentials (only when opts.RegistryCreds is non-empty)
+//   - .gitignore update   — ensures .env.local and .env.* are gitignored
+//
 // Dockerfiles and compose files are NOT generated here — the AI agent
 // generates them via MCP tools (pilot_generate_dockerfile, pilot_generate_compose).
 func Generate(opts Options) error {
@@ -24,7 +34,25 @@ func Generate(opts Options) error {
 		return err
 	}
 
-	return writeMCPJSON(opts.OutputDir)
+	if err := writeMCPJSON(opts.OutputDir); err != nil {
+		return err
+	}
+
+	if err := writeEnvExample(opts.OutputDir, opts); err != nil {
+		return err
+	}
+
+	if len(opts.RegistryCreds) > 0 {
+		if err := writeEnvLocal(opts.OutputDir, opts.RegistryCreds); err != nil {
+			return err
+		}
+	}
+
+	if err := ensureGitignore(opts.OutputDir); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // writeMCPJSON creates .mcp.json for AI agent integration (Claude Code, Cursor…).
@@ -47,10 +75,10 @@ func writeMCPJSON(dir string) error {
 	return os.WriteFile(path, []byte(content), 0644)
 }
 
+// writeKaalYAML serializes the config to pilot.yaml with inline comments.
 func writeKaalYAML(dir string, cfg *config.Config) error {
 	path := filepath.Join(dir, config.FileName)
 
-	// Marshal to YAML
 	data, err := yaml.Marshal(cfg)
 	if err != nil {
 		return fmt.Errorf("marshal pilot.yaml: %w", err)
@@ -79,9 +107,213 @@ func annotate(raw string) string {
 			"    key: ~/.ssh/id_pilot\n",
 			"    key: ~/.ssh/id_pilot  # SSH private key path\n",
 		},
+		{
+			"    hosting: managed\n",
+			"    hosting: managed  # no container generated — connects via env vars\n",
+		},
+		{
+			"    hosting: container\n",
+			"    hosting: container  # runs as a Docker container\n",
+		},
+		{
+			"    hosting: local-only\n",
+			"    hosting: local-only  # container in dev, absent in prod\n",
+		},
 	}
 	for _, r := range replacements {
 		raw = strings.ReplaceAll(raw, r.old, r.new)
 	}
 	return raw
+}
+
+// ── .env.example ──────────────────────────────────────────────────────────────
+
+// writeEnvExample generates a .env.example file with placeholders for every
+// managed service. If the file already exists it is updated — new sections are
+// appended, existing content is preserved.
+func writeEnvExample(dir string, opts Options) error {
+	managed := opts.ManagedServices()
+	if len(managed) == 0 {
+		// No managed services — write a minimal .env.example if one doesn't exist.
+		path := filepath.Join(dir, ".env.example")
+		if _, err := os.Stat(path); err == nil {
+			return nil // already exists — don't overwrite
+		}
+		content := "# Environment variables for " + opts.Name + "\n" +
+			"# Copy to .env.dev, .env.staging, .env.prod and fill in the values.\n\n" +
+			"# App\nPORT=8080\n"
+		return os.WriteFile(path, []byte(content), 0644)
+	}
+
+	path := filepath.Join(dir, ".env.example")
+
+	// Read existing content (if any) so we don't duplicate sections.
+	existing := readFileOrEmpty(path)
+
+	var b strings.Builder
+	if existing == "" {
+		b.WriteString("# Environment variables for " + opts.Name + "\n")
+		b.WriteString("# Copy to .env.dev, .env.staging, .env.prod and fill in the values.\n")
+		b.WriteString("# Never commit real secrets — this file contains examples only.\n\n")
+		b.WriteString("# ── App ────────────────────────────────────────────────────────────\n")
+		b.WriteString("PORT=8080\n")
+	} else {
+		b.WriteString(existing)
+	}
+
+	// Append a section for each managed service not already documented.
+	for _, svc := range managed {
+		svcDef, ok := catalog.Get(svc.Type)
+		if !ok {
+			continue
+		}
+
+		provider, providerOK := catalog.GetProvider(svc.Type, svc.Provider)
+		if !providerOK || !provider.IsManaged {
+			continue
+		}
+
+		// Build section header.
+		sectionComment := fmt.Sprintf("# ── %s (%s: %s)",
+			svcDef.Label, svc.Type, provider.Label)
+
+		// Skip if section already exists (idempotent).
+		if strings.Contains(existing, sectionComment) {
+			continue
+		}
+
+		b.WriteString("\n")
+		b.WriteString(strings.Repeat("─", 68-len(sectionComment)))
+		b.WriteString("\n")
+		b.WriteString(sectionComment + "\n")
+
+		for _, envVar := range provider.EnvVars {
+			hint := ""
+			if provider.EnvHints != nil {
+				hint = provider.EnvHints[envVar]
+			}
+			if hint != "" {
+				b.WriteString(envVar + "=" + hint + "\n")
+			} else {
+				b.WriteString(envVar + "=\n")
+			}
+		}
+	}
+
+	return os.WriteFile(path, []byte(b.String()), 0644)
+}
+
+// ── .env.local ────────────────────────────────────────────────────────────────
+
+// writeEnvLocal writes registry credentials to .env.local with restricted
+// permissions (0600). The file is created or overwritten.
+// It must be gitignored — ensureGitignore handles that.
+func writeEnvLocal(dir string, creds map[string]string) error {
+	path := filepath.Join(dir, ".env.local")
+
+	var b strings.Builder
+	b.WriteString("# Registry credentials — generated by pilot init\n")
+	b.WriteString("# This file is gitignored. Never commit it.\n\n")
+
+	// Write in a stable order (GITHUB_TOKEN before GITHUB_ACTOR, etc.).
+	orderedKeys := orderedCredKeys(creds)
+	for _, k := range orderedKeys {
+		v := creds[k]
+		b.WriteString(k + "=" + v + "\n")
+	}
+
+	return os.WriteFile(path, []byte(b.String()), 0600)
+}
+
+// orderedCredKeys returns credential keys in a consistent display order.
+func orderedCredKeys(creds map[string]string) []string {
+	// Preferred ordering: token/username before password/actor.
+	preferred := []string{
+		"GITHUB_TOKEN", "GITHUB_ACTOR",
+		"DOCKER_USERNAME", "DOCKER_PASSWORD",
+		"REGISTRY_USERNAME", "REGISTRY_PASSWORD",
+	}
+	var ordered []string
+	seen := make(map[string]bool)
+
+	for _, k := range preferred {
+		if _, ok := creds[k]; ok {
+			ordered = append(ordered, k)
+			seen[k] = true
+		}
+	}
+	// Append any remaining keys not in the preferred list.
+	for k := range creds {
+		if !seen[k] {
+			ordered = append(ordered, k)
+		}
+	}
+	return ordered
+}
+
+// ── .gitignore ────────────────────────────────────────────────────────────────
+
+// ensureGitignore makes sure .env.local and sensitive patterns are gitignored.
+// Creates .gitignore if it doesn't exist; appends missing entries otherwise.
+func ensureGitignore(dir string) error {
+	path := filepath.Join(dir, ".gitignore")
+	existing := readFileOrEmpty(path)
+
+	entries := []struct {
+		pattern string
+		comment string
+	}{
+		{".env.local", "# Local credentials — never commit"},
+		{".env.*.local", "# Local env overrides — never commit"},
+		{"*.env", "# Env files with secrets"},
+	}
+
+	var toAdd []string
+	for _, e := range entries {
+		if !containsLine(existing, e.pattern) {
+			if e.comment != "" {
+				toAdd = append(toAdd, e.comment)
+			}
+			toAdd = append(toAdd, e.pattern)
+		}
+	}
+
+	if len(toAdd) == 0 {
+		return nil // nothing to add
+	}
+
+	var b strings.Builder
+	if existing != "" {
+		b.WriteString(existing)
+		if !strings.HasSuffix(existing, "\n") {
+			b.WriteString("\n")
+		}
+		b.WriteString("\n")
+	}
+
+	b.WriteString("# pilot — generated entries\n")
+	for _, line := range toAdd {
+		b.WriteString(line + "\n")
+	}
+
+	return os.WriteFile(path, []byte(b.String()), 0644)
+}
+
+// ── helpers ───────────────────────────────────────────────────────────────────
+
+func readFileOrEmpty(path string) string {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return ""
+	}
+	return string(data)
+}
+
+func containsLine(content, line string) bool {
+	for _, l := range strings.Split(content, "\n") {
+		if strings.TrimSpace(l) == line {
+			return true
+		}
+	}
+	return false
 }
