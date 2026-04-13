@@ -7,8 +7,8 @@ import (
 	"os/exec"
 	"strings"
 
-	domain "github.com/mouhamedsylla/pilot/internal/domain"
 	"github.com/mouhamedsylla/pilot/internal/adapters/registry/imgbuild"
+	domain "github.com/mouhamedsylla/pilot/internal/domain"
 )
 
 // Registry implements domain.RegistryProvider for Docker Hub.
@@ -39,8 +39,5 @@ func (r *Registry) Build(ctx context.Context, opts domain.BuildOptions) error {
 }
 
 func (r *Registry) Push(ctx context.Context, tag string) error {
-	cmd := exec.CommandContext(ctx, "docker", "push", tag)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
+	return imgbuild.Push(ctx, tag)
 }

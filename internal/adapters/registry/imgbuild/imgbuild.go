@@ -2,6 +2,7 @@
 package imgbuild
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"strings"
 
 	domain "github.com/mouhamedsylla/pilot/internal/domain"
+	"github.com/mouhamedsylla/pilot/pkg/ui"
 )
 
 // Build runs docker build (or docker buildx build for multi-platform).
@@ -53,8 +55,35 @@ func Build(ctx context.Context, opts domain.BuildOptions) error {
 	}
 	args = append(args, ctxPath)
 
+	return runDocker(ctx, args...)
+}
+
+// Push runs docker push for a given tag.
+func Push(ctx context.Context, tag string) error {
+	return runDocker(ctx, "push", tag)
+}
+
+// runDocker executes a docker command, streaming output in terminal mode and
+// capturing it in MCP/non-interactive mode (os.Stdout is the JSON-RPC pipe).
+func runDocker(ctx context.Context, args ...string) error {
 	cmd := exec.CommandContext(ctx, "docker", args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
+
+	if ui.IsTerminal() {
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		return cmd.Run()
+	}
+
+	// MCP mode: capture output — never write to os.Stdout (JSON-RPC pipe).
+	var buf bytes.Buffer
+	cmd.Stdout = &buf
+	cmd.Stderr = &buf
+	if err := cmd.Run(); err != nil {
+		output := strings.TrimSpace(buf.String())
+		if output != "" {
+			return fmt.Errorf("%w\n\n%s", err, output)
+		}
+		return err
+	}
+	return nil
 }
