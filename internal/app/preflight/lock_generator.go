@@ -186,6 +186,8 @@ func detectFromDependencies(projectDir string) *lock.MigrationConfig {
 }
 
 var pythonMigRules = []migRule{
+	// NOTE: alembic command is post-processed in detectPython to add -c if alembic.ini
+	// lives in a subdirectory (e.g. migrations/alembic.ini instead of project root).
 	{"alembic", "alembic", "alembic upgrade head"},
 	{"django", "django", "python manage.py migrate"},
 	{"peewee-migrate", "peewee-migrate", "python -m peewee_migrate migrate"},
@@ -208,9 +210,16 @@ func detectPython(projectDir string) *lock.MigrationConfig {
 		}
 		for _, r := range pythonMigRules {
 			if strings.Contains(content, r.fragment) {
+				cmd := r.command
+				// If alembic.ini lives in a subdirectory (e.g. migrations/), add -c so
+				// alembic can find it from the container's WORKDIR. Without -c, alembic
+				// looks for alembic.ini in the current directory (usually /app).
+				if r.tool == "alembic" {
+					cmd = alembicCommandWithConfig(projectDir, cmd)
+				}
 				return &lock.MigrationConfig{
 					Tool:         r.tool,
-					Command:      r.command,
+					Command:      cmd,
 					Reversible:   false,
 					DetectedFrom: f,
 				}
@@ -218,6 +227,29 @@ func detectPython(projectDir string) *lock.MigrationConfig {
 		}
 	}
 	return nil
+}
+
+// alembicCommandWithConfig inspects the project directory for alembic.ini and
+// injects -c <path> when the ini file is not at the project root.
+// Standard locations checked in priority order:
+//   - <root>/alembic.ini  → no flag needed (alembic default)
+//   - <root>/migrations/alembic.ini → -c migrations/alembic.ini
+//   - <root>/db/alembic.ini         → -c db/alembic.ini
+func alembicCommandWithConfig(projectDir, baseCmd string) string {
+	// Root-level ini — alembic's default, no flag needed.
+	if _, err := os.Stat(filepath.Join(projectDir, "alembic.ini")); err == nil {
+		return baseCmd
+	}
+	// Common subdirectory locations.
+	subPaths := []string{"migrations/alembic.ini", "db/alembic.ini", "alembic/alembic.ini"}
+	for _, rel := range subPaths {
+		if _, err := os.Stat(filepath.Join(projectDir, rel)); err == nil {
+			// Replace bare "alembic" command with "alembic -c <path>"
+			return strings.Replace(baseCmd, "alembic ", "alembic -c "+rel+" ", 1)
+		}
+	}
+	// Not found — return the base command and let the user configure it.
+	return baseCmd
 }
 
 var goMigRules = []migRule{
