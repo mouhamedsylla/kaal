@@ -139,7 +139,10 @@ func resolveTag(explicit string) (string, error) {
 	if explicit != "" {
 		return explicit, nil
 	}
-	return gitutil.ShortSHA()
+	if sha, err := gitutil.ShortSHA(); err == nil {
+		return sha, nil
+	}
+	return "latest", nil
 }
 
 func isPlaceholderImage(image string) bool {
