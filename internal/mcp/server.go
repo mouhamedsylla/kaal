@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+
+	"github.com/mouhamedsylla/pilot/internal/adapters/secrets/local"
 )
 
 // Server is the MCP server — JSON-RPC 2.0 over stdio.
@@ -65,8 +67,24 @@ func NewServer() *Server {
 		tools:    make(map[string]Tool),
 		handlers: make(map[string]HandlerFunc),
 	}
+	loadEnvLocal()
 	s.registerAll()
 	return s
+}
+
+// loadEnvLocal loads persisted credentials from .env.local into the process
+// environment at server startup, so credentials set in previous sessions are
+// immediately available without asking the user again.
+func loadEnvLocal() {
+	vars, err := local.ListFile(".env.local")
+	if err != nil {
+		return // file doesn't exist yet — no-op
+	}
+	for k, v := range vars {
+		if os.Getenv(k) == "" { // don't override existing env vars
+			os.Setenv(k, v)
+		}
+	}
 }
 
 // Register adds a tool and its handler to the server.
