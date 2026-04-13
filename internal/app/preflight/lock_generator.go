@@ -67,6 +67,24 @@ func GenerateLock(cfg *config.Config, projectDir, env string) (*lock.Lock, error
 		provider = envCfg.Runtime
 	}
 
+	// When running under compose, migrations must run inside the container —
+	// not on the VPS host (alembic, prisma, etc. live in the image, not on the host).
+	// Wrap the raw migration command: docker compose run --rm <app-service> <cmd>
+	if provider == "compose" && migCfg != nil {
+		composeFile := fmt.Sprintf("docker-compose.%s.yml", env)
+		appService := appServiceName(cfg)
+		migCfg.Command = fmt.Sprintf(
+			"docker compose -f ~/pilot/%s run --rm %s %s",
+			composeFile, appService, migCfg.Command,
+		)
+		if migCfg.RollbackCommand != "" {
+			migCfg.RollbackCommand = fmt.Sprintf(
+				"docker compose -f ~/pilot/%s run --rm %s %s",
+				composeFile, appService, migCfg.RollbackCommand,
+			)
+		}
+	}
+
 	l := &lock.Lock{
 		SchemaVersion: 1,
 		GeneratedAt:   time.Now().UTC(),
@@ -343,6 +361,17 @@ func insertBefore(steps []plan.StepName, target, newStep plan.StepName) []plan.S
 		}
 	}
 	return append(steps, newStep)
+}
+
+// appServiceName returns the name of the first service of type "app" in the config,
+// falling back to "app" if none is found.
+func appServiceName(cfg *config.Config) string {
+	for name, svc := range cfg.Services {
+		if svc.Type == "app" {
+			return name
+		}
+	}
+	return "app"
 }
 
 // insertAfter inserts newStep immediately after target in the slice.
