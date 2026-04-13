@@ -21,12 +21,24 @@ var (
 	dim    = lipgloss.NewStyle().Faint(true)
 )
 
-func Success(msg string) { fmt.Println(green.Render("✓ " + msg)) }
+// out returns the appropriate writer for UI messages.
+//
+// In MCP mode (pilot mcp serve), stdout is the JSON-RPC pipe — any non-JSON
+// byte written there corrupts the protocol. We route all UI output to stderr
+// instead, which is safe in all contexts (terminal, CI, MCP).
+func out() io.Writer {
+	if IsTerminal() {
+		return os.Stdout
+	}
+	return os.Stderr
+}
+
+func Success(msg string) { fmt.Fprintln(out(), green.Render("✓ "+msg)) }
 func Error(msg string)   { fmt.Fprintln(os.Stderr, red.Render("✗ "+msg)) }
-func Warn(msg string)    { fmt.Println(yellow.Render("⚠ " + msg)) }
-func Info(msg string)    { fmt.Println(cyan.Render("→ " + msg)) }
-func Dim(msg string)     { fmt.Println(dim.Render(msg)) }
-func Bold(msg string)    { fmt.Println(bold.Render(msg)) }
+func Warn(msg string)    { fmt.Fprintln(out(), yellow.Render("⚠ "+msg)) }
+func Info(msg string)    { fmt.Fprintln(out(), cyan.Render("→ "+msg)) }
+func Dim(msg string)     { fmt.Fprintln(out(), dim.Render(msg)) }
+func Bold(msg string)    { fmt.Fprintln(out(), bold.Render(msg)) }
 
 // GreenText / RedText return coloured strings (no newline) for inline use.
 func GreenText(s string) string { return green.Render(s) }
@@ -47,8 +59,7 @@ func Fatal(err error) {
 
 // IsTerminal reports whether stdout is connected to an interactive terminal.
 // Returns false in CI pipelines, MCP mode (stdin/stdout = JSON-RPC pipe), or
-// when output is redirected/piped. Used to decide whether to stream remote
-// command output or silently capture it.
+// when output is redirected/piped.
 func IsTerminal() bool {
 	return term.IsTerminal(int(os.Stdout.Fd()))
 }

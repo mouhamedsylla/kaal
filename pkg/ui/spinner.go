@@ -7,9 +7,15 @@ import (
 
 var spinnerFrames = []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
 
-// Spinner runs fn in the background while showing an animated spinner.
+// Spinner runs fn in the background while showing an animated spinner on stderr.
+// In MCP mode (stdout = JSON-RPC pipe), the spinner is suppressed — fn still runs.
 // It prints a success or error message when fn returns.
 func Spinner(label string, fn func() error) error {
+	if !IsTerminal() {
+		// MCP / pipe mode: run silently, let the MCP response carry the result.
+		return fn()
+	}
+
 	done := make(chan error, 1)
 	go func() { done <- fn() }()
 
