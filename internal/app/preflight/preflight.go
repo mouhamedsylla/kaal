@@ -225,6 +225,29 @@ func (uc *PreflightUseCase) Execute(ctx context.Context, in Input) (Output, erro
 		uc.remoteChecks(ctx, r, in, cfg)
 	}
 
+	// ── 7. Migration hint (deploy only) ───────────────────────────────────
+	// If the user has not declared migrations in pilot.yaml but a tool is
+	// detected in the project's dependency files, emit a helpful hint.
+	// This is never a blocker — the user must opt-in explicitly.
+	if in.Target == TargetDeploy {
+		envCfg := cfg.Environments[in.Env]
+		if envCfg.Migrations == nil {
+			if suggested := suggestMigrationConfig(in.ProjectDir); suggested != nil {
+				r.add(Check{
+					Name:        "migration_hint",
+					Description: "Migration tool detected but not configured",
+					Status:      StatusOK,
+					Message: fmt.Sprintf(
+						"Detected %s (via %s) but no migration command configured. "+
+							"Add to pilot.yaml:\n  environments.%s.migrations:\n    tool: %s\n    command: \"%s\"",
+						suggested.Tool, suggested.DetectedFrom,
+						in.Env, suggested.Tool, suggested.Command,
+					),
+				})
+			}
+		}
+	}
+
 	r.finalize()
 	out := Output{Report: r}
 

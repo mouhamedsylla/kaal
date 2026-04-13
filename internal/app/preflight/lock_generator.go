@@ -31,8 +31,8 @@ func GenerateLock(cfg *config.Config, projectDir, env string) (*lock.Lock, error
 		active = insertBefore(active, plan.StepDeploy, plan.StepPreHooks)
 	}
 
-	// migrations — declared in config or auto-detected from project files
-	migCfg := resolveMigrationConfig(cfg, projectDir, env)
+	// migrations — only added when explicitly declared in pilot.yaml
+	migCfg := resolveMigrationConfig(cfg, env)
 	if migCfg != nil {
 		active = insertBefore(active, plan.StepDeploy, plan.StepMigrations)
 	}
@@ -50,11 +50,8 @@ func GenerateLock(cfg *config.Config, projectDir, env string) (*lock.Lock, error
 	if _, err := os.Stat(composeFile); err == nil {
 		sources = append(sources, composeFile)
 	}
-	if migCfg != nil && migCfg.DetectedFrom != "" {
-		// DetectedFrom is relative — make it absolute.
-		detectedAbs := filepath.Join(projectDir, migCfg.DetectedFrom)
-		sources = append(sources, detectedAbs)
-	}
+	// When migrations are declared in pilot.yaml, pilot.yaml is already in sources.
+	// No additional source file to track — DetectedFrom is always "pilot.yaml".
 
 	hash, err := hashFiles(sources)
 	if err != nil {
@@ -99,28 +96,38 @@ func GenerateLock(cfg *config.Config, projectDir, env string) (*lock.Lock, error
 	return l, nil
 }
 
-// ── migration detection ───────────────────────────────────────────────────────
+// ── migration resolution ──────────────────────────────────────────────────────
 
-// resolveMigrationConfig returns a MigrationConfig from the declared config
-// or auto-detects it by analysing the project's dependency files.
-// Returns nil when no migration tool is found.
-func resolveMigrationConfig(cfg *config.Config, projectDir, env string) *lock.MigrationConfig {
-	// User-declared takes priority.
-	if envCfg := cfg.Environments[env]; envCfg.Migrations != nil {
-		m := envCfg.Migrations
-		if m.Tool != "" && m.Command != "" {
-			return &lock.MigrationConfig{
-				Tool:            m.Tool,
-				Command:         m.Command,
-				RollbackCommand: m.RollbackCommand,
-				Reversible:      m.Reversible,
-				DetectedFrom:    "pilot.yaml",
-			}
-		}
+// resolveMigrationConfig returns a MigrationConfig ONLY from the explicitly
+// declared config in pilot.yaml. Returns nil when no migration config is declared.
+// Auto-detection is intentionally excluded from the execution path — every project
+// structures migrations differently, so guessing produces wrong commands.
+func resolveMigrationConfig(cfg *config.Config, env string) *lock.MigrationConfig {
+	envCfg := cfg.Environments[env]
+	if envCfg.Migrations == nil {
+		return nil
 	}
+	m := envCfg.Migrations
+	if m.Tool == "" || m.Command == "" {
+		return nil
+	}
+	return &lock.MigrationConfig{
+		Tool:            m.Tool,
+		Command:         m.Command,
+		RollbackCommand: m.RollbackCommand,
+		Reversible:      m.Reversible,
+		DetectedFrom:    "pilot.yaml",
+	}
+}
 
-	// Dependency-based detection — highest confidence, language-agnostic.
-	if m := detectFromDependencies(projectDir); m != nil {
+// ── migration suggestion (informational only) ─────────────────────────────────
+
+// suggestMigrationConfig analyses the project's dependency and config files to
+// propose a migration command. It is NEVER used to generate the lock — only to
+// produce a helpful hint when no migration is explicitly declared in pilot.yaml.
+func suggestMigrationConfig(projectDir string) *lock.MigrationConfig {
+	// Dependency-based suggestion — highest confidence, language-agnostic.
+	if m := suggestFromDependencies(projectDir); m != nil {
 		return m
 	}
 
@@ -135,7 +142,6 @@ func resolveMigrationConfig(cfg *config.Config, projectDir, env string) *lock.Mi
 		{"alembic.ini", "alembic", "alembic upgrade head"},
 		{"migrations/alembic.ini", "alembic", "alembic upgrade head"},
 		{"flyway.conf", "flyway", "flyway migrate"},
-		// Goose: only when a go.mod is also present (Go project).
 		{"db/migrations", "goose", "goose up"},
 	}
 
@@ -153,7 +159,7 @@ func resolveMigrationConfig(cfg *config.Config, projectDir, env string) *lock.Mi
 	return nil
 }
 
-// ── dependency-based migration detection ─────────────────────────────────────
+// ── dependency-based migration suggestion ─────────────────────────────────────
 
 // migRule maps a dependency name fragment to a migration tool config.
 type migRule struct {
@@ -162,24 +168,24 @@ type migRule struct {
 	command  string
 }
 
-// detectFromDependencies scans the project's dependency files to identify
-// the migration tool in use. More reliable than folder heuristics because
-// it reads what the project actually declares.
-func detectFromDependencies(projectDir string) *lock.MigrationConfig {
+// suggestFromDependencies scans the project's dependency files to suggest
+// a migration tool and command. Used only for informational hints — never
+// for generating the lock.
+func suggestFromDependencies(projectDir string) *lock.MigrationConfig {
 	// Python — pyproject.toml, requirements*.txt, setup.cfg
-	if m := detectPython(projectDir); m != nil {
+	if m := suggestPython(projectDir); m != nil {
 		return m
 	}
 	// Go — go.mod
-	if m := detectGo(projectDir); m != nil {
+	if m := suggestGo(projectDir); m != nil {
 		return m
 	}
 	// Node — package.json
-	if m := detectNode(projectDir); m != nil {
+	if m := suggestNode(projectDir); m != nil {
 		return m
 	}
 	// Ruby — Gemfile
-	if m := detectRuby(projectDir); m != nil {
+	if m := suggestRuby(projectDir); m != nil {
 		return m
 	}
 	return nil
@@ -197,7 +203,7 @@ var pythonMigRules = []migRule{
 	{"piccolo", "piccolo", "piccolo migrations forwards all"},
 }
 
-func detectPython(projectDir string) *lock.MigrationConfig {
+func suggestPython(projectDir string) *lock.MigrationConfig {
 	// Files to scan, in priority order.
 	candidates := []string{
 		"pyproject.toml", "requirements.txt", "requirements-base.txt",
@@ -217,6 +223,7 @@ func detectPython(projectDir string) *lock.MigrationConfig {
 				if r.tool == "alembic" {
 					cmd = alembicCommandWithConfig(projectDir, cmd)
 				}
+
 				return &lock.MigrationConfig{
 					Tool:         r.tool,
 					Command:      cmd,
@@ -260,7 +267,7 @@ var goMigRules = []migRule{
 	{"gorm.io/gorm", "gorm", ""}, // gorm AutoMigrate — no CLI
 }
 
-func detectGo(projectDir string) *lock.MigrationConfig {
+func suggestGo(projectDir string) *lock.MigrationConfig {
 	content := readFileLower(filepath.Join(projectDir, "go.mod"))
 	if content == "" {
 		return nil
@@ -291,7 +298,7 @@ var nodeMigRules = []migRule{
 	{"db-migrate", "db-migrate", "npx db-migrate up"},
 }
 
-func detectNode(projectDir string) *lock.MigrationConfig {
+func suggestNode(projectDir string) *lock.MigrationConfig {
 	content := readFileLower(filepath.Join(projectDir, "package.json"))
 	if content == "" {
 		return nil
@@ -318,7 +325,7 @@ var rubyMigRules = []migRule{
 	{"rom-sql", "rom", "bundle exec rom migrations migrate"},
 }
 
-func detectRuby(projectDir string) *lock.MigrationConfig {
+func suggestRuby(projectDir string) *lock.MigrationConfig {
 	content := readFileLower(filepath.Join(projectDir, "Gemfile"))
 	if content == "" {
 		return nil
