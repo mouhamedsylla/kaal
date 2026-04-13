@@ -3,6 +3,8 @@ package scaffold
 import (
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 
 	"github.com/mouhamedsylla/pilot/internal/scaffold/analyze"
 )
@@ -39,14 +41,14 @@ func Detect(dir string) DetectedProject {
 		d.IsExisting = true
 	case exists(dir, "package.json"):
 		d.Stack = "node"
-		d.LanguageVersion = "20"
+		d.LanguageVersion = readNodeVersion(dir)
 		d.IsExisting = true
 	case exists(dir, "Cargo.toml"):
 		d.Stack = "rust"
 		d.IsExisting = true
 	case exists(dir, "pyproject.toml"), exists(dir, "requirements.txt"), exists(dir, "setup.py"):
 		d.Stack = "python"
-		d.LanguageVersion = "3.12"
+		d.LanguageVersion = readPythonVersion(dir)
 		d.IsExisting = true
 	case exists(dir, "pom.xml"), exists(dir, "build.gradle"):
 		d.Stack = "java"
@@ -66,6 +68,63 @@ func Detect(dir string) DetectedProject {
 func exists(dir, file string) bool {
 	_, err := os.Stat(filepath.Join(dir, file))
 	return err == nil
+}
+
+// readNodeVersion détecte la version Node depuis .nvmrc, .node-version,
+// ou le champ "engines.node" dans package.json.
+func readNodeVersion(dir string) string {
+	// 1. .nvmrc ou .node-version (ex: "20", "20.11.0", "lts/iron")
+	for _, f := range []string{".nvmrc", ".node-version"} {
+		if data, err := os.ReadFile(filepath.Join(dir, f)); err == nil {
+			v := strings.TrimSpace(string(data))
+			// extrait le major : "20.11.0" → "20", "lts/iron" → ""
+			if v != "" && !strings.HasPrefix(v, "lts/") {
+				parts := strings.SplitN(v, ".", 2)
+				return strings.TrimPrefix(parts[0], "v")
+			}
+		}
+	}
+	// 2. package.json engines.node (ex: ">=20.0.0")
+	if data, err := os.ReadFile(filepath.Join(dir, "package.json")); err == nil {
+		// cherche "node": ">=X" ou "node": "X"
+		re := regexp.MustCompile(`"node"\s*:\s*"[>=~^]*(\d+)`)
+		if m := re.FindSubmatch(data); len(m) > 1 {
+			return string(m[1])
+		}
+	}
+	return "20"
+}
+
+// readPythonVersion détecte la version Python depuis .python-version,
+// pyproject.toml (requires-python) ou runtime.txt.
+func readPythonVersion(dir string) string {
+	// 1. .python-version (ex: "3.12.2")
+	if data, err := os.ReadFile(filepath.Join(dir, ".python-version")); err == nil {
+		v := strings.TrimSpace(string(data))
+		if v != "" {
+			// garde major.minor uniquement : "3.12.2" → "3.12"
+			parts := strings.SplitN(v, ".", 3)
+			if len(parts) >= 2 {
+				return parts[0] + "." + parts[1]
+			}
+			return v
+		}
+	}
+	// 2. pyproject.toml requires-python (ex: ">=3.12", "~=3.11")
+	if data, err := os.ReadFile(filepath.Join(dir, "pyproject.toml")); err == nil {
+		re := regexp.MustCompile(`requires-python\s*=\s*"[>=~^!]*(\d+\.\d+)`)
+		if m := re.FindSubmatch(data); len(m) > 1 {
+			return string(m[1])
+		}
+	}
+	// 3. runtime.txt (Heroku/Render, ex: "python-3.12.2")
+	if data, err := os.ReadFile(filepath.Join(dir, "runtime.txt")); err == nil {
+		re := regexp.MustCompile(`python-(\d+\.\d+)`)
+		if m := re.FindSubmatch(data); len(m) > 1 {
+			return string(m[1])
+		}
+	}
+	return "3.12"
 }
 
 func readGoVersion(dir string) string {

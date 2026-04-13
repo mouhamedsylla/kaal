@@ -80,15 +80,18 @@ func runWizard(detected DetectedProject, flags Flags) (Options, error) {
 	}
 
 	opts := Options{
-		Name:          result.Name,
-		Stack:         result.Stack,
-		Environments:  result.Environments,
-		TargetType:    result.TargetType,
-		TargetHost:    result.TargetHost,
-		Registry:      result.Registry,
-		RegistryImage: result.RegistryImage,
-		RegistryCreds: result.RegistryCreds,
-		OutputDir:     ".",
+		Name:            result.Name,
+		Stack:           result.Stack,
+		LanguageVersion: result.LanguageVersion,
+		Environments:    result.Environments,
+		TargetType:      result.TargetType,
+		TargetHost:      result.TargetHost,
+		TargetUser:      result.TargetUser,
+		TargetSSHKey:    result.TargetSSHKey,
+		Registry:        result.Registry,
+		RegistryImage:   result.RegistryImage,
+		RegistryCreds:   result.RegistryCreds,
+		OutputDir:       ".",
 	}
 
 	// Merge flag overrides.

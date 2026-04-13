@@ -104,8 +104,8 @@ func annotate(raw string) string {
 			"    host: \"\"  # fill in: IP address or hostname\n",
 		},
 		{
-			"    key: ~/.ssh/id_pilot\n",
-			"    key: ~/.ssh/id_pilot  # SSH private key path\n",
+			"    key: ~/.ssh/id_ed25519\n",
+			"    key: ~/.ssh/id_ed25519  # SSH private key path\n",
 		},
 		{
 			"    hosting: managed\n",

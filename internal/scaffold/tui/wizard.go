@@ -20,16 +20,18 @@ const (
 	stepEnvs             = 3
 	stepTarget           = 4 // shown only when non-dev envs are selected
 	stepVPSHost          = 5 // shown only when target type requires a host
-	stepRegistry         = 6
-	stepRegistryImage    = 7
-	stepRegistryCreds    = 8 // shown only when registry credentials are missing
-	stepConfirm          = 9
-	stepCount            = 10
+	stepSSHUser          = 6 // shown only when target type requires a host
+	stepSSHKey           = 7 // shown only when target type requires a host
+	stepRegistry         = 8
+	stepRegistryImage    = 9
+	stepRegistryCreds    = 10 // shown only when registry credentials are missing
+	stepConfirm          = 11
+	stepCount            = 12
 )
 
 var stepLabels = [stepCount]string{
 	"Project", "Services", "Hosting", "Environments",
-	"Target", "Host", "Registry", "Image", "Credentials", "Confirm",
+	"Target", "Host", "SSH User", "SSH Key", "Registry", "Image", "Credentials", "Confirm",
 }
 
 // ── Result types ──────────────────────────────────────────────────────────────
@@ -51,8 +53,11 @@ type Result struct {
 	TargetType        string
 	TargetHost        string
 	TargetHostSkipped bool
+	TargetUser        string // SSH user (empty → caller defaults to "deploy")
+	TargetSSHKey      string // SSH key path (empty → caller defaults to ~/.ssh/id_ed25519)
 	Registry          string
 	RegistryImage     string
+	LanguageVersion   string
 	RegistryCreds     map[string]string // varName → value (to write to .env.local)
 	Cancelled         bool
 }
@@ -74,11 +79,13 @@ type Model struct {
 	detected DetectedInfo
 
 	// Text inputs
-	nameInput   textinput.Model
-	stackInput  textinput.Model
-	imageInput  textinput.Model
-	hostInput   textinput.Model
-	credsInput  textinput.Model
+	nameInput    textinput.Model
+	stackInput   textinput.Model
+	imageInput   textinput.Model
+	hostInput    textinput.Model
+	sshUserInput textinput.Model
+	sshKeyInput  textinput.Model
+	credsInput   textinput.Model
 
 	// Multi-selects
 	services        MultiSelect
@@ -120,16 +127,26 @@ func NewWizard(d DetectedInfo) Model {
 	hi.Placeholder = "1.2.3.4  or  vps.example.com"
 	hi.CharLimit = 256
 
+	ui := textinput.New()
+	ui.Placeholder = "deploy"
+	ui.CharLimit = 64
+
+	ki := textinput.New()
+	ki.Placeholder = "~/.ssh/id_ed25519"
+	ki.CharLimit = 256
+
 	ci := textinput.New()
 	ci.CharLimit = 256
 
 	return Model{
-		detected:    d,
-		nameInput:   ni,
-		stackInput:  si,
-		imageInput:  ii,
-		hostInput:   hi,
-		credsInput:  ci,
+		detected:     d,
+		nameInput:    ni,
+		stackInput:   si,
+		imageInput:   ii,
+		hostInput:    hi,
+		sshUserInput: ui,
+		sshKeyInput:  ki,
+		credsInput:   ci,
 		services:    buildServicesSelect(),
 		envs:        buildEnvsSelect(),
 		targets:     buildTargetsSelect(),
@@ -195,6 +212,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.nameInput, cmd = m.nameInput.Update(msg)
 	case stepVPSHost:
 		m.hostInput, cmd = m.hostInput.Update(msg)
+	case stepSSHUser:
+		m.sshUserInput, cmd = m.sshUserInput.Update(msg)
+	case stepSSHKey:
+		m.sshKeyInput, cmd = m.sshKeyInput.Update(msg)
 	case stepRegistryImage:
 		m.imageInput, cmd = m.imageInput.Update(msg)
 	case stepRegistryCreds:
@@ -304,9 +325,29 @@ func (m Model) advance() (tea.Model, tea.Cmd) {
 			m.result.TargetHostSkipped = true
 		}
 		m.result.TargetHost = host
+		m.sshUserInput.Focus()
+		m.step = stepSSHUser
+
+	// ── 6 · SSH user ─────────────────────────────────────────────────────────
+	case stepSSHUser:
+		user := strings.TrimSpace(m.sshUserInput.Value())
+		if user == "" {
+			user = "deploy"
+		}
+		m.result.TargetUser = user
+		m.sshKeyInput.Focus()
+		m.step = stepSSHKey
+
+	// ── 7 · SSH key ──────────────────────────────────────────────────────────
+	case stepSSHKey:
+		key := strings.TrimSpace(m.sshKeyInput.Value())
+		if key == "" {
+			key = "~/.ssh/id_ed25519"
+		}
+		m.result.TargetSSHKey = key
 		m.step = stepRegistry
 
-	// ── 6 · Registry ─────────────────────────────────────────────────────────
+	// ── 8 · Registry ─────────────────────────────────────────────────────────
 	case stepRegistry:
 		if len(m.registries.Items) > 0 {
 			m.result.Registry = m.registries.Items[m.registries.Cursor].Key
@@ -369,6 +410,9 @@ func (m Model) advance() (tea.Model, tea.Cmd) {
 			stack = m.detected.Stack
 		}
 		m.result.Stack = stack
+		// Propage la version détectée (ex: "1.25.3" depuis go.mod).
+		// scaffold.go applique defaultVersionForStack() si vide.
+		m.result.LanguageVersion = m.detected.LanguageVersion
 		m.quitting = true
 		return m, tea.Quit
 	}
@@ -389,9 +433,13 @@ func (m Model) prevStep(current int) int {
 		return stepServices
 	case stepTarget:
 		return stepEnvs
+	case stepSSHUser:
+		return stepVPSHost
+	case stepSSHKey:
+		return stepSSHUser
 	case stepRegistry:
 		if m.result.TargetHostSkipped || m.result.TargetHost != "" {
-			return stepVPSHost
+			return stepSSHKey
 		}
 		if m.result.TargetType != "" {
 			return stepTarget
@@ -582,6 +630,10 @@ func (m Model) body() string {
 		content = m.viewSingleSelect(&m.targets, "Where do you deploy?")
 	case stepVPSHost:
 		content = m.viewVPSHost()
+	case stepSSHUser:
+		content = m.viewSSHUser()
+	case stepSSHKey:
+		content = m.viewSSHKey()
 	case stepRegistry:
 		content = m.viewSingleSelect(&m.registries, "Container registry")
 	case stepRegistryImage:
@@ -704,9 +756,25 @@ func (m Model) viewSingleSelect(sel *MultiSelect, title string) string {
 func (m Model) viewVPSHost() string {
 	var b strings.Builder
 	b.WriteString("\n  " + StyleTitle.Render("Target host") + "\n")
-	b.WriteString("  " + StyleDim.Render("IP address or hostname of your VPS — needed to deploy") + "\n\n")
-	b.WriteString("  " + m.hostInput.View() + "\n\n")
-	b.WriteString("  " + StyleDim.Render("user: deploy   key: ~/.ssh/id_pilot   port: 22  (edit in pilot.yaml to change)") + "\n")
+	b.WriteString("  " + StyleDim.Render("IP address or hostname of your VPS") + "\n\n")
+	b.WriteString("  " + m.hostInput.View() + "\n")
+	return b.String()
+}
+
+func (m Model) viewSSHUser() string {
+	var b strings.Builder
+	b.WriteString("\n  " + StyleTitle.Render("SSH user") + "\n")
+	b.WriteString("  " + StyleDim.Render("Unix user that connects via SSH (press Enter to use 'deploy')") + "\n\n")
+	b.WriteString("  " + m.sshUserInput.View() + "\n")
+	return b.String()
+}
+
+func (m Model) viewSSHKey() string {
+	var b strings.Builder
+	b.WriteString("\n  " + StyleTitle.Render("SSH key") + "\n")
+	b.WriteString("  " + StyleDim.Render("Path to your SSH private key (press Enter to use ~/.ssh/id_ed25519)") + "\n\n")
+	b.WriteString("  " + m.sshKeyInput.View() + "\n\n")
+	b.WriteString("  " + StyleDim.Render("Common: ~/.ssh/id_ed25519   ~/.ssh/id_rsa   ~/.ssh/id_pilot") + "\n")
 	return b.String()
 }
 

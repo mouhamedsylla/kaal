@@ -138,7 +138,7 @@ func (o *Options) ToConfig() *config.Config {
 			}
 			key := o.TargetSSHKey
 			if key == "" {
-				key = "~/.ssh/id_pilot"
+				key = "~/.ssh/id_ed25519"
 			}
 			cfg.Targets[targetName] = config.Target{
 				Type: o.TargetType,
