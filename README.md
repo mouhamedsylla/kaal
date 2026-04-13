@@ -1,16 +1,6 @@
-<div align="center">
-
-<img src="assets/mascot.png" alt="pilot mascot" width="1280" />
-
 # pilot
 
 **Dev Environment as Code. AI-native. Terminal-first.**
-
-[![Go](https://img.shields.io/badge/Go-1.23-00ADD8?style=flat&logo=go)](https://go.dev)
-[![License](https://img.shields.io/badge/License-MIT-green?style=flat)](LICENSE)
-[![MCP](https://img.shields.io/badge/MCP-ready-blueviolet?style=flat)](docs/mcp-server.md)
-
-</div>
 
 ---
 
@@ -21,6 +11,14 @@ Most deployment friction isn't technical. It's the gap between what you told you
 ---
 
 ## Install
+
+**macOS / Linux** — one-liner via the install script:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/mouhamedsylla/pilot/main/install.sh | sh
+```
+
+**Go toolchain** — if you already have Go installed:
 
 ```bash
 go install github.com/mouhamedsylla/pilot@latest
