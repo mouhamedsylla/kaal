@@ -34,12 +34,13 @@ func (p *Provider) Deploy(ctx context.Context, env string, opts domain.DeployOpt
 	defer client.Close()
 
 	image := fmt.Sprintf("%s:%s", p.cfg.Registry.Image, opts.Tag)
-	composeFile := remoteComposeFile(env) // always ~/pilot/docker-compose.<env>.yml
+	deployDir := p.deployDir()
+	composeFile := p.remoteComposeFile(env)
 	stateDir := p.stateDir()
 
 	// Copy resolved env files to remote before running compose.
 	if len(opts.EnvFiles) > 0 {
-		if err := client.CopyFiles(ctx, opts.EnvFiles, "~/pilot/"); err != nil {
+		if err := client.CopyFiles(ctx, opts.EnvFiles, deployDir+"/"); err != nil {
 			p.recordDeploy(ctx, client, env, opts.Tag, false, err.Error())
 			return fmt.Errorf("sync env files: %w", err)
 		}
@@ -52,7 +53,7 @@ func (p *Provider) Deploy(ctx context.Context, env string, opts domain.DeployOpt
 		if idx := strings.LastIndex(f, "/"); idx >= 0 {
 			base = f[idx+1:]
 		}
-		envFileFlags += fmt.Sprintf(" --env-file ~/pilot/%s", base)
+		envFileFlags += fmt.Sprintf(" --env-file %s/%s", deployDir, base)
 	}
 
 	// ── Step 1: prepare remote state (fast ops, spinner) ──────────────────
@@ -73,7 +74,7 @@ func (p *Provider) Deploy(ctx context.Context, env string, opts domain.DeployOpt
 		return pilotErr.NewTypeD(
 			"PILOT-DEPLOY-001",
 			fmt.Sprintf("failed to prepare remote state on %s", p.target.Host),
-			fmt.Sprintf("SSH into %s and verify ~/pilot/ is writable:\n  ssh %s@%s 'ls -la ~/'", p.target.Host, p.target.User, p.target.Host),
+			fmt.Sprintf("SSH into %s and verify %s/ is writable:\n  ssh %s@%s 'ls -la ~/'", p.target.Host, deployDir, p.target.User, p.target.Host),
 			pilotErr.ExitDeploy,
 			pilotErr.WithCause(err),
 		)
@@ -169,8 +170,10 @@ func (p *Provider) Sync(ctx context.Context, _ string) error {
 	}
 	defer client.Close()
 
+	deployDir := p.deployDir()
+
 	// ── Flat files: pilot.yaml + compose files + env_file ──────────────────
-	// These all land directly in ~/pilot/ (no subdirectory).
+	// These all land directly in <deployDir>/ (no subdirectory).
 	seen := map[string]bool{}
 	var flatFiles []string
 
@@ -186,12 +189,12 @@ func (p *Provider) Sync(ctx context.Context, _ string) error {
 
 	addFlat("pilot.yaml")
 	for envName, envCfg := range p.cfg.Environments {
-		composeFile := composeFileForEnv(envName)
+		composeFile := composeFileForEnv(envCfg, envName)
 		addFlat(composeFile)
 		addFlat(envCfg.EnvFile)
 	}
 
-	if err := client.CopyFiles(ctx, flatFiles, "~/pilot/"); err != nil {
+	if err := client.CopyFiles(ctx, flatFiles, deployDir+"/"); err != nil {
 		return fmt.Errorf("sync flat files: %w", err)
 	}
 	// Print each flat file after the batch copy succeeds.
@@ -199,13 +202,13 @@ func (p *Provider) Sync(ctx context.Context, _ string) error {
 		ui.Dim(fmt.Sprintf("  ✓ %s", filepath.Base(f)))
 	}
 
-	// ── Bind-mount config files: preserve relative path under ~/pilot/ ─────
+	// ── Bind-mount config files: preserve relative path under <deployDir>/ ──
 	// Scan every compose file for local bind-mounts (./nginx/prod.conf, etc.).
-	// If the source is a local file, copy it to ~/pilot/<relative-path> so
-	// docker compose running from ~/pilot/ finds it exactly where it expects.
+	// If the source is a local file, copy it to <deployDir>/<relative-path> so
+	// docker compose running from <deployDir>/ finds it exactly where it expects.
 	seenMounts := map[string]bool{}
-	for envName := range p.cfg.Environments {
-		composeFile := composeFileForEnv(envName)
+	for envName, envCfg := range p.cfg.Environments {
+		composeFile := composeFileForEnv(envCfg, envName)
 		mounts, parseErr := parseComposeMounts(composeFile)
 		if parseErr != nil {
 			continue // compose file may not exist yet — not an error
@@ -222,8 +225,8 @@ func (p *Provider) Sync(ctx context.Context, _ string) error {
 			if info.IsDir() {
 				continue // directories handled separately (not supported yet)
 			}
-			// Remote path mirrors the local relative path: ~/pilot/nginx/prod.conf
-			remotePath := fmt.Sprintf("~/pilot/%s", strings.TrimPrefix(localSrc, "./"))
+			// Remote path mirrors the local relative path: <deployDir>/nginx/prod.conf
+			remotePath := fmt.Sprintf("%s/%s", deployDir, strings.TrimPrefix(localSrc, "./"))
 			if copyErr := client.CopyFileTo(ctx, localSrc, remotePath); copyErr != nil {
 				return fmt.Errorf("sync bind-mount %s: %w", localSrc, copyErr)
 			}
@@ -235,13 +238,13 @@ func (p *Provider) Sync(ctx context.Context, _ string) error {
 	// nginx keeps its config in memory; a file update on disk has no effect
 	// until nginx reloads. We detect nginx services in each compose file and
 	// run "nginx -s reload" inside the container — no restart, zero downtime.
-	for envName := range p.cfg.Environments {
-		composeFile := composeFileForEnv(envName)
+	for envName, envCfg := range p.cfg.Environments {
+		composeFile := composeFileForEnv(envCfg, envName)
 		svcs := nginxServicesWithUpdatedMounts(composeFile, seenMounts)
 		for _, svc := range svcs {
 			reloadCmd := fmt.Sprintf(
 				"docker compose -f %s exec -T %s nginx -s reload",
-				remoteComposeFile(envName), svc,
+				p.remoteComposeFile(envName), svc,
 			)
 			reloadErr := ui.Spinner(fmt.Sprintf("Reloading nginx (%s)", svc), func() error {
 				_, runErr := client.Run(ctx, reloadCmd)
@@ -326,7 +329,7 @@ func (p *Provider) Status(ctx context.Context, env string) ([]domain.ServiceStat
 	}
 	defer client.Close()
 
-	out, err := client.Run(ctx, fmt.Sprintf("docker compose -f %s ps --format json", remoteComposeFile(env)))
+	out, err := client.Run(ctx, fmt.Sprintf("docker compose -f %s ps --format json", p.remoteComposeFile(env)))
 	if err != nil {
 		return nil, fmt.Errorf("remote status: %w", err)
 	}
@@ -339,7 +342,7 @@ func (p *Provider) Logs(ctx context.Context, env string, service string, opts do
 		return nil, err
 	}
 
-	composeFile := remoteComposeFile(env)
+	composeFile := p.remoteComposeFile(env)
 	args := fmt.Sprintf("docker compose -f %s logs", composeFile)
 	if opts.Follow {
 		args += " --follow"
@@ -395,7 +398,7 @@ func (p *Provider) Rollback(ctx context.Context, env string, version string) (st
 	}
 
 	image := fmt.Sprintf("%s:%s", p.cfg.Registry.Image, tag)
-	composeFile := remoteComposeFile(env)
+	composeFile := p.remoteComposeFile(env)
 	stateDir := p.stateDir()
 
 	streamed := ui.IsTerminal()
@@ -445,6 +448,15 @@ func (p *Provider) Rollback(ctx context.Context, env string, version string) (st
 	return tag, nil
 }
 
+// deployDir returns the remote directory where pilot copies project files (compose, env, etc.).
+// Uses the configured deploy_path from pilot.yaml, falling back to ~/pilot.
+func (p *Provider) deployDir() string {
+	if p.target.DeployPath != "" {
+		return p.target.DeployPath
+	}
+	return "~/pilot"
+}
+
 // stateDir returns the remote path where pilot stores deploy state for this project.
 func (p *Provider) stateDir() string {
 	return fmt.Sprintf("~/.pilot/%s", p.cfg.Project.Name)
@@ -492,9 +504,13 @@ func indentOutput(output string) string {
 	return b.String()
 }
 
-// composeFileForEnv returns the conventional compose filename for an environment.
-// Use remoteComposeFile when building SSH commands — files live in ~/pilot/ on the VPS.
-func composeFileForEnv(env string) string {
+// composeFileForEnv returns the local compose filename for an environment.
+// If envCfg.ComposeFile is set, that value is used directly.
+// Otherwise it falls back to the conventional docker-compose.<env>.yml name.
+func composeFileForEnv(envCfg config.Environment, env string) string {
+	if envCfg.ComposeFile != "" {
+		return envCfg.ComposeFile
+	}
 	return fmt.Sprintf("docker-compose.%s.yml", env)
 }
 
@@ -546,10 +562,12 @@ func nginxServicesWithUpdatedMounts(composeFile string, syncedFiles map[string]b
 }
 
 // remoteComposeFile returns the full remote path where pilot stores compose files.
-// pilot sync always copies compose files to ~/pilot/, so all remote docker compose
-// commands must use this path, not the bare filename.
-func remoteComposeFile(env string) string {
-	return fmt.Sprintf("~/pilot/docker-compose.%s.yml", env)
+// pilot sync always copies compose files to the deploy directory, so all remote docker
+// compose commands must use this path, not the bare filename.
+func (p *Provider) remoteComposeFile(env string) string {
+	envCfg := p.cfg.Environments[env]
+	localName := filepath.Base(composeFileForEnv(envCfg, env))
+	return fmt.Sprintf("%s/%s", p.deployDir(), localName)
 }
 
 // isDockerPermissionError detects the classic "user not in docker group" error.
@@ -581,7 +599,7 @@ func (p *Provider) RunHooks(ctx context.Context, commands []string) error {
 }
 
 // RunMigrations runs the migration command on the remote VPS via SSH.
-// The command runs from ~/pilot/ where the compose files and env files live.
+// The command runs from the deploy directory where the compose files and env files live.
 func (p *Provider) RunMigrations(ctx context.Context, tool, command string) error {
 	client, err := p.connect()
 	if err != nil {
@@ -589,8 +607,8 @@ func (p *Provider) RunMigrations(ctx context.Context, tool, command string) erro
 	}
 	defer client.Close()
 
-	// cd to ~/pilot/ so relative paths (e.g. prisma/schema.prisma) resolve correctly.
-	fullCmd := fmt.Sprintf("cd ~/pilot && %s", command)
+	// cd to the deploy dir so relative paths (e.g. prisma/schema.prisma) resolve correctly.
+	fullCmd := fmt.Sprintf("cd %s && %s", p.deployDir(), command)
 	var buf strings.Builder
 	if err := client.RunWithOutput(ctx, fullCmd, remoteOutputWriter(&buf)); err != nil {
 		return fmt.Errorf("migrations (%s): %w\n%s", tool, err, buf.String())
@@ -609,7 +627,7 @@ func (p *Provider) RollbackMigrations(ctx context.Context, tool, rollbackCommand
 	}
 	defer client.Close()
 
-	fullCmd := fmt.Sprintf("cd ~/pilot && %s", rollbackCommand)
+	fullCmd := fmt.Sprintf("cd %s && %s", p.deployDir(), rollbackCommand)
 	var buf strings.Builder
 	if err := client.RunWithOutput(ctx, fullCmd, remoteOutputWriter(&buf)); err != nil {
 		return fmt.Errorf("migration rollback (%s): %w\n%s", tool, err, buf.String())

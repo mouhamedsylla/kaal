@@ -34,6 +34,7 @@ type Service struct {
 type Environment struct {
 	Runtime          string                      `yaml:"runtime,omitempty"`          // compose | lima | k3d
 	EnvFile          string                      `yaml:"env_file,omitempty"`
+	ComposeFile      string                      `yaml:"compose_file,omitempty"`     // override default docker-compose.<env>.yml
 	Target           string                      `yaml:"target,omitempty"`           // reference to Targets key (non-dev envs)
 	Resources        *Resources                  `yaml:"resources,omitempty"`        // local resource constraints mirroring prod
 	Secrets          *SecretsRef                 `yaml:"secrets,omitempty"`
@@ -84,6 +85,7 @@ type Migrations struct {
 	Command         string `yaml:"command"`                    // command to apply migrations
 	RollbackCommand string `yaml:"rollback_command,omitempty"` // required when reversible: true
 	Reversible      bool   `yaml:"reversible"`                 // false by default
+	Service         string `yaml:"service,omitempty"`          // docker-compose service to run migrations in (e.g. "api", "worker")
 }
 
 // Resources describes compute constraints — used to mirror production locally.
@@ -100,12 +102,13 @@ type SecretsRef struct {
 
 // Target describes a remote deployment destination.
 type Target struct {
-	Type      string     `yaml:"type"`                  // vps | aws | gcp | azure | do | hetzner
-	Host      string     `yaml:"host"`                  // VPS IP or hostname
-	User      string     `yaml:"user,omitempty"`        // SSH user
-	Key       string     `yaml:"key,omitempty"`         // SSH key path (~/.ssh/id_pilot)
-	Port      int        `yaml:"port,omitempty"`        // SSH port (default 22)
-	Resources *Resources `yaml:"resources,omitempty"`  // actual prod resources (for local simulation)
+	Type       string     `yaml:"type"`                   // vps | aws | gcp | azure | do | hetzner
+	Host       string     `yaml:"host"`                   // VPS IP or hostname
+	User       string     `yaml:"user,omitempty"`         // SSH user
+	Key        string     `yaml:"key,omitempty"`          // SSH key path (~/.ssh/id_pilot)
+	Port       int        `yaml:"port,omitempty"`         // SSH port (default 22)
+	DeployPath string     `yaml:"deploy_path,omitempty"`  // remote dir for project files (default: ~/pilot)
+	Resources  *Resources `yaml:"resources,omitempty"`   // actual prod resources (for local simulation)
 	// Cloud-specific fields
 	Project string `yaml:"project,omitempty"` // GCP project, AWS account alias
 	Region  string `yaml:"region,omitempty"`  // cloud region

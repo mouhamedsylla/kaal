@@ -20,6 +20,9 @@ func baseConfig() *config.Config {
 			Provider: "ghcr",
 			Image:    "ghcr.io/user/my-app",
 		},
+		Services: map[string]config.Service{
+			"api": {Type: config.ServiceTypeApp, Port: 8080},
+		},
 		Environments: map[string]config.Environment{
 			"prod": {Target: "vps-prod"},
 		},
@@ -49,7 +52,8 @@ func TestGenerateLock_MinimalProject(t *testing.T) {
 
 func TestGenerateLock_WithPrisma(t *testing.T) {
 	dir := t.TempDir()
-	// Create prisma/schema.prisma to trigger auto-detection.
+	// Create prisma/schema.prisma — auto-detection is informational only,
+	// so the lock must NOT include migrations unless declared in pilot.yaml.
 	require.NoError(t, os.MkdirAll(filepath.Join(dir, "prisma"), 0755))
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "prisma", "schema.prisma"), []byte("datasource db {}"), 0644))
 
@@ -57,22 +61,19 @@ func TestGenerateLock_WithPrisma(t *testing.T) {
 
 	require.NoError(t, err)
 	active := l.ActiveNodes()
-	assert.True(t, active[plan.StepMigrations])
-	require.NotNil(t, l.ExecutionPlan.Migrations)
-	assert.Equal(t, "prisma", l.ExecutionPlan.Migrations.Tool)
-	assert.Equal(t, "npx prisma migrate deploy", l.ExecutionPlan.Migrations.Command)
-	assert.False(t, l.ExecutionPlan.Migrations.Reversible)
+	assert.False(t, active[plan.StepMigrations], "auto-detected migrations must NOT be added to the lock; declare them in pilot.yaml")
+	assert.Nil(t, l.ExecutionPlan.Migrations)
 }
 
 func TestGenerateLock_WithAlembic(t *testing.T) {
 	dir := t.TempDir()
+	// Auto-detection of alembic.ini is informational only — not added to the lock.
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "alembic.ini"), []byte("[alembic]"), 0644))
 
 	l, err := preflight.GenerateLock(baseConfig(), dir, "prod")
 
 	require.NoError(t, err)
-	require.NotNil(t, l.ExecutionPlan.Migrations)
-	assert.Equal(t, "alembic", l.ExecutionPlan.Migrations.Tool)
+	assert.Nil(t, l.ExecutionPlan.Migrations, "auto-detected migrations must NOT be added to the lock; declare them in pilot.yaml")
 }
 
 func TestGenerateLock_WithDeclaredMigrations(t *testing.T) {

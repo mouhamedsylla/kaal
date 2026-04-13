@@ -199,11 +199,13 @@ func (uc *PreflightUseCase) Execute(ctx context.Context, in Input) (Output, erro
 
 	// ── 5. Compose file (up / deploy) ─────────────────────────────────────
 	if in.Target == TargetUp || in.Target == TargetDeploy {
-		composeFile := filepath.Join(in.ProjectDir, fmt.Sprintf("docker-compose.%s.yml", in.Env))
+		envCfg := cfg.Environments[in.Env]
+		composeBaseName := composeFileNameForEnv(envCfg, in.Env)
+		composeFile := filepath.Join(in.ProjectDir, composeBaseName)
 		if _, err := os.Stat(composeFile); os.IsNotExist(err) {
 			r.add(Check{
 				Name:             "compose_file",
-				Description:      fmt.Sprintf("docker-compose.%s.yml exists", in.Env),
+				Description:      fmt.Sprintf("%s exists", composeBaseName),
 				Status:           StatusError,
 				Message:          fmt.Sprintf("%s not found", composeFile),
 				FixType:          FixAgent,
@@ -213,7 +215,7 @@ func (uc *PreflightUseCase) Execute(ctx context.Context, in Input) (Output, erro
 		} else {
 			r.add(Check{
 				Name:        "compose_file",
-				Description: fmt.Sprintf("docker-compose.%s.yml exists", in.Env),
+				Description: fmt.Sprintf("%s exists", composeBaseName),
 				Status:      StatusOK,
 				Message:     composeFile,
 			})
@@ -509,4 +511,14 @@ func expandHome(path string) string {
 		return path
 	}
 	return filepath.Join(home, path[2:])
+}
+
+// composeFileNameForEnv returns the compose filename for an environment.
+// If envCfg.ComposeFile is set, that value is used directly.
+// Otherwise it falls back to the conventional docker-compose.<env>.yml name.
+func composeFileNameForEnv(envCfg config.Environment, env string) string {
+	if envCfg.ComposeFile != "" {
+		return envCfg.ComposeFile
+	}
+	return fmt.Sprintf("docker-compose.%s.yml", env)
 }

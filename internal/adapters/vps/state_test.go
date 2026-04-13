@@ -10,23 +10,28 @@ import (
 
 func TestComposeFileForEnv(t *testing.T) {
 	cases := []struct {
-		env  string
-		want string
+		env        string
+		composeFile string // envCfg.ComposeFile override
+		want       string
 	}{
-		{"dev", "docker-compose.dev.yml"},
-		{"prod", "docker-compose.prod.yml"},
-		{"staging", "docker-compose.staging.yml"},
+		{"dev", "", "docker-compose.dev.yml"},
+		{"prod", "", "docker-compose.prod.yml"},
+		{"staging", "", "docker-compose.staging.yml"},
+		{"prod", "compose.prod.yml", "compose.prod.yml"},
 	}
 	for _, tc := range cases {
-		got := composeFileForEnv(tc.env)
+		got := composeFileForEnv(tc.composeFile, tc.env)
 		if got != tc.want {
-			t.Errorf("composeFileForEnv(%q) = %q, want %q", tc.env, got, tc.want)
+			t.Errorf("composeFileForEnv(%q, %q) = %q, want %q", tc.composeFile, tc.env, got, tc.want)
 		}
 	}
 }
 
-// composeFileForEnv mirrors the unexported function in the vps package.
-func composeFileForEnv(env string) string {
+// composeFileForEnv mirrors the function in the vps package.
+func composeFileForEnv(override, env string) string {
+	if override != "" {
+		return override
+	}
 	return "docker-compose." + env + ".yml"
 }
 

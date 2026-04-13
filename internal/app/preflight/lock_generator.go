@@ -46,7 +46,8 @@ func GenerateLock(cfg *config.Config, projectDir, env string) (*lock.Lock, error
 	// Use absolute paths so the hash survives directory changes.
 	pilotYaml := filepath.Join(projectDir, "pilot.yaml")
 	sources := []string{pilotYaml}
-	composeFile := filepath.Join(projectDir, fmt.Sprintf("docker-compose.%s.yml", env))
+	composeBaseName := composeFileNameForEnv(envCfg, env)
+	composeFile := filepath.Join(projectDir, composeBaseName)
 	if _, err := os.Stat(composeFile); err == nil {
 		sources = append(sources, composeFile)
 	}
@@ -68,16 +69,28 @@ func GenerateLock(cfg *config.Config, projectDir, env string) (*lock.Lock, error
 	// not on the VPS host (alembic, prisma, etc. live in the image, not on the host).
 	// Wrap the raw migration command: docker compose run --rm <app-service> <cmd>
 	if provider == "compose" && migCfg != nil {
-		composeFile := fmt.Sprintf("docker-compose.%s.yml", env)
-		appService := appServiceName(cfg)
+		// Resolve the service name: explicit > auto-detected > error.
+		appService := ""
+		if envCfg.Migrations != nil && envCfg.Migrations.Service != "" {
+			appService = envCfg.Migrations.Service
+		} else {
+			svc, err := appServiceName(cfg)
+			if err != nil {
+				return nil, fmt.Errorf("lock: migrations: %w", err)
+			}
+			appService = svc
+		}
+
+		// The compose file name on the remote uses the same base name as locally.
+		remoteCompose := fmt.Sprintf("~/pilot/%s", filepath.Base(composeBaseName))
 		migCfg.Command = fmt.Sprintf(
-			"docker compose -f ~/pilot/%s run --rm %s %s",
-			composeFile, appService, migCfg.Command,
+			"docker compose -f %s run --rm %s %s",
+			remoteCompose, appService, migCfg.Command,
 		)
 		if migCfg.RollbackCommand != "" {
 			migCfg.RollbackCommand = fmt.Sprintf(
-				"docker compose -f ~/pilot/%s run --rm %s %s",
-				composeFile, appService, migCfg.RollbackCommand,
+				"docker compose -f %s run --rm %s %s",
+				remoteCompose, appService, migCfg.RollbackCommand,
 			)
 		}
 	}
@@ -402,15 +415,20 @@ func insertBefore(steps []plan.StepName, target, newStep plan.StepName) []plan.S
 	return append(steps, newStep)
 }
 
-// appServiceName returns the name of the first service of type "app" in the config,
-// falling back to "app" if none is found.
-func appServiceName(cfg *config.Config) string {
+// appServiceName returns the name of the first service of type "app" in the config.
+// Returns an error when no service of type "app" is found — callers must handle this
+// by either declaring migrations.service in pilot.yaml or adding a service with type: app.
+func appServiceName(cfg *config.Config) (string, error) {
 	for name, svc := range cfg.Services {
-		if svc.Type == "app" {
-			return name
+		if svc.Type == config.ServiceTypeApp {
+			return name, nil
 		}
 	}
-	return "app"
+	return "", fmt.Errorf(
+		"no service of type %q found in pilot.yaml — cannot determine which container to run migrations in.\n"+
+			"Fix: add 'service: <name>' under environments.<env>.migrations, or add 'type: app' to the relevant service",
+		config.ServiceTypeApp,
+	)
 }
 
 // insertAfter inserts newStep immediately after target in the slice.
