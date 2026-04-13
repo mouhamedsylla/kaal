@@ -318,18 +318,25 @@ var toolPreflight = Tool{
 	Name: "pilot_preflight",
 	Description: `Run pre-flight checks for the deployment pipeline and return an ordered action plan.
 
-CALL THIS FIRST before pilot_push or pilot_deploy. It returns a structured report with:
+MANDATORY RULES:
+- Before pilot_deploy → ALWAYS call preflight with target='deploy'. NEVER use target='push'.
+- Before pilot_push only (no deploy) → call with target='push'.
+- The response includes lock_written (bool). pilot_deploy requires lock_written=true.
+  If lock_written=false, fix the reported issues and re-run preflight with target='deploy'.
+
+Response fields:
 - all_ok: true/false — whether all checks pass
+- lock_written: true if pilot.lock was generated (only possible with target='deploy' and all_ok=true)
 - checks[]: each check with status (ok/error) and fix instructions
 - next_steps[]: ordered action plan tagged [HUMAN] or [AGENT]
 
 For each [HUMAN] step: tell the user exactly what to do and wait for confirmation.
 For each [AGENT] step: call the indicated tool directly.
-Repeat until all_ok is true, then proceed with pilot_push / pilot_deploy.`,
+Repeat until all_ok=true AND lock_written=true, THEN call pilot_deploy.`,
 	InputSchema: InputSchema{
 		Type: "object",
 		Properties: map[string]Property{
-			"target": {Type: "string", Description: "Operation to check for: up | push | deploy (default: deploy)", Enum: []string{"up", "push", "deploy"}},
+			"target": {Type: "string", Description: "Operation to check for: up | push | deploy. Use 'deploy' before pilot_deploy — it generates pilot.lock. Default: deploy", Enum: []string{"up", "push", "deploy"}},
 			"env":    {Type: "string", Description: "Environment (defaults to active env)"},
 		},
 	},

@@ -136,6 +136,16 @@ func resolveMigrationConfig(cfg *config.Config, projectDir, env string) *lock.Mi
 func hashFiles(paths []string) (string, error) {
 	h := sha256.New()
 	for _, p := range paths {
+		info, err := os.Stat(p)
+		if err != nil {
+			if os.IsNotExist(err) {
+				continue
+			}
+			return "", err
+		}
+		if info.IsDir() {
+			continue // directories are tracked by name only, not content
+		}
 		f, err := os.Open(p)
 		if err != nil {
 			if os.IsNotExist(err) {
