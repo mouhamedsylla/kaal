@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	pilotctx "github.com/mouhamedsylla/pilot/internal/mcp/context"
 	pilotenv "github.com/mouhamedsylla/pilot/internal/env"
@@ -44,6 +45,7 @@ func init() {
 }
 
 func runMCPServe(cmd *cobra.Command, _ []string) error {
+	os.Setenv("PILOT_MCP", "1")
 	return mcp.NewServer().Serve(cmd.Context())
 }
 

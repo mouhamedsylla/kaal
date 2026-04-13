@@ -10,7 +10,6 @@ import (
 
 	"github.com/mouhamedsylla/pilot/internal/config"
 	domain "github.com/mouhamedsylla/pilot/internal/domain"
-	"github.com/mouhamedsylla/pilot/pkg/ui"
 )
 
 // Orchestrator implements domain.ExecutionProvider using docker compose.
@@ -126,8 +125,8 @@ func (o *Orchestrator) baseArgs() []string {
 func (o *Orchestrator) run(ctx context.Context, args ...string) error {
 	cmd := exec.CommandContext(ctx, "docker", args...)
 
-	if ui.IsTerminal() {
-		// Interactive terminal: stream docker output directly so the user sees it in real time.
+	if os.Getenv("PILOT_MCP") != "1" {
+		// CLI mode: stream docker output directly so the user sees it in real time.
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		if err := cmd.Run(); err != nil {
@@ -136,8 +135,7 @@ func (o *Orchestrator) run(ctx context.Context, args ...string) error {
 		return nil
 	}
 
-	// MCP / non-interactive mode: capture output to include it in the error.
-	// Never write to os.Stdout in MCP mode — it is the JSON-RPC pipe.
+	// MCP mode: capture output — never write to os.Stdout (JSON-RPC pipe).
 	var buf bytes.Buffer
 	cmd.Stdout = &buf
 	cmd.Stderr = &buf

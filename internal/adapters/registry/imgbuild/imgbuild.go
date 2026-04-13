@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	domain "github.com/mouhamedsylla/pilot/internal/domain"
-	"github.com/mouhamedsylla/pilot/pkg/ui"
 )
 
 // Build runs docker build (or docker buildx build for multi-platform).
@@ -63,12 +62,13 @@ func Push(ctx context.Context, tag string) error {
 	return runDocker(ctx, "push", tag)
 }
 
-// runDocker executes a docker command, streaming output in terminal mode and
-// capturing it in MCP/non-interactive mode (os.Stdout is the JSON-RPC pipe).
+// runDocker executes a docker command, streaming output in CLI mode and
+// capturing it in MCP mode (os.Stdout is the JSON-RPC pipe — never pollute it).
 func runDocker(ctx context.Context, args ...string) error {
 	cmd := exec.CommandContext(ctx, "docker", args...)
 
-	if ui.IsTerminal() {
+	if os.Getenv("PILOT_MCP") != "1" {
+		// CLI mode: stream docker output directly so the user sees it in real time.
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		return cmd.Run()
