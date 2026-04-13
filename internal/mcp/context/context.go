@@ -112,18 +112,21 @@ func (c *ProjectContext) Summary() string {
 	b.WriteString(fmt.Sprintf("Env:      %s\n", c.ActiveEnv))
 
 	b.WriteString("\nServices:\n")
-	for name, svc := range c.Config.Services {
+	// Use ServiceForEnv to reflect per-env overrides (e.g. managed postgres in prod)
+	for name := range c.Config.Services {
+		svc, _ := c.Config.ServiceForEnv(name, c.ActiveEnv)
 		hosting := svc.Hosting
 		if hosting == "" {
 			hosting = "container"
 		}
-		if svc.Port > 0 {
-			b.WriteString(fmt.Sprintf("  %-12s type=%-12s hosting=%-10s port=%d\n",
-				name, svc.Type, hosting, svc.Port))
-		} else {
-			b.WriteString(fmt.Sprintf("  %-12s type=%-12s hosting=%s\n",
-				name, svc.Type, hosting))
+		line := fmt.Sprintf("  %-12s type=%-12s hosting=%s", name, svc.Type, hosting)
+		if svc.Provider != "" {
+			line += fmt.Sprintf(" provider=%s", svc.Provider)
 		}
+		if svc.Port > 0 {
+			line += fmt.Sprintf(" port=%d", svc.Port)
+		}
+		b.WriteString(line + "\n")
 	}
 
 	if len(c.ExistingDockerfiles) > 0 {
@@ -274,7 +277,8 @@ func (c *ProjectContext) managedServices() []managedServiceEntry {
 	sort.Strings(names)
 
 	for _, name := range names {
-		svc := c.Config.Services[name]
+		// Use ServiceForEnv to pick up per-env overrides (e.g. managed in prod, container in dev)
+		svc, _ := c.Config.ServiceForEnv(name, c.ActiveEnv)
 		if svc.Hosting != config.HostingManaged {
 			continue
 		}

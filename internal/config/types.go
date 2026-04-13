@@ -32,13 +32,36 @@ type Service struct {
 
 // Environment describes how a set of services runs in a specific context.
 type Environment struct {
-	Runtime    string      `yaml:"runtime,omitempty"`    // compose | lima | k3d
-	EnvFile    string      `yaml:"env_file,omitempty"`
-	Target     string      `yaml:"target,omitempty"`     // reference to Targets key (non-dev envs)
-	Resources  *Resources  `yaml:"resources,omitempty"`  // local resource constraints mirroring prod
-	Secrets    *SecretsRef `yaml:"secrets,omitempty"`
-	Hooks      *Hooks      `yaml:"hooks,omitempty"`
-	Migrations *Migrations `yaml:"migrations,omitempty"`
+	Runtime          string                      `yaml:"runtime,omitempty"`          // compose | lima | k3d
+	EnvFile          string                      `yaml:"env_file,omitempty"`
+	Target           string                      `yaml:"target,omitempty"`           // reference to Targets key (non-dev envs)
+	Resources        *Resources                  `yaml:"resources,omitempty"`        // local resource constraints mirroring prod
+	Secrets          *SecretsRef                 `yaml:"secrets,omitempty"`
+	Hooks            *Hooks                      `yaml:"hooks,omitempty"`
+	Migrations       *Migrations                 `yaml:"migrations,omitempty"`
+	ServiceOverrides map[string]ServiceOverride  `yaml:"service_overrides,omitempty"` // per-env service config
+}
+
+// ServiceOverride allows a specific environment to change how a service behaves.
+// Only the non-zero fields override the global service definition.
+//
+// Example pilot.yaml:
+//
+//	environments:
+//	  prod:
+//	    service_overrides:
+//	      postgres:
+//	        hosting: managed
+//	        provider: neon
+//	      redis:
+//	        hosting: managed
+//	        provider: upstash
+type ServiceOverride struct {
+	Hosting  string `yaml:"hosting,omitempty"`  // container | managed | local-only
+	Provider string `yaml:"provider,omitempty"` // neon | supabase | upstash | planetscale | ...
+	Version  string `yaml:"version,omitempty"`  // override image version (container only)
+	Image    string `yaml:"image,omitempty"`    // override full image reference
+	Port     int    `yaml:"port,omitempty"`     // override exposed port
 }
 
 // Hooks declares shell commands to run before and after a deploy.
