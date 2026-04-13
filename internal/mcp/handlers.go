@@ -33,6 +33,15 @@ var handleSetup HandlerFunc = handlers.HandleSetup
 // Preflight — implemented
 var handlePreflight HandlerFunc = handlers.HandlePreflight
 
+// Credential set — injects a key=value into the running process + .env.local
+var handleCredentialSet HandlerFunc = handlers.HandleCredentialSet
+
+// Env scaffold — returns variable names from .env.example (read-only, no values)
+var handleEnvScaffold HandlerFunc = handlers.HandleEnvScaffold
+
+// Env create — creates .env.<env> with generated secrets + defaults + documented placeholders
+var handleEnvCreate HandlerFunc = handlers.HandleEnvCreate
+
 // pilot_init — non-interactive, accepts name/stack/services/envs/registry params.
 var handleInit HandlerFunc = handlers.HandleInit
 

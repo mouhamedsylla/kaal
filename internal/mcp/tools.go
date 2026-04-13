@@ -31,6 +31,15 @@ func (s *Server) registerAll() {
 
 	// Preflight — call this before push/deploy
 	s.Register(toolPreflight, handlePreflight)
+
+	// Credential injection — called by pilot-agent after inline user input
+	s.Register(toolCredentialSet, handleCredentialSet)
+
+	// Env scaffold — read-only, returns variable names from .env.example
+	s.Register(toolEnvScaffold, handleEnvScaffold)
+
+	// Env create — creates .env.<env> from .env.example with generated values + docs
+	s.Register(toolEnvCreate, handleEnvCreate)
 }
 
 // ──────────────────── context + infra generation ────────────────────
@@ -350,5 +359,74 @@ var toolSecretsInject = Tool{
 			"provider": {Type: "string", Description: "Secret provider override (local, aws_sm, gcp_sm)"},
 		},
 		Required: []string{"env"},
+	},
+}
+
+var toolCredentialSet = Tool{
+	Name: "pilot_credential_set",
+	Description: `Set a credential or environment variable in the running pilot process and persist it to .env.local.
+
+ALWAYS use this tool (via collect_credential) instead of asking the user to run 'export' commands.
+After this call, the credential is immediately available to pilot_push, pilot_deploy, and all other tools.
+
+Workflow:
+  1. Call collect_credential to prompt the user inline in the terminal.
+  2. collect_credential calls this tool automatically with the value.
+  3. Continue with pilot_push / pilot_deploy — no restart needed.`,
+	InputSchema: InputSchema{
+		Type: "object",
+		Properties: map[string]Property{
+			"key":   {Type: "string", Description: "Environment variable name (e.g. DOCKER_USERNAME, DOCKER_PASSWORD)"},
+			"value": {Type: "string", Description: "The credential value"},
+		},
+		Required: []string{"key", "value"},
+	},
+}
+
+var toolEnvScaffold = Tool{
+	Name: "pilot_env_scaffold",
+	Description: `Return the list of variable NAMES expected for a given environment, sourced from .env.example.
+
+NEVER reads .env.dev or any other env file. No values are returned. No file is created.
+Use this to inform the user what variables are needed, then let them decide:
+  - If they want to configure now → use collect_credential for each missing variable
+  - If they want to skip → proceed with deployment anyway
+
+Returns:
+  - all: all variable names from .env.example
+  - missing: variables not yet set (with secret hint for masking input)
+  - configured: variables already present in .env.<env> or process env
+  - note: human-readable summary`,
+	InputSchema: InputSchema{
+		Type: "object",
+		Properties: map[string]Property{
+			"env": {Type: "string", Description: "Target environment (defaults to active env)"},
+		},
+	},
+}
+
+var toolEnvCreate = Tool{
+	Name: "pilot_env_create",
+	Description: `Create .env.<env> from .env.example with three levels of resolution:
+
+1. GENERATED — cryptographically secure random values for secrets/keys/tokens
+   (JWT_SECRET, APP_SECRET, SIGNING_KEY, WEBHOOK_SECRET, etc.)
+
+2. DEFAULTS — sensible values for common config vars
+   (PORT=8080, APP_ENV=production, LOG_LEVEL=info, REDIS_URL=redis://localhost:6379, etc.)
+
+3. DOCUMENTED PLACEHOLDERS — empty values with exact instructions for external credentials
+   (Google OAuth, GitHub OAuth, Stripe, Supabase, Neon, AWS, Cloudflare, SendGrid, etc.)
+
+The file is created with mode 0600. It is NEVER overwritten if it already exists.
+Values are NEVER copied from other env files (.env.dev, etc.).
+
+After creation, inform the user how many values need manual configuration and suggest
+they open the file — the comments tell them exactly where to get each credential.`,
+	InputSchema: InputSchema{
+		Type: "object",
+		Properties: map[string]Property{
+			"env": {Type: "string", Description: "Target environment (defaults to active env)"},
+		},
 	},
 }

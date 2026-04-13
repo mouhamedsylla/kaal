@@ -1,8 +1,11 @@
 package cmd
 
 import (
-	"github.com/mouhamedsylla/pilot/internal/config"
+	"os"
+
+	"github.com/mouhamedsylla/pilot/internal/adapters/secrets/local"
 	"github.com/mouhamedsylla/pilot/internal/app/runtime"
+	"github.com/mouhamedsylla/pilot/internal/config"
 	"github.com/mouhamedsylla/pilot/internal/scaffold"
 	"github.com/mouhamedsylla/pilot/pkg/ui"
 	"github.com/spf13/cobra"
@@ -47,16 +50,30 @@ func runInit(cmd *cobra.Command, args []string) error {
 	// Attempt registry authentication right after init.
 	// Non-blocking — failure is a warning, not an error.
 	cfg, err := config.Load(".")
-	if err == nil && cfg.Registry.Provider != "" {
-		reg, err := runtime.NewRegistryProvider(cfg)
-		if err == nil {
-			ui.Info("Authenticating to " + cfg.Registry.Provider + "...")
-			if err := reg.Login(cmd.Context()); err != nil {
-				ui.Warn("Registry login failed (you can run it manually later): " + err.Error())
-			} else {
-				ui.Success("Logged in to " + cfg.Registry.Provider)
+	if err != nil || cfg.Registry.Provider == "" {
+		return nil
+	}
+
+	// Load .env.local into the process environment so Login() can read the
+	// credentials that were just written by the wizard.
+	if vars, err := local.ListFile(".env.local"); err == nil {
+		for k, v := range vars {
+			if os.Getenv(k) == "" { // don't override vars already in the shell
+				_ = os.Setenv(k, v)
 			}
 		}
+	}
+
+	reg, err := runtime.NewRegistryProvider(cfg)
+	if err != nil {
+		return nil
+	}
+
+	ui.Info("Authenticating to " + cfg.Registry.Provider + "...")
+	if err := reg.Login(cmd.Context()); err != nil {
+		ui.Warn("Registry login failed (you can run it manually later): " + err.Error())
+	} else {
+		ui.Success("Logged in to " + cfg.Registry.Provider)
 	}
 
 	return nil
