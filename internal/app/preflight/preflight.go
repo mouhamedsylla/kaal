@@ -238,13 +238,14 @@ func (uc *PreflightUseCase) Execute(ctx context.Context, in Input) (Output, erro
 			lockDir = "."
 		}
 		l, genErr := GenerateLock(cfg, in.ProjectDir, in.Env)
-		if genErr == nil {
-			if writeErr := l.Write(lockDir); writeErr == nil {
-				out.LockWritten = true
-				out.LockPath = lockDir + "/pilot.lock"
-			}
+		if genErr != nil {
+			return out, fmt.Errorf("preflight: generate lock: %w", genErr)
 		}
-		// Lock generation failure is non-fatal — report is still valid.
+		if writeErr := l.Write(lockDir); writeErr != nil {
+			return out, fmt.Errorf("preflight: write lock: %w", writeErr)
+		}
+		out.LockWritten = true
+		out.LockPath = lockDir + "/pilot.lock"
 	}
 
 	return out, nil

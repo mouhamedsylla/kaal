@@ -44,5 +44,12 @@ func HandlePreflight(ctx context.Context, params map[string]any) (any, error) {
 		return nil, fmt.Errorf("preflight: %w", err)
 	}
 
-	return out.Report, nil
+	result := map[string]any{
+		"report":       out.Report,
+		"lock_written": out.LockWritten,
+	}
+	if out.LockPath != "" {
+		result["lock_path"] = out.LockPath
+	}
+	return result, nil
 }
