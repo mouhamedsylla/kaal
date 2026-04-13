@@ -41,6 +41,31 @@ Claude Code and Cursor pick up `.mcp.json` automatically — your agent can run 
 
 ---
 
+## bob — the pilot agent
+
+**bob** is pilot's dedicated AI agent. Instead of a chat window, it's a terminal-first REPL that talks directly to pilot via MCP.
+
+```bash
+pip install bob
+bob                 # start the REPL
+```
+
+```
+  ╭────────────────────────────────────────────────────────╮
+  │  ╭─╮╭─╮                                               │
+  │  ╰─╯╰─╯  bob  v0.1                                    │
+  │  █ ▘▝ █  claude-3-5-sonnet  ·  my-api  ·  prod        │
+  │                                                        │
+  │  Décris ce que tu veux faire  ·  Ctrl+D  ·  Ctrl+C    │
+  ╰────────────────────────────────────────────────────────╯
+```
+
+bob knows your `pilot.yaml`, generates missing infra files, manages your env variables without leaking secrets, and deploys — all from a single prompt. Supports Anthropic, OpenAI, DeepSeek and Ollama models.
+
+→ [github.com/mouhamedsylla/bob](https://github.com/mouhamedsylla/bob)
+
+---
+
 ## pilot.yaml
 
 One file expresses intention — pilot infers execution.
