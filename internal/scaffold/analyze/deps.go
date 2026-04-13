@@ -246,9 +246,13 @@ func scanPythonDeps(dir string, h *Hints) {
 	for _, line := range lines {
 		lower := strings.ToLower(strings.TrimSpace(line))
 		// Strip version specifiers: psycopg2>=2.9 → psycopg2
-		lower = strings.FieldsFunc(lower, func(r rune) bool {
+		parts := strings.FieldsFunc(lower, func(r rune) bool {
 			return r == '>' || r == '<' || r == '=' || r == '!' || r == '~' || r == '^' || r == ' '
-		})[0]
+		})
+		if len(parts) == 0 {
+			continue
+		}
+		lower = parts[0]
 		for _, rule := range pyDepRules {
 			if strings.Contains(lower, rule.fragment) {
 				h.addHint(ServiceHint{
