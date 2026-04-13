@@ -108,10 +108,15 @@ func resolveMigrationConfig(cfg *config.Config, projectDir, env string) *lock.Mi
 	}
 	detectors := []detector{
 		{"prisma/schema.prisma", "prisma", "npx prisma migrate deploy"},
+		// Alembic — racine ou sous-dossier migrations/
 		{"alembic.ini", "alembic", "alembic upgrade head"},
+		{"migrations/alembic.ini", "alembic", "alembic upgrade head"},
+		{"migrations/env.py", "alembic", "alembic upgrade head"},
 		{"flyway.conf", "flyway", "flyway migrate"},
-		{"db/migrations", "goose", "goose up"},       // directory
-		{"migrations", "goose", "goose -dir migrations up"}, // directory
+		// Goose — seulement si go.mod présent (projet Go) + dossier db/migrations
+		{"db/migrations", "goose", "goose up"},
+		// NB: "migrations/" seul n'est PAS détecté — trop générique, trop de faux positifs.
+		// Déclare l'outil dans pilot.yaml si nécessaire.
 	}
 
 	for _, d := range detectors {
