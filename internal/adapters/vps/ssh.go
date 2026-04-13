@@ -617,6 +617,22 @@ func (p *Provider) RollbackMigrations(ctx context.Context, tool, rollbackCommand
 	return nil
 }
 
+// Exec runs a single command on the remote VPS via SSH and returns its combined
+// stdout+stderr output. Used by pilot_vps_exec MCP tool.
+func (p *Provider) Exec(ctx context.Context, command string) (string, error) {
+	client, err := p.connect()
+	if err != nil {
+		return "", err
+	}
+	defer client.Close()
+
+	var buf strings.Builder
+	if err := client.RunWithOutput(ctx, command, remoteOutputWriter(&buf)); err != nil {
+		return buf.String(), fmt.Errorf("%w", err)
+	}
+	return buf.String(), nil
+}
+
 // SetupDockerGroup adds the SSH user to the docker group on the remote VPS.
 // Requires password-less sudo on the target (common on cloud VMs).
 func (p *Provider) SetupDockerGroup(ctx context.Context) error {

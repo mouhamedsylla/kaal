@@ -40,6 +40,9 @@ func (s *Server) registerAll() {
 
 	// Env create — creates .env.<env> from .env.example with generated values + docs
 	s.Register(toolEnvCreate, handleEnvCreate)
+
+	// VPS exec — runs a single command on the remote VPS via SSH (always requires human approval)
+	s.Register(toolVpsExec, handleVpsExec)
 }
 
 // ──────────────────── context + infra generation ────────────────────
@@ -435,5 +438,37 @@ they open the file — the comments tell them exactly where to get each credenti
 		Properties: map[string]Property{
 			"env": {Type: "string", Description: "Target environment (defaults to active env)"},
 		},
+	},
+}
+
+var toolVpsExec = Tool{
+	Name: "pilot_vps_exec",
+	Description: `Run a SINGLE command on the remote VPS via SSH.
+
+SECURITY MODEL:
+- This tool ALWAYS requires human confirmation — it cannot be auto-approved.
+- Every execution is logged to .pilot/vps-audit.log with timestamp and output.
+- Dangerous patterns (rm -rf /, dd if=, mkfs, fork bombs...) are blocked unconditionally.
+
+USE ONLY FOR environment setup operations:
+  ✓ Installing missing packages  (sudo apt install -y <pkg>, pip install <pkg>)
+  ✓ Enabling services            (sudo systemctl enable docker)
+  ✓ Creating directories         (mkdir -p ~/pilot/migrations)
+  ✓ Checking tool versions       (goose --version, python --version)
+  ✓ Verifying service status     (systemctl status docker)
+
+DO NOT USE for:
+  ✗ Modifying application data or databases directly
+  ✗ Editing configuration files with sensitive content
+  ✗ Chaining commands with && — make separate calls so the user approves each step
+
+One command per call.`,
+	InputSchema: InputSchema{
+		Type: "object",
+		Properties: map[string]Property{
+			"command": {Type: "string", Description: "Shell command to execute on the remote VPS. Single command only — no && chaining."},
+			"target":  {Type: "string", Description: "Target name from pilot.yaml (optional — defaults to the target of the active env)"},
+		},
+		Required: []string{"command"},
 	},
 }

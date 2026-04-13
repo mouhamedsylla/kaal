@@ -45,5 +45,8 @@ var handleEnvCreate HandlerFunc = handlers.HandleEnvCreate
 // pilot_init — non-interactive, accepts name/stack/services/envs/registry params.
 var handleInit HandlerFunc = handlers.HandleInit
 
+// pilot_vps_exec — runs a single command on the remote VPS via SSH (always destructive).
+var handleVpsExec HandlerFunc = handlers.HandleVpsExec
+
 // ensure context is used
 var _ = context.Background
