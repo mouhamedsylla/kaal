@@ -49,9 +49,9 @@ type request struct {
 
 // response is an outgoing JSON-RPC 2.0 message.
 type response struct {
-	JSONRPC string `json:"jsonrpc"`
-	ID      any    `json:"id,omitempty"`
-	Result  any    `json:"result,omitempty"`
+	JSONRPC string    `json:"jsonrpc"`
+	ID      any       `json:"id"`          // always present — null for parse errors
+	Result  any       `json:"result,omitempty"`
 	Error   *rpcError `json:"error,omitempty"`
 }
 
@@ -90,8 +90,15 @@ func (s *Server) Serve(ctx context.Context) error {
 			continue
 		}
 
+		// JSON-RPC 2.0: notifications have no "id" — never respond to them.
+		if req.ID == nil && req.Method != "" {
+			continue
+		}
+
 		resp := s.dispatch(ctx, &req)
-		s.write(resp)
+		if resp != nil {
+			s.write(resp)
+		}
 	}
 	return scanner.Err()
 }
@@ -107,6 +114,13 @@ func (s *Server) dispatch(ctx context.Context, req *request) *response {
 				"capabilities":    map[string]any{"tools": map[string]any{}},
 				"serverInfo":      map[string]any{"name": "pilot", "version": "0.1.0"},
 			},
+		}
+
+	case "ping":
+		return &response{
+			JSONRPC: "2.0",
+			ID:      req.ID,
+			Result:  map[string]any{},
 		}
 
 	case "tools/list":
