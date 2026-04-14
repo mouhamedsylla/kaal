@@ -266,11 +266,13 @@ func (uc *PreflightUseCase) Execute(ctx context.Context, in Input) (Output, erro
 		if genErr != nil {
 			return out, fmt.Errorf("preflight: generate lock: %w", genErr)
 		}
-		if writeErr := l.Write(lockDir); writeErr != nil {
+		l.Env = in.Env
+		lockName := "pilot." + in.Env + ".lock"
+		if writeErr := l.WriteForEnv(lockDir, in.Env); writeErr != nil {
 			return out, fmt.Errorf("preflight: write lock: %w", writeErr)
 		}
 		out.LockWritten = true
-		out.LockPath = lockDir + "/pilot.lock"
+		out.LockPath = lockDir + "/" + lockName
 	}
 
 	return out, nil

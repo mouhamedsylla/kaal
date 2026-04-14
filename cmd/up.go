@@ -61,6 +61,12 @@ func runUp(cmd *cobra.Command, args []string) error {
 		fmt.Println()
 	}
 
+	if out.StaleCompose != "" {
+		ui.Warn(fmt.Sprintf("%s may be outdated — pilot.yaml changed since it was generated", out.StaleCompose))
+		ui.Dim("  To regenerate: ask your agent \"Regenerate the compose file for " + activeEnv + "\"")
+		fmt.Println()
+	}
+
 	if out.MissingEnvFile != "" {
 		ui.Warn(fmt.Sprintf("%s not found — services may fail to start without required variables", out.MissingEnvFile))
 	}

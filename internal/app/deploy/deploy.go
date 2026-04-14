@@ -195,14 +195,15 @@ func (uc *DeployUseCase) loadLock(in Input) (*lock.Lock, error) {
 		projectDir = "."
 	}
 
-	lck, err := lock.Read(projectDir)
+	lck, err := lock.ReadForEnv(projectDir, in.Env)
 	if err != nil {
 		if errors.Is(err, lock.ErrNotFound) {
 			return nil, fmt.Errorf(
-				"pilot.lock not found\n\n" +
-					"  Run preflight first to generate it:\n" +
-					"    pilot preflight --target deploy\n\n" +
-					"  pilot.lock captures exactly what will run — commit it to your repo.",
+				"pilot.%s.lock not found\n\n"+
+					"  Run preflight first to generate it:\n"+
+					"    pilot preflight --target deploy --env %s\n\n"+
+					"  The lock captures exactly what will run — commit it to your repo.",
+				in.Env, in.Env,
 			)
 		}
 		return nil, fmt.Errorf("read pilot.lock: %w", err)

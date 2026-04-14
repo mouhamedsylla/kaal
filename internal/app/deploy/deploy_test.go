@@ -266,7 +266,7 @@ func TestDeploy_LockNotFound(t *testing.T) {
 	})
 
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "pilot.lock not found")
+	assert.Contains(t, err.Error(), ".lock not found")
 	assert.Contains(t, err.Error(), "pilot preflight")
 }
 

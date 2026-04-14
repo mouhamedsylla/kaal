@@ -28,6 +28,7 @@ type Output struct {
 	IsRemoteEnv    bool   // env has a remote target — cmd/ should warn the user
 	TargetName     string // non-empty when IsRemoteEnv is true
 	MissingEnvFile string // non-empty if the env file is absent (non-blocking)
+	StaleCompose   string // non-empty if compose file may be outdated (warning only, never a blocker)
 }
 
 // MissingComposeError is returned when the compose file doesn't exist.
@@ -92,14 +93,13 @@ func (uc *UpUseCase) Execute(ctx context.Context, in Input) (Output, error) {
 		return Output{}, &MissingComposeError{ComposePath: composePath, Env: in.Env}
 	}
 
-	// Staleness check: if pilot.yaml changed since the compose was generated,
-	// warn the user before they run with an outdated compose.
-	// Non-blocking when no record exists (first run or .pilot/ deleted).
-	if staleness, err := meta.CheckStaleness(projectDir, in.Env); err == nil && staleness.IsStale {
-		return Output{}, &StaleComposeError{Env: in.Env, ComposeFile: composeFile}
-	}
-
+	// Staleness check: advisory only — if pilot.yaml changed since the compose was
+	// generated, surface a warning but never block. The user may have edited the
+	// compose file manually and knows what they're doing.
 	out := Output{Env: in.Env}
+	if staleness, err := meta.CheckStaleness(projectDir, in.Env); err == nil && staleness.IsStale {
+		out.StaleCompose = composeFile
+	}
 
 	if envCfg.Target != "" {
 		out.IsRemoteEnv = true
