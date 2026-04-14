@@ -41,8 +41,12 @@ func (s *Server) registerAll() {
 	// Env create — creates .env.<env> from .env.example with generated values + docs
 	s.Register(toolEnvCreate, handleEnvCreate)
 
-	// VPS exec — runs a single command on the remote VPS via SSH (always requires human approval)
-	s.Register(toolVpsExec, handleVpsExec)
+	// pilot_vps_exec is intentionally NOT registered.
+	// Giving an AI agent arbitrary shell access to the VPS is unsafe by design:
+	// it invites misuse (installing deps on the host, running migrations outside the
+	// container, etc.) and bypasses pilot's deployment model entirely.
+	// If you need a one-off command on the VPS, use: ssh <user>@<host>
+	_ = handleVpsExec // keep the import alive for the handler file
 }
 
 // ──────────────────── context + infra generation ────────────────────

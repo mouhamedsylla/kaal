@@ -454,6 +454,11 @@ func (p *Provider) deployDir() string {
 	if p.target.DeployPath != "" {
 		return p.target.DeployPath
 	}
+	// Default: one directory per project so multiple projects on the same VPS
+	// never collide. ~/pilot/<project-name> — no config needed.
+	if p.cfg.Project.Name != "" {
+		return "~/pilot/" + p.cfg.Project.Name
+	}
 	return "~/pilot"
 }
 

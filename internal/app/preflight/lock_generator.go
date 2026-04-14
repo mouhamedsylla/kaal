@@ -81,8 +81,8 @@ func GenerateLock(cfg *config.Config, projectDir, env string) (*lock.Lock, error
 			appService = svc
 		}
 
-		// The compose file name on the remote uses the same base name as locally.
-		remoteCompose := fmt.Sprintf("~/pilot/%s", filepath.Base(composeBaseName))
+		// The compose file name on the remote: <deployDir>/<basename>.
+		remoteCompose := fmt.Sprintf("%s/%s", remoteDeployDir(cfg, env), filepath.Base(composeBaseName))
 		migCfg.Command = fmt.Sprintf(
 			"docker compose -f %s run --rm %s %s",
 			remoteCompose, appService, migCfg.Command,
@@ -413,6 +413,22 @@ func insertBefore(steps []plan.StepName, target, newStep plan.StepName) []plan.S
 		}
 	}
 	return append(steps, newStep)
+}
+
+// remoteDeployDir returns the directory on the VPS where pilot places project files.
+// Mirrors the logic in internal/adapters/vps/ssh.go:deployDir() — both must stay in sync.
+func remoteDeployDir(cfg *config.Config, env string) string {
+	if envCfg, ok := cfg.Environments[env]; ok {
+		if targetName := envCfg.Target; targetName != "" {
+			if target, ok := cfg.Targets[targetName]; ok && target.DeployPath != "" {
+				return target.DeployPath
+			}
+		}
+	}
+	if cfg.Project.Name != "" {
+		return "~/pilot/" + cfg.Project.Name
+	}
+	return "~/pilot"
 }
 
 // appServiceName returns the name of the first service of type "app" in the config.
