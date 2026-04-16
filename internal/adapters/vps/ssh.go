@@ -220,10 +220,13 @@ func (p *Provider) Sync(ctx context.Context, _ string) error {
 			seenMounts[localSrc] = true
 			info, statErr := os.Stat(localSrc)
 			if statErr != nil {
-				continue // file doesn't exist locally — skip silently
+				ui.Warn(fmt.Sprintf("sync: bind-mount source not found locally: %s", localSrc))
+				ui.Dim("  The file is referenced in your compose file but doesn't exist — it won't be synced.")
+				continue
 			}
 			if info.IsDir() {
-				continue // directories handled separately (not supported yet)
+				ui.Warn(fmt.Sprintf("sync: bind-mount %s is a directory — directory sync not supported yet, skipping", localSrc))
+				continue
 			}
 			// Remote path mirrors the local relative path: <deployDir>/nginx/prod.conf
 			remotePath := fmt.Sprintf("%s/%s", deployDir, strings.TrimPrefix(localSrc, "./"))

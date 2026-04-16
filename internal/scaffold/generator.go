@@ -52,6 +52,10 @@ func Generate(opts Options) error {
 		return err
 	}
 
+	if err := writeEntrypoint(opts.OutputDir, opts.Stack); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -316,4 +320,106 @@ func containsLine(content, line string) bool {
 		}
 	}
 	return false
+}
+
+// writeEntrypoint generates entrypoint.sh adapted to the project stack.
+// The entrypoint runs migrations inside the container before starting the app —
+// this is the recommended pattern: no external coordination needed, pilot just
+// deploys the container and waits for it to be healthy.
+//
+// Does nothing if entrypoint.sh already exists (user may have customized it).
+func writeEntrypoint(dir, stack string) error {
+	path := filepath.Join(dir, "entrypoint.sh")
+	if _, err := os.Stat(path); err == nil {
+		return nil // already exists — preserve user version
+	}
+
+	content := entrypointForStack(stack)
+	if content == "" {
+		return nil // unknown stack — don't generate a broken entrypoint
+	}
+
+	if err := os.WriteFile(path, []byte(content), 0755); err != nil {
+		return fmt.Errorf("write entrypoint.sh: %w", err)
+	}
+	return nil
+}
+
+// entrypointForStack returns the entrypoint.sh content for a given stack.
+// Each template runs migrations (if a tool is detected) then execs the app.
+func entrypointForStack(stack string) string {
+	switch strings.ToLower(stack) {
+	case "python":
+		return `#!/bin/sh
+set -e
+
+# ── Migrations ────────────────────────────────────────────────────────────────
+# Runs automatically before the app starts. The migration tool must be
+# installed in the image (declared in pyproject.toml / requirements.txt).
+#
+# Uncomment the line that matches your migration tool:
+#
+# alembic -c migrations/alembic.ini upgrade head
+# python manage.py migrate          # Django
+# aerich upgrade                    # Tortoise ORM
+
+# ── Start app ─────────────────────────────────────────────────────────────────
+exec "$@"
+`
+	case "go":
+		return `#!/bin/sh
+set -e
+
+# ── Migrations ────────────────────────────────────────────────────────────────
+# Uncomment the line that matches your migration tool:
+#
+# goose -dir migrations up
+# migrate -path migrations -database "$DATABASE_URL" up
+
+# ── Start app ─────────────────────────────────────────────────────────────────
+exec "$@"
+`
+	case "node":
+		return `#!/bin/sh
+set -e
+
+# ── Migrations ────────────────────────────────────────────────────────────────
+# Uncomment the line that matches your migration tool:
+#
+# npx prisma migrate deploy
+# npx knex migrate:latest
+# npx sequelize-cli db:migrate
+
+# ── Start app ─────────────────────────────────────────────────────────────────
+exec "$@"
+`
+	case "ruby":
+		return `#!/bin/sh
+set -e
+
+# ── Migrations ────────────────────────────────────────────────────────────────
+# Uncomment the line that matches your migration tool:
+#
+# bundle exec rails db:migrate
+# bundle exec sequel -m db/migrations "$DATABASE_URL"
+
+# ── Start app ─────────────────────────────────────────────────────────────────
+exec "$@"
+`
+	case "rust":
+		return `#!/bin/sh
+set -e
+
+# ── Migrations ────────────────────────────────────────────────────────────────
+# Uncomment the line that matches your migration tool:
+#
+# sqlx migrate run
+# diesel migration run
+
+# ── Start app ─────────────────────────────────────────────────────────────────
+exec "$@"
+`
+	default:
+		return ""
+	}
 }
