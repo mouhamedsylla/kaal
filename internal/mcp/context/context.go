@@ -171,6 +171,40 @@ func (c *ProjectContext) AgentPrompt() string {
 		}
 	}
 
+	// Existing compose files — critical for understanding what's already configured.
+	if len(c.ExistingComposeFiles) > 0 {
+		b.WriteString("## Existing compose files\n\n")
+		for _, f := range c.ExistingComposeFiles {
+			content, err := os.ReadFile(f)
+			if err == nil {
+				b.WriteString(fmt.Sprintf("### %s\n\n```yaml\n%s```\n\n", f, string(content)))
+			}
+		}
+	}
+
+	// Dependency files — critical for writing accurate Dockerfiles.
+	// The agent must read these to know what packages to install and how.
+	depFiles := []string{
+		"pyproject.toml", "requirements.txt", "requirements-base.txt",
+		"go.mod", "package.json", "Cargo.toml", "Gemfile",
+	}
+	for _, f := range depFiles {
+		content, err := os.ReadFile(f)
+		if err == nil {
+			lang := depFileLang(f)
+			b.WriteString(fmt.Sprintf("## %s\n\n```%s\n%s```\n\n", f, lang, string(content)))
+		}
+	}
+
+	// entrypoint.sh — if it exists, show it so the agent uses it in the Dockerfile.
+	if content, err := os.ReadFile("entrypoint.sh"); err == nil {
+		b.WriteString("## entrypoint.sh\n\n```sh\n")
+		b.WriteString(string(content))
+		b.WriteString("```\n\n")
+		b.WriteString("**IMPORTANT**: this project has an entrypoint.sh. The Dockerfile MUST include:\n")
+		b.WriteString("```dockerfile\nCOPY entrypoint.sh .\nRUN chmod +x entrypoint.sh\nENTRYPOINT [\"./entrypoint.sh\"]\n```\n\n")
+	}
+
 	b.WriteString("## Stack\n\n")
 	b.WriteString(fmt.Sprintf("- Language: %s %s\n", c.Stack, c.LanguageVersion))
 	b.WriteString(fmt.Sprintf("- Active environment: %s\n", c.ActiveEnv))
@@ -553,4 +587,20 @@ func oneOrMany(n int, singular, plural string) string {
 		return singular
 	}
 	return plural
+}
+
+// depFileLang returns the markdown language tag for a dependency file.
+func depFileLang(filename string) string {
+	switch filename {
+	case "pyproject.toml", "Cargo.toml":
+		return "toml"
+	case "go.mod":
+		return "go"
+	case "package.json":
+		return "json"
+	case "Gemfile":
+		return "ruby"
+	default:
+		return ""
+	}
 }

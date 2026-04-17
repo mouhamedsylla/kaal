@@ -66,11 +66,20 @@ func writeMCPJSON(dir string) error {
 	if _, err := os.Stat(path); err == nil {
 		return nil // already exists — preserve user edits
 	}
+	// code-review-graph (https://github.com/tirth8205/code-review-graph) gives
+	// the agent a deep understanding of the project's code structure — imports,
+	// call graphs, dependencies — enabling better Dockerfile and compose generation.
+	// Install: pip install code-review-graph
 	const content = `{
   "mcpServers": {
     "pilot": {
       "command": "pilot",
       "args": ["mcp", "serve"],
+      "cwd": "${workspaceFolder}"
+    },
+    "code-review-graph": {
+      "command": "code-review-graph",
+      "args": ["mcp"],
       "cwd": "${workspaceFolder}"
     }
   }
